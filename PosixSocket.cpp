@@ -95,4 +95,12 @@ doWrite(const unsigned char *data, size_t size)
 	return ::write(d->fd,data,size);
 }
 
+int PosixSocket::doConnect(const SocketAddress *addr) {
+	const PosixSocketAddress *paddr = static_cast<const PosixSocketAddress *>(addr);
+	size_t addr_len = 0;
+	const sockaddr * saddr = paddr->getPosixAddress(&addr_len);
+	return ::connect(d->fd,saddr,addr_len);
+}
+
+
 

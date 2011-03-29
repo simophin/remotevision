@@ -20,6 +20,7 @@ public:
 	PosixSocketAddress (const PosixSocketAddress &);
 
 	void getPosixAddress(sockaddr **addr, size_t *addr_len) const;
+	const sockaddr * getPosixAddress(size_t *addr_len) const;
 	void setPosixAddress(const sockaddr *addr, size_t addr_len);
 
 protected:

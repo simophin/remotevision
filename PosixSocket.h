@@ -24,6 +24,7 @@ protected:
 	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const;
 	virtual const SocketAddress * doGetPeerAddress() const;
+	virtual int doConnect(const SocketAddress *);
 
 private:
 	void init();

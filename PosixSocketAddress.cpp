@@ -8,6 +8,7 @@
 #include "PosixSocketAddress.h"
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 class PosixSocketAddress::PosixSocketAddressImpl {
 public:
@@ -28,7 +29,7 @@ public:
 	~PosixSocketAddressImpl() {
 		::free(address);
 	}
-}
+};
 
 PosixSocketAddress::PosixSocketAddress(const sockaddr *addr, size_t addr_len)
 :d(new PosixSocketAddress::PosixSocketAddressImpl){
@@ -52,6 +53,12 @@ getPosixAddress(sockaddr **addr, size_t *addr_len) const {
 	*addr = (sockaddr *)::malloc(d->addressLength);
 	::memcpy(*addr, d->address, d->addressLength);
 	*addr_len = d->addressLength;
+}
+
+const sockaddr * PosixSocketAddress::
+getPosixAddress(size_t *addr_len) const {
+	if (addr_len) *addr_len = d->addressLength;
+	return d->address;
 }
 
 std::string PosixSocketAddress::

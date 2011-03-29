@@ -21,6 +21,7 @@ public:
 	const SocketAddress * getPeerAddress() const;
 	ssize_t read  (unsigned char *, size_t);
 	ssize_t write (const unsigned char *, size_t);
+	int connect(const SocketAddress *);
 	void close();
 
 protected:
@@ -29,6 +30,7 @@ protected:
 	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const = 0;
 	virtual const SocketAddress * doGetPeerAddress() const = 0;
+	virtual int doConnect(const SocketAddress *) = 0;
 };
 
 #endif /* SOCKET_H_ */
