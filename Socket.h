@@ -10,24 +10,19 @@
 
 #include <boost/noncopyable.hpp>
 #include <string>
+#include "IODevice.h"
 
 class SocketAddress;
-class Socket: public boost::noncopyable {
+class Socket: public boost::noncopyable, public  IODevice{
 public:
 	Socket();
 	virtual ~Socket();
 
 	const SocketAddress * getAddress() const;
 	const SocketAddress * getPeerAddress() const;
-	ssize_t read  (unsigned char *, size_t);
-	ssize_t write (const unsigned char *, size_t);
 	int connect(const SocketAddress *);
-	void close();
 
 protected:
-	virtual ssize_t doRead (unsigned char *, size_t) = 0;
-	virtual ssize_t doWrite (const unsigned char *, size_t) = 0;
-	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const = 0;
 	virtual const SocketAddress * doGetPeerAddress() const = 0;
 	virtual int doConnect(const SocketAddress *) = 0;

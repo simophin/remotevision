@@ -18,7 +18,6 @@ public:
 
 protected:
 	virtual Socket * doAccept(SocketAddress **addr = 0);
-	virtual const SocketAddress * doGetAddress() const;
 	virtual int doBind(const SocketAddress *);
 	virtual int doListen(int);
 };

@@ -1,0 +1,3 @@
+
+ADD_EXECUTABLE(NetworkTest TestNetwork.cpp)
+TARGET_LINK_LIBRARIES(NetworkTest RemoteVision pthread)

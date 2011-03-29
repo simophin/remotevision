@@ -29,6 +29,9 @@ PosixSocket::PosixSocket(int fd)
 	init();
 }
 
+PosixSocket::~PosixSocket() {
+}
+
 void PosixSocket::
 init() {
 	// Get sockname
