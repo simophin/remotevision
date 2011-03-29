@@ -1,0 +1,75 @@
+# Find the FFmpeg library
+#
+# Sets
+#   FFMPEG_FOUND.  If false, don't try to use ffmpeg
+#   FFMPEG_INCLUDE_DIR
+#   FFMPEG_LIBRARIES
+
+SET( FFMPEG_FOUND FALSE)
+
+message("Searcing for FFMPEG library...")
+FIND_PATH( FFMPEG_INCLUDE_DIR 
+    NAMES libavcodec/avcodec.h
+    PATHS /usr/include/ffmpeg /usr/include /usr/local/include
+)
+
+
+IF( FFMPEG_INCLUDE_DIR-NOTFOUND )
+    message("Not found ffmpeg")
+ELSE (FFMPEG_INCLUDE_DIR-NOTFOUND)
+
+message("Found FFMPEG : ${FFMPEG_INCLUDE_DIR}")
+
+FIND_PROGRAM( FFMPEG_CONFIG ffmpeg-config
+  /usr/bin
+  /usr/local/bin
+  ${HOME}/bin
+)
+
+IF( FFMPEG_CONFIG )
+  EXEC_PROGRAM( ${FFMPEG_CONFIG} ARGS "--libs avformat" OUTPUT_VARIABLE FFMPEG_LIBS )
+  SET( FFMPEG_FOUND TRUE)
+  SET( FFMPEG_LIBRARIES "${FFMPEG_LIBS}" )
+  
+ELSE( FFMPEG_CONFIG )
+  
+  
+  FIND_LIBRARY(FFMPEG_avcodec_LIBRARY avcodec)
+  FIND_LIBRARY(FFMPEG_avdevice_LIBRARY avdevice)
+  FIND_LIBRARY(FFMPEG_avformat_LIBRARY avformat)
+  FIND_LIBRARY(FFMPEG_swscale_LIBRARY swscale)
+  FIND_LIBRARY(FFMPEG_avcore_LIBRARY avcore)
+  FIND_LIBRARY(FFMPEG_avutil_LIBRARY avutil)
+  
+  IF(FFMPEG_swscale_LIBRARY) 
+      set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_swscale_LIBRARY})
+  ENDIF()
+  
+  IF(FFMPEG_avdevice_LIBRARY) 
+      set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_avdevice_LIBRARY})
+  ENDIF()
+  
+  IF(FFMPEG_avformat_LIBRARY) 
+      set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_avformat_LIBRARY})
+  ENDIF()
+  
+  IF(FFMPEG_avcodec_LIBRARY) 
+      set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_avcodec_LIBRARY})
+  ENDIF()
+  
+  IF(FFMPEG_avcore_LIBRARY) 
+      set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_avcore_LIBRARY})
+  ENDIF()
+
+  IF(FFMPEG_avutil_LIBRARY) 
+      set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_avutil_LIBRARY})
+  ENDIF()
+
+
+  IF (FFMPEG_LIBRARIES)
+    SET( FFMPEG_FOUND TRUE )
+  ENDIF (FFMPEG_LIBRARIES) 
+  
+
+ENDIF( FFMPEG_CONFIG )
+ENDIF( FFMPEG_INCLUDE_DIR-NOTFOUND )
