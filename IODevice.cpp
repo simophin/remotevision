@@ -23,3 +23,12 @@ void IODevice::close() {
 void IODevice::doClose(){
 
 }
+
+int IODevice::
+poll(IODevice::PollType type, int timeout) {
+	return doPoll(type,timeout);
+}
+
+int IODevice::doPoll(PollType, int) {
+
+}

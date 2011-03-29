@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <sys/poll.h>
 
 const int MAX_ADDRESS_LENGTH = 1024;
 
@@ -105,5 +106,29 @@ int PosixSocket::doConnect(const SocketAddress *addr) {
 	return ::connect(d->fd,saddr,addr_len);
 }
 
+int PosixSocket::
+doPoll(PosixSocket::PollType p, int timeout) {
+	pollfd pfd;
+	pfd.fd = d->fd;
+
+	switch(p){
+	case POLL_READ:{
+		pfd.events = POLLIN;
+		break;
+	}
+
+	case POLL_WRITE:{
+		pfd.events = POLLOUT;
+		break;
+	}
+
+	case POLL_ERROR:{
+		pfd.events = POLLERR;
+		break;
+	}
+	}
+
+	return ::poll(&pfd,1,timeout);
+}
 
 

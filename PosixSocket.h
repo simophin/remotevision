@@ -21,6 +21,7 @@ public:
 protected:
 	virtual ssize_t doRead (unsigned char *, size_t);
 	virtual ssize_t doWrite (const unsigned char *, size_t);
+	virtual int doPoll(PollType,int);
 	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const;
 	virtual const SocketAddress * doGetPeerAddress() const;

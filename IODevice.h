@@ -12,13 +12,21 @@
 
 class IODevice {
 public:
+	typedef enum {
+		POLL_READ,
+		POLL_WRITE,
+		POLL_ERROR,
+	} PollType;
+
 	ssize_t read(unsigned char *, size_t);
 	ssize_t write(const unsigned char *,size_t);
 	void close();
+	int poll(PollType, int timeout);
 
 protected:
 	virtual ssize_t doRead (unsigned char *, size_t) = 0;
 	virtual ssize_t doWrite (const unsigned char *, size_t) = 0;
+	virtual int doPoll(PollType, int);
 	virtual void doClose();
 };
 
