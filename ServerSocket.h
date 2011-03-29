@@ -9,15 +9,18 @@
 #define SERVERSOCKET_H_
 
 class SocketAddress;
+class Socket;
 class ServerSocket {
 public:
 	ServerSocket();
 	virtual ~ServerSocket();
 
-	SocketAddress * accept();
+	int bind (const SocketAddress *);
+	Socket * accept(SocketAddress * addr = 0);
 
 protected:
-	virtual SocketAddress * doAccept() = 0;
+	virtual Socket * doAccept(SocketAddress * addr = 0) = 0;
+	virtual int doBind(const SocketAddress *) = 0;
 };
 
 #endif /* SERVERSOCKET_H_ */

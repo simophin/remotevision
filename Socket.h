@@ -18,6 +18,7 @@ public:
 	virtual ~Socket();
 
 	const SocketAddress * getAddress() const;
+	const SocketAddress * getPeerAddress() const;
 	ssize_t read  (unsigned char *, size_t);
 	ssize_t write (const unsigned char *, size_t);
 	void close();
@@ -27,6 +28,7 @@ protected:
 	virtual ssize_t doWrite (const unsigned char *, size_t) = 0;
 	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const = 0;
+	virtual const SocketAddress * doGetPeerAddress() const = 0;
 };
 
 #endif /* SOCKET_H_ */

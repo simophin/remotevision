@@ -23,6 +23,10 @@ protected:
 	virtual ssize_t doWrite (const unsigned char *, size_t);
 	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const;
+	virtual const SocketAddress * doGetPeerAddress() const;
+
+private:
+	void init();
 
 private:
 	class PosixSocketImpl;

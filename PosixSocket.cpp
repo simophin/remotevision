@@ -8,17 +8,47 @@
 #include "PosixSocket.h"
 #include "PosixSocketAddress.h"
 #include <unistd.h>
+#include <boost/scoped_ptr.hpp>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
+
+const int MAX_ADDRESS_LENGTH = 1024;
 
 class PosixSocket::PosixSocketImpl {
 public:
 	int fd;
-	PosixSocketAddress addr;
+	PosixSocketAddress addr, peerAddr;
 };
 
 PosixSocket::PosixSocket(int fd)
 :d(new PosixSocket::PosixSocketImpl)
 {
 	d->fd = fd;
+	init();
+}
+
+void PosixSocket::
+init() {
+	// Get sockname
+	sockaddr * addr = ((sockaddr *)::malloc(MAX_ADDRESS_LENGTH));
+	size_t addr_len;
+	assert(addr != 0);
+	{
+		addr_len = MAX_ADDRESS_LENGTH;
+		::getsockname(d->fd, addr, &addr_len);
+		assert(addr_len <= MAX_ADDRESS_LENGTH);
+		d->addr.setPosixAddress(addr,addr_len);
+	}
+
+	// Get peername
+	{
+		addr_len = MAX_ADDRESS_LENGTH;
+		::getpeername(d->fd, addr, &addr_len);
+		assert(addr_len <= MAX_ADDRESS_LENGTH);
+		d->peerAddr.setPosixAddress(addr,addr_len);
+	}
 }
 
 
@@ -50,6 +80,12 @@ const SocketAddress *PosixSocket::
 doGetAddress() const
 {
 	return &d->addr;
+}
+
+const SocketAddress *PosixSocket::
+doGetPeerAddress() const
+{
+	return &d->peerAddr;
 }
 
 

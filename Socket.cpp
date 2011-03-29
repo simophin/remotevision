@@ -20,6 +20,11 @@ getAddress() const {
 	return doGetAddress();
 }
 
+const SocketAddress * Socket::
+getPeerAddress() const {
+	return doGetPeerAddress();
+}
+
 ssize_t Socket::
 read(unsigned char *data, size_t size) {
 	return doRead(data,size);

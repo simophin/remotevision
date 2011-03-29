@@ -19,6 +19,7 @@ public:
 protected:
 	virtual SocketAddress * doAccept();
 	virtual const SocketAddress * doGetAddress() const;
+	virtual int doBind(const SocketAddress *);
 };
 
 #endif /* POSIXSERVERSOCKET_H_ */
