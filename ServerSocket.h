@@ -16,11 +16,14 @@ public:
 	virtual ~ServerSocket();
 
 	int bind (const SocketAddress *);
-	Socket * accept(SocketAddress * addr = 0);
+	int listen(int);
+	Socket * accept(SocketAddress ** addr = 0);
+
 
 protected:
-	virtual Socket * doAccept(SocketAddress * addr = 0) = 0;
+	virtual Socket * doAccept(SocketAddress ** addr = 0) = 0;
 	virtual int doBind(const SocketAddress *) = 0;
+	virtual int doListen(int) = 0;
 };
 
 #endif /* SERVERSOCKET_H_ */

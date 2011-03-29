@@ -13,10 +13,14 @@ ServerSocket::ServerSocket() {
 ServerSocket::~ServerSocket() {
 }
 
-Socket * ServerSocket::accept(SocketAddress *addr) {
+Socket * ServerSocket::accept(SocketAddress **addr) {
 	return doAccept(addr);
 }
 
 int ServerSocket::bind(const SocketAddress *addr) {
 	return doBind(addr);
+}
+
+int ServerSocket::listen(int backlog) {
+	return doListen(backlog);
 }
