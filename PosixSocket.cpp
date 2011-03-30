@@ -20,7 +20,15 @@ const int MAX_ADDRESS_LENGTH = 1024;
 class PosixSocket::PosixSocketImpl {
 public:
 	int fd;
-	PosixSocketAddress addr, peerAddr;
+	PosixSocketAddress *addr, *peerAddr;
+
+	~PosixSocketImpl() {
+		if (addr) delete addr;
+		if (peerAddr) delete peerAddr;
+	}
+
+	PosixSocketImpl()
+	:addr(0), peerAddr(0) {}
 };
 
 PosixSocket::PosixSocket(int fd)
@@ -35,6 +43,9 @@ PosixSocket::~PosixSocket() {
 
 void PosixSocket::
 init() {
+	// Address
+	d->peerAddr = createAddress(0,0);
+	d->addr = createAddress(0,0);
 	// Get sockname
 	sockaddr * addr = ((sockaddr *)::malloc(MAX_ADDRESS_LENGTH));
 	size_t addr_len;
@@ -43,7 +54,7 @@ init() {
 		addr_len = MAX_ADDRESS_LENGTH;
 		::getsockname(d->fd, addr, &addr_len);
 		assert(addr_len <= MAX_ADDRESS_LENGTH);
-		d->addr.setPosixAddress(addr,addr_len);
+		d->addr->setPosixAddress(addr,addr_len);
 	}
 
 	// Get peername
@@ -51,7 +62,7 @@ init() {
 		addr_len = MAX_ADDRESS_LENGTH;
 		::getpeername(d->fd, addr, &addr_len);
 		assert(addr_len <= MAX_ADDRESS_LENGTH);
-		d->peerAddr.setPosixAddress(addr,addr_len);
+		d->peerAddr->setPosixAddress(addr,addr_len);
 	}
 }
 
@@ -83,13 +94,13 @@ doClose()
 const SocketAddress *PosixSocket::
 doGetAddress() const
 {
-	return &d->addr;
+	return d->addr;
 }
 
 const SocketAddress *PosixSocket::
 doGetPeerAddress() const
 {
-	return &d->peerAddr;
+	return d->peerAddr;
 }
 
 
@@ -129,6 +140,16 @@ doPoll(PosixSocket::PollType p, int timeout) {
 	}
 
 	return ::poll(&pfd,1,timeout);
+}
+
+PosixSocketAddress * PosixSocket::
+createAddress (const sockaddr *addr, size_t addr_len) {
+	return doCreateAddress(addr,addr_len);
+}
+
+PosixSocket * PosixSocket::
+createInstance(int fd) const {
+	return doCreateInstance(fd);
 }
 
 

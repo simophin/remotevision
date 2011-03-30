@@ -18,11 +18,3 @@ std::string SocketAddress::
 getReadable() const {
 	return doGetReadable();
 }
-std::string SocketAddress::
-getAddress() const {
-	return doGetAddress();
-}
-unsigned int SocketAddress::
-getPort() const {
-	return doGetPort();
-}

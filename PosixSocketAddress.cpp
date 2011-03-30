@@ -48,32 +48,11 @@ PosixSocketAddress::~PosixSocketAddress() {
 	delete d;
 }
 
-void PosixSocketAddress::
-getPosixAddress(sockaddr **addr, size_t *addr_len) const {
-	*addr = (sockaddr *)::malloc(d->addressLength);
-	::memcpy(*addr, d->address, d->addressLength);
-	*addr_len = d->addressLength;
-}
-
 const sockaddr * PosixSocketAddress::
 getPosixAddress(size_t *addr_len) const {
 	if (addr_len) *addr_len = d->addressLength;
 	return d->address;
 }
-
-std::string PosixSocketAddress::
-doGetReadable() const{
-	return std::string();
-}
-std::string PosixSocketAddress::
-doGetAddress() const{
-	return std::string();
-}
-unsigned int PosixSocketAddress::
-doGetPort() const{
-	return 0;
-}
-
 
 void PosixSocketAddress::
 setPosixAddress(const sockaddr *addr, size_t addr_len) {

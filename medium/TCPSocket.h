@@ -14,6 +14,10 @@ class TCPSocket: public PosixSocket {
 public:
 	TCPSocket(int);
 	virtual ~TCPSocket();
+
+protected:
+	virtual PosixSocketAddress *doCreateAddress(const sockaddr *, size_t addr_len);
+	virtual PosixSocket * doCreateInstance(int) const;
 };
 
 #endif /* TCPSOCKET_H_ */

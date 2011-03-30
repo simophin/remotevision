@@ -19,14 +19,11 @@ public:
 	virtual ~PosixSocketAddress();
 	PosixSocketAddress (const PosixSocketAddress &);
 
-	void getPosixAddress(sockaddr **addr, size_t *addr_len) const;
 	const sockaddr * getPosixAddress(size_t *addr_len) const;
 	void setPosixAddress(const sockaddr *addr, size_t addr_len);
 
 protected:
-	virtual std::string doGetReadable() const;
-	virtual std::string doGetAddress() const;
-	virtual unsigned int doGetPort() const;
+	virtual std::string doGetReadable() const = 0;
 
 private:
 	class PosixSocketAddressImpl;

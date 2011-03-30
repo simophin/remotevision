@@ -26,6 +26,12 @@ public:
 	void setAddress(const std::string &,unsigned int);
 	void setPort(unsigned int);
 
+	unsigned int getPort() const;
+	std::string getAddress() const;
+
+protected:
+	virtual std::string doGetReadable() const;
+
 private:
 	void init();
 

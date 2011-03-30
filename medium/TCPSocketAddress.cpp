@@ -15,6 +15,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <iosfwd>
+#include <streambuf>
+#include <string>
+#include <boost/cast.hpp>
+#include <boost/lexical_cast.hpp>
+
 class TCPSocketAddress::TCPSocketAddressImpl {
 };
 
@@ -40,6 +46,27 @@ TCPSocketAddress::TCPSocketAddress(const TCPSocketAddress &rhs)
 
 TCPSocketAddress::~TCPSocketAddress() {
 	delete d;
+}
+
+std::string TCPSocketAddress::doGetReadable() const
+{
+	std::string ret = getAddress();
+	ret += ":";
+	ret += boost::lexical_cast<std::string>(getAddress());
+	return ret;
+}
+
+unsigned int TCPSocketAddress::getPort() const {
+	size_t addr_len;
+	const sockaddr_in * addr = (sockaddr_in *)getPosixAddress(&addr_len);
+	assert(addr != 0);
+	return ::ntohs(addr->sin_port);
+}
+std::string TCPSocketAddress::getAddress() const {
+	size_t addr_len;
+	const sockaddr_in * addr = (sockaddr_in *)getPosixAddress(&addr_len);
+	assert(addr != 0);
+	return std::string(inet_ntoa(addr->sin_addr));
 }
 
 void TCPSocketAddress::init() {

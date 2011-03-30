@@ -16,13 +16,9 @@ public:
 	virtual ~SocketAddress();
 
 	std::string getReadable() const;
-	std::string getAddress() const;
-	unsigned int getPort() const;
 
 protected:
 	virtual std::string doGetReadable() const = 0;
-	virtual std::string doGetAddress() const = 0;
-	virtual unsigned int doGetPort() const = 0;
 };
 
 #endif /* SOCKETADDRESS_H_ */
