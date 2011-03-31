@@ -46,6 +46,7 @@ endif()
 # Files
 FILE(GLOB SOURCES *.cpp)
 ADD_SUBDIRECTORY(medium)
+ADD_SUBDIRECTORY(platform)
 ADD_LIBRARY(RemoteVision SHARED ${SOURCES})
 
 ADD_SUBDIRECTORY(test)
