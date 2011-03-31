@@ -17,10 +17,10 @@ TCPServerSocket::TCPServerSocket(int fd)
 TCPServerSocket::~TCPServerSocket() {
 }
 PosixSocketAddress *TCPServerSocket::
-doCreateAddress(const sockaddr *addr, size_t addr_len) {
+createAddressInstance(const sockaddr *addr, size_t addr_len) const{
 	return new TCPSocketAddress(addr,addr_len);
 }
 PosixSocket * TCPServerSocket::
-doCreateInstance(int fd) const {
+createInstance(int fd) const {
 	return new TCPServerSocket(fd);
 }

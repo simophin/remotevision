@@ -43,27 +43,7 @@ PosixSocket::~PosixSocket() {
 
 void PosixSocket::
 init() {
-	// Address
-	d->peerAddr = createAddress(0,0);
-	d->addr = createAddress(0,0);
-	// Get sockname
-	sockaddr * addr = ((sockaddr *)::malloc(MAX_ADDRESS_LENGTH));
-	size_t addr_len;
-	assert(addr != 0);
-	{
-		addr_len = MAX_ADDRESS_LENGTH;
-		::getsockname(d->fd, addr, &addr_len);
-		assert(addr_len <= MAX_ADDRESS_LENGTH);
-		d->addr->setPosixAddress(addr,addr_len);
-	}
 
-	// Get peername
-	{
-		addr_len = MAX_ADDRESS_LENGTH;
-		::getpeername(d->fd, addr, &addr_len);
-		assert(addr_len <= MAX_ADDRESS_LENGTH);
-		d->peerAddr->setPosixAddress(addr,addr_len);
-	}
 }
 
 
@@ -94,12 +74,39 @@ doClose()
 const SocketAddress *PosixSocket::
 doGetAddress() const
 {
+	if (d->addr == 0) {
+		// Get sockname
+		sockaddr * addr = ((sockaddr *)::malloc(MAX_ADDRESS_LENGTH));
+		size_t addr_len;
+		assert(addr != 0);
+		{
+			addr_len = MAX_ADDRESS_LENGTH;
+			::getsockname(d->fd, addr, &addr_len);
+			assert(addr_len <= MAX_ADDRESS_LENGTH);
+			d->addr = createAddressInstance(addr,addr_len);
+			::free(addr);
+		}
+		assert(d->addr != 0);
+	}
+
 	return d->addr;
 }
 
 const SocketAddress *PosixSocket::
 doGetPeerAddress() const
 {
+	if (d->peerAddr == 0){
+		// Get peername
+		sockaddr * addr = ((sockaddr *)::malloc(MAX_ADDRESS_LENGTH));
+		size_t addr_len = MAX_ADDRESS_LENGTH;
+		{
+			::getpeername(d->fd, addr, &addr_len);
+			assert(addr_len <= MAX_ADDRESS_LENGTH);
+			d->peerAddr = createAddressInstance(addr,addr_len);
+			::free(addr);
+		}
+		assert(d->peerAddr != 0);
+	}
 	return d->peerAddr;
 }
 
@@ -140,16 +147,6 @@ doPoll(PosixSocket::PollType p, int timeout) {
 	}
 
 	return ::poll(&pfd,1,timeout);
-}
-
-PosixSocketAddress * PosixSocket::
-createAddress (const sockaddr *addr, size_t addr_len) {
-	return doCreateAddress(addr,addr_len);
-}
-
-PosixSocket * PosixSocket::
-createInstance(int fd) const {
-	return doCreateInstance(fd);
 }
 
 

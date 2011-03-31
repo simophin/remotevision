@@ -19,8 +19,9 @@ public:
 	virtual ~PosixSocket();
 
 	int getFileDescriptor() const;
-	PosixSocketAddress * createAddress (const sockaddr *, size_t addr_len);
-	PosixSocket * createInstance(int) const;
+
+	virtual PosixSocketAddress * createAddressInstance (const sockaddr *, size_t addr_len) const= 0;
+	virtual PosixSocket * createInstance(int) const = 0;
 
 protected:
 	virtual ssize_t doRead (unsigned char *, size_t);
@@ -30,8 +31,6 @@ protected:
 	virtual const SocketAddress * doGetAddress() const;
 	virtual const SocketAddress * doGetPeerAddress() const;
 	virtual int doConnect(const SocketAddress *);
-	virtual PosixSocketAddress *doCreateAddress(const sockaddr *, size_t addr_len) = 0;
-	virtual PosixSocket * doCreateInstance(int) const = 0;
 
 private:
 	void init();

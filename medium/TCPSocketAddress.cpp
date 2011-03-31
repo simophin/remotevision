@@ -52,7 +52,7 @@ std::string TCPSocketAddress::doGetReadable() const
 {
 	std::string ret = getAddress();
 	ret += ":";
-	ret += boost::lexical_cast<std::string>(getAddress());
+	ret += boost::lexical_cast<std::string>(getPort());
 	return ret;
 }
 

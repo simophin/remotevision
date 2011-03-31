@@ -15,9 +15,8 @@ public:
 	TCPSocket(int);
 	virtual ~TCPSocket();
 
-protected:
-	virtual PosixSocketAddress *doCreateAddress(const sockaddr *, size_t addr_len);
-	virtual PosixSocket * doCreateInstance(int) const;
+	virtual PosixSocketAddress * createAddressInstance (const sockaddr *, size_t addr_len) const;
+	virtual PosixSocket * createInstance(int) const;
 };
 
 #endif /* TCPSOCKET_H_ */

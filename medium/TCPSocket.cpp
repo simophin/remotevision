@@ -16,10 +16,10 @@ TCPSocket::TCPSocket(int fd)
 TCPSocket::~TCPSocket() {
 }
 
-PosixSocketAddress *TCPSocket::doCreateAddress(const sockaddr *ret, size_t addr_len) {
+PosixSocketAddress *TCPSocket::createAddressInstance(const sockaddr *ret, size_t addr_len) const{
 	return new TCPSocketAddress(ret,addr_len);
 }
 
-PosixSocket * TCPSocket::doCreateInstance(int fd) const {
+PosixSocket * TCPSocket::createInstance(int fd) const {
 	return new TCPSocket(fd);
 }

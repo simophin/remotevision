@@ -35,7 +35,7 @@ doAccept(SocketAddress **accepted_addr){
 	{
 		ret = createInstance(fd);
 		if (accepted_addr) {
-			*accepted_addr = ret->createAddress(addr,addr_len);
+			*accepted_addr = ret->createAddressInstance(addr,addr_len);
 		}
 	}
 
