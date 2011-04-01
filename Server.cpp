@@ -8,12 +8,15 @@
 #include "Server.h"
 #include "IODevice.h"
 #include "Thread.h"
+#include "CommandReader.h"
 
 #include <assert.h>
+#include <memory>
 
 class Server::ServerImpl: public Thread {
 public:
 	IODevice *controlDevice, *dataDevice;
+	CommandReader cmdReader;
 
 	void entry();
 };
@@ -22,8 +25,8 @@ Server::
 Server(IODevice *ctrl_device, IODevice *data_device)
 :d(new Server::ServerImpl)
 {
-	d->controlDevice = ctrl_device;
-	d->dataDevice = data_device;
+	setDataDevice(data_device);
+	setControlDevice(ctrl_device);
 }
 
 Server::~Server() {
@@ -56,6 +59,7 @@ getControlDevice() const
 void Server::
 stop(int ms)
 {
+	d->stop(ms);
 }
 
 
@@ -64,6 +68,7 @@ void Server::
 setControlDevice(IODevice *device)
 {
 	d->controlDevice = device;
+	d->cmdReader.setDevice(device);
 }
 
 
