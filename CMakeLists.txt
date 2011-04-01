@@ -25,8 +25,8 @@ set(BUILD_APPLE TRUE)
 endif()
 
 # Find some necessary packages
-find_package(FFMPEG REQUIRED)
-find_package(Protobuf REQUIRED)
+#find_package(FFMPEG REQUIRED)
+#find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED)
 
 # Setup includes

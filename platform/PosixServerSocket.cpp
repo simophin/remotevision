@@ -27,7 +27,7 @@ doAccept(SocketAddress **accepted_addr){
 	size_t addr_len = 0;
 	PosixSocket *ret = 0;
 
-	int fd = ::accept(getFileDescriptor(),addr,&addr_len);
+	int fd = ::accept(getFileDescriptor(),addr,(socklen_t *)&addr_len);
 	if (fd < 0) {
 		goto error_out;
 	}

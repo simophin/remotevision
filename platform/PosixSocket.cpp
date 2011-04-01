@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <sys/poll.h>
+#include <stdlib.h>
 
 const int MAX_ADDRESS_LENGTH = 1024;
 
@@ -81,7 +82,7 @@ doGetAddress() const
 		assert(addr != 0);
 		{
 			addr_len = MAX_ADDRESS_LENGTH;
-			::getsockname(d->fd, addr, &addr_len);
+			::getsockname(d->fd, addr, (socklen_t *)&addr_len);
 			assert(addr_len <= MAX_ADDRESS_LENGTH);
 			d->addr = createAddressInstance(addr,addr_len);
 			::free(addr);
@@ -100,7 +101,7 @@ doGetPeerAddress() const
 		sockaddr * addr = ((sockaddr *)::malloc(MAX_ADDRESS_LENGTH));
 		size_t addr_len = MAX_ADDRESS_LENGTH;
 		{
-			::getpeername(d->fd, addr, &addr_len);
+			::getpeername(d->fd, addr, (socklen_t *)&addr_len);
 			assert(addr_len <= MAX_ADDRESS_LENGTH);
 			d->peerAddr = createAddressInstance(addr,addr_len);
 			::free(addr);
