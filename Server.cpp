@@ -9,6 +9,9 @@
 #include "IODevice.h"
 #include "Thread.h"
 #include "CommandReader.h"
+#include "CommandMgr.h"
+#include "CommandContext.h"
+#include "Command.h"
 
 #include <assert.h>
 #include <memory>
@@ -17,6 +20,7 @@ class Server::ServerImpl: public Thread {
 public:
 	IODevice *controlDevice, *dataDevice;
 	CommandReader cmdReader;
+	CommandContext cmdCtx;
 
 	void entry();
 };
@@ -27,6 +31,8 @@ Server(IODevice *ctrl_device, IODevice *data_device)
 {
 	setDataDevice(data_device);
 	setControlDevice(ctrl_device);
+	d->cmdCtx.server = this;
+	d->cmdCtx.client = 0;
 }
 
 Server::~Server() {
@@ -36,6 +42,7 @@ void Server::
 setDataDevice(IODevice *device)
 {
 	d->dataDevice = device;
+	d->cmdCtx.dataDevice = device;
 }
 
 
@@ -69,6 +76,7 @@ setControlDevice(IODevice *device)
 {
 	d->controlDevice = device;
 	d->cmdReader.setDevice(device);
+	d->cmdCtx.controlDevice = device;
 }
 
 
@@ -83,5 +91,13 @@ start()
 
 
 void Server::ServerImpl::entry() {
-
+	int rc;
+	while(!shouldStop()) {
+		rc = controlDevice->poll(IODevice::POLL_READ, 500);
+		if (rc < 0) break;
+		else if (rc == 0) continue;
+		Command *raw_cmd = cmdReader.readCommand();
+		CommandMgr::handleCommand(raw_cmd,&cmdCtx);
+		delete raw_cmd;
+	}
 }

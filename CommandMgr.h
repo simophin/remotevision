@@ -17,7 +17,7 @@ typedef void (*CommandHandler) (Command *, const CommandContext *);
 
 class CommandMgr {
 public:
-	static void handleCommand (Command *);
+	static void handleCommand (Command *, const CommandContext *);
 	static void registerCommandHandler (const std::string &name, CommandHandler);
 };
 

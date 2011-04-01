@@ -9,6 +9,7 @@
 #include "Command.h"
 
 #include <list>
+#include <utility>
 #include <boost/unordered_map.hpp>
 
 typedef std::list<CommandHandler> CommandHandlerList;
@@ -17,11 +18,16 @@ typedef boost::unordered_map<std::string, CommandHandlerList> CommandMap;
 static CommandMap commandMap;
 
 void CommandMgr::
-handleCommand(Command *cmd)
+handleCommand(Command *cmd, const CommandContext *ctx)
 {
 	CommandMap::const_iterator found = commandMap.find(cmd->getName());
 	if (found == commandMap.end()) return;
-	CommandHandlerList hlist = found.second;
+	CommandHandlerList hlist = found->second;
+	for (CommandHandlerList::const_iterator i = hlist.begin();
+			i != hlist.end();
+			++ i) {
+		(*i)(cmd,ctx);
+	}
 }
 
 
@@ -29,5 +35,6 @@ handleCommand(Command *cmd)
 void CommandMgr::
 registerCommandHandler(const std::string & name, CommandHandler handler)
 {
+	commandMap[name].push_back(handler);
 }
 
