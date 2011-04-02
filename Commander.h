@@ -5,27 +5,28 @@
  *      Author: simophin
  */
 
-#ifndef COMMANDREADER_H_
-#define COMMANDREADER_H_
+#ifndef COMMANDER_H_
+#define COMMANDER_H_
 
 #include <boost/noncopyable.hpp>
 #include <memory>
 
 class IODevice;
 class Command;
-class CommandReader: public boost::noncopyable {
+class Commander: public boost::noncopyable {
 public:
-	CommandReader(IODevice *device = 0);
-	virtual ~CommandReader();
+	Commander(IODevice *device = 0);
+	virtual ~Commander();
 
 	void setDevice(IODevice *);
 	IODevice *getDevice() const;
 
 	Command *readCommand();
+	int writeCommand (const Command *);
 
 private:
 	class Impl;
 	std::auto_ptr<Impl> d;
 };
 
-#endif /* COMMANDREADER_H_ */
+#endif /* COMMANDER_H_ */

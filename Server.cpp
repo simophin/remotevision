@@ -8,7 +8,7 @@
 #include "Server.h"
 #include "IODevice.h"
 #include "Thread.h"
-#include "CommandReader.h"
+#include "Commander.h"
 #include "CommandMgr.h"
 #include "CommandContext.h"
 #include "Command.h"
@@ -19,7 +19,7 @@
 class Server::ServerImpl: public Thread {
 public:
 	IODevice *controlDevice, *dataDevice;
-	CommandReader cmdReader;
+	Commander cmdExe;
 	CommandContext cmdCtx;
 
 	void entry();
@@ -75,7 +75,7 @@ void Server::
 setControlDevice(IODevice *device)
 {
 	d->controlDevice = device;
-	d->cmdReader.setDevice(device);
+	d->cmdExe.setDevice(device);
 	d->cmdCtx.controlDevice = device;
 }
 
@@ -96,7 +96,7 @@ void Server::ServerImpl::entry() {
 		rc = controlDevice->poll(IODevice::POLL_READ, 500);
 		if (rc < 0) break;
 		else if (rc == 0) continue;
-		Command *raw_cmd = cmdReader.readCommand();
+		Command *raw_cmd = cmdExe.readCommand();
 		CommandMgr::handleCommand(raw_cmd,&cmdCtx);
 		delete raw_cmd;
 	}

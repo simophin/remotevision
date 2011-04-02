@@ -5,7 +5,7 @@
  *      Author: simophin
  */
 
-#include "CommandReader.h"
+#include "Commander.h"
 #include "Command.h"
 #include "IODevice.h"
 #include "Protocol.h"
@@ -14,35 +14,38 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <sstream>
 #include <string>
 #include <list>
 
 #include <boost/algorithm/string.hpp>
 
-class CommandReader::Impl {
+
+class Commander::Impl {
 public:
 	IODevice *device;
 };
 
-CommandReader::CommandReader(IODevice *device)
-:d(new CommandReader::Impl){
+Commander::Commander(IODevice *device)
+:d(new Commander::Impl){
 	setDevice(device);
 }
 
-CommandReader::~CommandReader() {
+Commander::~Commander() {
 
 }
 
-void CommandReader::setDevice(IODevice *device) {
+void Commander::setDevice(IODevice *device) {
 	d->device = device;
 }
 
-IODevice *CommandReader::
+IODevice *Commander::
 getDevice() const {
 	return d->device;
 }
 
-Command *CommandReader::
+Command *Commander::
 readCommand() {
 	IODevice *dd = d->device;
 	Command *ret = NULL;
@@ -91,4 +94,18 @@ readCommand() {
 	out:
 	if (buf) ::free(buf);
 	return ret;
+}
+
+int Commander::
+writeCommand (const Command * cmd) {
+	IODevice *dd = d->device;
+	Command *ret = NULL;
+	assert(dd != 0);
+
+	CommandHeader hdr;
+	std::stringbuf buf;
+	// Write header
+	{
+
+	}
 }
