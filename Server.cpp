@@ -97,7 +97,7 @@ void Server::ServerImpl::entry() {
 		if (rc < 0) break;
 		else if (rc == 0) continue;
 		Command *raw_cmd = cmdExe.readCommand();
-		CommandMgr::handleCommand(raw_cmd,&cmdCtx);
+		CommandMgr::getInstance()->handleCommand(raw_cmd,&cmdCtx);
 		delete raw_cmd;
 	}
 }

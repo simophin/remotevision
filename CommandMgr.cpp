@@ -7,34 +7,53 @@
 
 #include "CommandMgr.h"
 #include "Command.h"
+#include "CommandHandler.h"
 
 #include <list>
 #include <utility>
 #include <boost/unordered_map.hpp>
 
-typedef std::list<CommandHandler> CommandHandlerList;
+typedef std::list<CommandHandler *> CommandHandlerList;
 typedef boost::unordered_map<std::string, CommandHandlerList> CommandMap;
 
-static CommandMap commandMap;
+static CommandMgr * INSTANCE = NULL;
+
+class CommandMgr::Impl {
+public:
+	CommandMap commandMap;
+};
+
+CommandMgr::CommandMgr()
+:d(new CommandMgr::Impl) {
+	INSTANCE = this;
+}
+
+CommandMgr::~CommandMgr() {
+	delete d;
+}
 
 void CommandMgr::
 handleCommand(Command *cmd, const CommandContext *ctx)
 {
-	CommandMap::const_iterator found = commandMap.find(cmd->getName());
-	if (found == commandMap.end()) return;
+	CommandMap::const_iterator found = d->commandMap.find(cmd->getName());
+	if (found == d->commandMap.end()) return;
 	CommandHandlerList hlist = found->second;
 	for (CommandHandlerList::const_iterator i = hlist.begin();
 			i != hlist.end();
 			++ i) {
-		(*i)(cmd,ctx);
+		(*i)->onHandle(cmd,ctx);
 	}
 }
 
 
 
 void CommandMgr::
-registerCommandHandler(const std::string & name, CommandHandler handler)
+registerCommandHandler(const std::string & name, CommandHandler *handler)
 {
-	commandMap[name].push_back(handler);
+	d->commandMap[name].push_back(handler);
 }
 
+CommandMgr * CommandMgr::
+getInstance() {
+	return INSTANCE;
+}

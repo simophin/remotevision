@@ -12,13 +12,20 @@
 
 class Command;
 class CommandContext;
-
-typedef void (*CommandHandler) (Command *, const CommandContext *);
+class CommandHandler;
 
 class CommandMgr {
 public:
-	static void handleCommand (Command *, const CommandContext *);
-	static void registerCommandHandler (const std::string &name, CommandHandler);
+	CommandMgr();
+	~CommandMgr();
+	void handleCommand (Command *, const CommandContext *);
+	void registerCommandHandler (const std::string &name, CommandHandler *);
+
+	static CommandMgr * getInstance();
+
+private:
+	class Impl;
+	Impl *d;
 };
 
 #endif /* COMMANDMGR_H_ */
