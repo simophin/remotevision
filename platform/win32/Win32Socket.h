@@ -14,6 +14,11 @@ class Win32Socket: public Socket {
 public:
 	Win32Socket();
 	virtual ~Win32Socket();
+
+protected:
+	virtual const SocketAddress * doGetAddress() const;
+	virtual const SocketAddress * doGetPeerAddress() const;
+	virtual int doConnect(const SocketAddress *);
 };
 
 #endif /* WIN32SOCKET_H_ */
