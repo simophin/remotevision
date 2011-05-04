@@ -9,12 +9,12 @@
 #define VIDEOCODEC_H_
 
 #include "codecs/VideoCodecId.h"
-#include "PixelFormat.h"
+#include "ImageFormat.h"
 
 class VideoCodec {
 public:
 	VideoCodecId codecId;
-	PixelFormat pixelFormat;
+	ImageFormat pixelFormat;
 };
 
 #endif /* VIDEOCODEC_H_ */

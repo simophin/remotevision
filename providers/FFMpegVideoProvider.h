@@ -16,6 +16,11 @@ public:
 	virtual ~FFMpegVideoProvider();
 
 	virtual VideoInfo queryInfo() const = 0;
+
+	class Impl;
+private:
+	void init();
+	Impl *d;
 };
 
 #endif /* FFMPEGVIDEOPROVIDER_H_ */

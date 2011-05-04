@@ -11,8 +11,8 @@
 struct Geometry {
 	int width, height;
 
-	Geometry()
-	:width(0), height(0) {
+	Geometry(int w = 0, int h = 0)
+	:width(w), height(h) {
 
 	}
 };
