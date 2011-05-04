@@ -11,11 +11,13 @@
 class IODevice;
 class Server;
 class Client;
+class VideoProvider;
 class CommandContext {
 public:
 	IODevice *controlDevice, *dataDevice;
 	Server *server;
 	Client *client;
+	VideoProvider *videoProvider;
 
 	CommandContext(IODevice *ctrl = 0,
 			IODevice *data = 0,

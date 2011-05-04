@@ -25,7 +25,7 @@ set(BUILD_APPLE TRUE)
 endif()
 
 # Find some necessary packages
-#find_package(FFMPEG REQUIRED)
+find_package(FFMPEG REQUIRED)
 #find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED)
 
@@ -47,6 +47,8 @@ endif()
 FILE(GLOB SOURCES *.cpp)
 ADD_SUBDIRECTORY(medium)
 ADD_SUBDIRECTORY(platform)
+ADD_SUBDIRECTORY(commands)
+ADD_SUBDIRECTORY(providers)
 ADD_LIBRARY(RemoteVision SHARED ${SOURCES})
 TARGET_LINK_LIBRARIES(RemoteVision ${DEPEND_LIBS})
 
