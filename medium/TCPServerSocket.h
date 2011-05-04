@@ -8,7 +8,7 @@
 #ifndef TCPSERVERSOCKET_H_
 #define TCPSERVERSOCKET_H_
 
-#include "platform/PosixServerSocket.h"
+#include "platform/posix/PosixServerSocket.h"
 
 class TCPSocketAddress;
 class TCPServerSocket: public PosixServerSocket {

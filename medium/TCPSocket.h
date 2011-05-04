@@ -8,7 +8,7 @@
 #ifndef TCPSOCKET_H_
 #define TCPSOCKET_H_
 
-#include "platform/PosixSocket.h"
+#include "platform/posix/PosixSocket.h"
 
 class TCPSocket: public PosixSocket {
 public:

@@ -8,7 +8,7 @@
 #ifndef TCPSOCKETADDRESS_H_
 #define TCPSOCKETADDRESS_H_
 
-#include "platform/PosixSocketAddress.h"
+#include "platform/posix/PosixSocketAddress.h"
 #include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
