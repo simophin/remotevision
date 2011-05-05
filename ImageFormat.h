@@ -10,7 +10,7 @@
 
 typedef enum {
 	IF_INVALID = -1,
-	IF_JPEG,
+	IF_YUV420P,
 } ImageFormat;
 
 #endif /* IMAGEFORMAT_H_ */

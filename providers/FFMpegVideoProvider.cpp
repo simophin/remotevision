@@ -22,6 +22,28 @@ extern "C" {
 #define ARRAY_SIZE(x) (sizeof((x))/sizeof((x[0])))
 #endif
 
+struct ID_CONV_TABLE_T {
+	VideoCodecId rid;
+	CodecID fid;
+};
+
+struct PIX_CONV_TABLE_T {
+	ImageFormat rfmt;
+	PixelFormat ffmt;
+};
+
+static ID_CONV_TABLE_T ID_CONV_TABLE[] = {
+		{ VCODEC_INVALID, CODEC_ID_NONE },
+		{ VCODEC_FLV, 	CODEC_ID_FLV1 },
+		{ VCODEC_MJPEG, CODEC_ID_MJPEG },
+		{ VCODEC_RAW,	CODEC_ID_RAWVIDEO },
+};
+
+static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
+		{ IF_INVALID, PIX_FMT_NONE },
+		{ IF_YUV420P, PIX_FMT_YUV420P },
+};
+
 struct Geometry SUPPORTTED_GEOMETRIES[] = {
 		{320,240},
 };
@@ -54,6 +76,14 @@ queryInfo() const {
 			info->supportedGeometry.push_back(SUPPORTTED_GEOMETRIES[i]);
 		}
 
+		AVCodec *codec = NULL;
+		while ((codec = av_codec_next(codec)) != NULL) {
+			VideoCodec vcodec;
+			vcodec.codecId = getIdFromFFMpeg(codec->id);
+			vcodec.pixelFormat = getPixFmtFromFFMpeg(PIX_FMT_YUV420P);
+			info->supportedVideoCodecs.push_back(vcodec);
+		}
+
 		d->videoInfo = info;
 	}
 }
@@ -62,3 +92,48 @@ void FFMpegVideoProvider::init() {
 	av_register_all();
 	avdevice_register_all();
 }
+
+VideoCodecId FFMpegVideoProvider::
+getIdFromFFMpeg(CodecID id) {
+	for (int i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
+		if (ID_CONV_TABLE[i].fid == id) {
+			return ID_CONV_TABLE[i].rid;
+		}
+	}
+	return VCODEC_INVALID;
+}
+
+CodecID FFMpegVideoProvider::
+getIdFromRemoteVision(VideoCodecId id) {
+	for (int i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
+		if (ID_CONV_TABLE[i].rid == id) {
+			return ID_CONV_TABLE[i].fid;
+		}
+	}
+	return CODEC_ID_NONE;
+}
+
+PixelFormat FFMpegVideoProvider::getPixFmtFromRemoteVision(ImageFormat fmt)
+{
+	for (int i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
+		if (PIX_CONV_TABLE[i].rfmt == fmt) {
+			return PIX_CONV_TABLE[i].ffmt;
+		}
+	}
+	return PIX_FMT_NONE;
+}
+
+
+
+ImageFormat FFMpegVideoProvider::
+getPixFmtFromFFMpeg(PixelFormat fmt)
+{
+	for (int i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
+		if (PIX_CONV_TABLE[i].ffmt == fmt) {
+			return PIX_CONV_TABLE[i].rfmt;
+		}
+	}
+	return IF_INVALID;
+}
+
+

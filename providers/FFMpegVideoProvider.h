@@ -9,6 +9,11 @@
 #define FFMPEGVIDEOPROVIDER_H_
 
 #include "VideoProvider.h"
+#include "VideoCodec.h"
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
 
 class FFMpegVideoProvider: public VideoProvider {
 public:
@@ -21,6 +26,13 @@ public:
 private:
 	void init();
 	Impl *d;
+
+
+public:
+	static VideoCodecId getIdFromFFMpeg(CodecID);
+	static CodecID getIdFromRemoteVision(VideoCodecId);
+	static PixelFormat getPixFmtFromRemoteVision(ImageFormat);
+	static ImageFormat getPixFmtFromFFMpeg(PixelFormat);
 };
 
 #endif /* FFMPEGVIDEOPROVIDER_H_ */

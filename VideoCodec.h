@@ -15,6 +15,10 @@ class VideoCodec {
 public:
 	VideoCodecId codecId;
 	ImageFormat pixelFormat;
+
+public:
+	static std::string getStringFromId (VideoCodecId);
+	static VideoCodecId getIdFromString(const std::string &);
 };
 
 #endif /* VIDEOCODEC_H_ */
