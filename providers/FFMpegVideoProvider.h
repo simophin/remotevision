@@ -20,7 +20,7 @@ public:
 	FFMpegVideoProvider();
 	virtual ~FFMpegVideoProvider();
 
-	virtual VideoInfo queryInfo() const = 0;
+	virtual VideoInfo queryInfo() const;
 
 	class Impl;
 private:

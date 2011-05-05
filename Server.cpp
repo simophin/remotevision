@@ -12,6 +12,7 @@
 #include "CommandMgr.h"
 #include "CommandContext.h"
 #include "Command.h"
+#include "VideoProvider.h"
 
 #include <assert.h>
 #include <memory>
@@ -33,6 +34,7 @@ Server(IODevice *ctrl_device, IODevice *data_device)
 	setControlDevice(ctrl_device);
 	d->cmdCtx.server = this;
 	d->cmdCtx.client = 0;
+	d->cmdCtx.videoProvider = VideoProvider::getInstance();
 }
 
 Server::~Server() {

@@ -16,6 +16,8 @@ public:
 
 	virtual void initDevice();
 	virtual VideoInfo queryInfo() const = 0;
+
+	static VideoProvider * getInstance();
 };
 
 #endif /* VIDEOPROVIDER_H_ */
