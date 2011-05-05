@@ -10,7 +10,7 @@ SET( FFMPEG_FOUND FALSE)
 message("Searcing for FFMPEG library...")
 FIND_PATH( FFMPEG_INCLUDE_DIR 
     NAMES libavcodec/avcodec.h
-    PATHS /usr/include/ffmpeg /usr/include /usr/local/include
+    PATHS /usr/include/ffmpeg /usr/include /usr/local/include ${FFMPEG_ROOT}/include
 )
 
 
@@ -34,12 +34,12 @@ IF( FFMPEG_CONFIG )
 ELSE( FFMPEG_CONFIG )
   
   
-  FIND_LIBRARY(FFMPEG_avcodec_LIBRARY avcodec)
-  FIND_LIBRARY(FFMPEG_avdevice_LIBRARY avdevice)
-  FIND_LIBRARY(FFMPEG_avformat_LIBRARY avformat)
-  FIND_LIBRARY(FFMPEG_swscale_LIBRARY swscale)
-  FIND_LIBRARY(FFMPEG_avcore_LIBRARY avcore)
-  FIND_LIBRARY(FFMPEG_avutil_LIBRARY avutil)
+  FIND_LIBRARY(FFMPEG_avcodec_LIBRARY avcodec PATHS ${FFMPEG_ROOT}/lib)
+  FIND_LIBRARY(FFMPEG_avdevice_LIBRARY avdevice PATHS ${FFMPEG_ROOT}/lib)
+  FIND_LIBRARY(FFMPEG_avformat_LIBRARY avformat PATHS ${FFMPEG_ROOT}/lib)
+  FIND_LIBRARY(FFMPEG_swscale_LIBRARY swscale PATHS ${FFMPEG_ROOT}/lib)
+  FIND_LIBRARY(FFMPEG_avcore_LIBRARY avcore PATHS ${FFMPEG_ROOT}/lib)
+  FIND_LIBRARY(FFMPEG_avutil_LIBRARY avutil PATHS ${FFMPEG_ROOT}/lib)
   
   IF(FFMPEG_swscale_LIBRARY) 
       set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_swscale_LIBRARY})

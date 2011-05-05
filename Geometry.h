@@ -10,11 +10,6 @@
 
 struct Geometry {
 	int width, height;
-
-	Geometry(int w = 0, int h = 0)
-	:width(w), height(h) {
-
-	}
 };
 
 #endif /* GEOMETRY_H_ */

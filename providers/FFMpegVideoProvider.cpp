@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 struct Geometry SUPPORTTED_GEOMETRIES[] = {
-		Geometry(320,240)
+		{320,240},
 };
 
 class FFMpegVideoProvider::Impl {
@@ -53,6 +53,8 @@ queryInfo() const {
 		for (int i=0;i<ARRAY_SIZE(SUPPORTTED_GEOMETRIES);i++) {
 			info->supportedGeometry.push_back(SUPPORTTED_GEOMETRIES[i]);
 		}
+
+		d->videoInfo = info;
 	}
 }
 
