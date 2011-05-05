@@ -55,7 +55,7 @@ readCommand() {
 	char *buf = 0;
 	// Read header
 	{
-		if (dd->read((unsigned char *)&hdr,sizeof(hdr)) != sizeof(hdr)) {
+		if (dd->read((char *)&hdr,sizeof(hdr)) != sizeof(hdr)) {
 			return NULL;
 		}
 	}
@@ -66,7 +66,7 @@ readCommand() {
 		int tried_times = 0;
 		size_t offset = 0;
 		do {
-			int rc = dd->read( (unsigned char *)(buf + offset), hdr.length-offset );
+			int rc = dd->read( (char *)(buf + offset), hdr.length-offset );
 			if (rc < 0) {
 				ret = NULL;
 				goto out;

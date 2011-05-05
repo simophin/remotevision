@@ -8,11 +8,11 @@
 #include "IODevice.h"
 
 ssize_t IODevice::
-read(unsigned char *data, size_t size) {
+read(char *data, size_t size) {
 	return doRead(data,size);
 }
 ssize_t IODevice::
-write(const unsigned char *data, size_t size) {
+write(const char *data, size_t size) {
 	return doWrite(data,size);
 }
 

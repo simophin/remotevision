@@ -57,7 +57,7 @@ getFileDescriptor() const
 
 
 ssize_t PosixSocket::
-doRead(unsigned char *data, size_t size)
+doRead(char *data, size_t size)
 {
 	return ::read(d->fd,data,size);
 }
@@ -113,7 +113,7 @@ doGetPeerAddress() const
 
 
 ssize_t PosixSocket::
-doWrite(const unsigned char *data, size_t size)
+doWrite(const char *data, size_t size)
 {
 	return ::write(d->fd,data,size);
 }

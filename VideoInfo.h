@@ -11,13 +11,13 @@
 #include "Geometry.h"
 #include "VideoCodec.h"
 
-#include <list>
+#include <vector>
 
 class VideoInfo {
 public:
 	/* Members */
-	std::list<Geometry> supportedGeometry;
-	std::list<VideoCodec> supportedVideoCodecs;
+	std::vector<Geometry> supportedGeometry;
+	std::vector<VideoCodec> supportedVideoCodecs;
 };
 
 #endif /* VIDEOINFO_H_ */
