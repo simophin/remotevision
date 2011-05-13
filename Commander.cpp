@@ -25,6 +25,7 @@
 class Commander::Impl {
 public:
 	IODevice *device;
+	std::string lastError;
 };
 
 Commander::Commander(IODevice *device)
@@ -45,10 +46,9 @@ getDevice() const {
 	return d->device;
 }
 
-Command *Commander::
-readCommand() {
+bool Commander::
+readCommand(Command &cmd) {
 	IODevice *dd = d->device;
-	Command *ret = NULL;
 	assert(dd != 0);
 
 	CommandHeader hdr;
@@ -68,7 +68,6 @@ readCommand() {
 		do {
 			int rc = dd->read( (char *)(buf + offset), hdr.length-offset );
 			if (rc < 0) {
-				ret = NULL;
 				goto out;
 			}
 			offset += rc;
@@ -76,7 +75,7 @@ readCommand() {
 	}
 	{
 		std::string name;
-		std::list<std::string> args;
+		std::vector<std::string> args;
 		size_t offset = 0;
 
 		name = buf;
@@ -87,19 +86,20 @@ readCommand() {
 			offset += ::strlen(buf+offset);
 		}
 
-		ret = new Command(name,args);
+		cmd.setName(name);
+		cmd.setArguments(args);
 	}
 
+	return true;
 
 	out:
 	if (buf) ::free(buf);
-	return ret;
+	return false;
 }
 
-int Commander::
-writeCommand (const Command * cmd) {
+bool Commander::
+writeCommand (const Command & cmd) {
 	IODevice *dd = d->device;
-	Command *ret = NULL;
 	assert(dd != 0);
 
 	CommandHeader hdr;
@@ -108,4 +108,11 @@ writeCommand (const Command * cmd) {
 	{
 
 	}
+
+	return true;
+}
+
+std::string Commander::
+getLastError() const {
+	return d->lastError;
 }

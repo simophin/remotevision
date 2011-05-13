@@ -6,6 +6,7 @@
  */
 
 #include "CommandBuilder.h"
+#include "Command.h"
 
 #include <vector>
 #include <sstream>
@@ -46,12 +47,8 @@ clearArguments(){
 	d->argList.clear();
 }
 
-std::string CommandBuilder::
-build() {
-	std::stringstream ret;
-	ret << d->cmd << '\0';
-	for (int i=0;i<d->argList.size();i++){
-		ret << d->argList[i] << '\0';
-	}
-	return ret.str();
+void CommandBuilder::
+build(Command &cmd) {
+	cmd.setName(d->cmd);
+	cmd.setArguments(d->argList);
 }

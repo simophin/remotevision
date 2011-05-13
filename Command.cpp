@@ -7,7 +7,7 @@
 
 #include "Command.h"
 
-Command::Command(const std::string &name, const std::list<std::string> &args)
+Command::Command(const std::string &name, const std::vector<std::string> &args)
 :mName(name),mArguments(args){
 
 }

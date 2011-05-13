@@ -12,6 +12,7 @@
 #include "VideoProvider.h"
 #include "CommandBuilder.h"
 #include "IODevice.h"
+#include "Commander.h"
 
 #include <string>
 #include <vector>
@@ -25,7 +26,7 @@ QueryInfoCommandHandler::~QueryInfoCommandHandler() {
 }
 
 void QueryInfoCommandHandler::
-onHandle(Command *cmd, const CommandContext * ctx) {
+onHandle(const Command &cmd, const CommandContext * ctx) {
 	VideoInfo info = ctx->videoProvider->queryInfo();
 	CommandBuilder builder;
 	builder.setResponseCommand("OK");
@@ -50,6 +51,8 @@ onHandle(Command *cmd, const CommandContext * ctx) {
 	}
 	builder.appendArgument(boost::algorithm::join(codecargs,";"));
 
-	std::string response = builder.build();
-	ctx->controlDevice->write(response.data(), response.size());
+	Commander parser(ctx->controlDevice);
+	Command response;
+	builder.build(response);
+	parser.writeCommand(response);
 }

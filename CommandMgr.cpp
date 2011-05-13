@@ -33,9 +33,9 @@ CommandMgr::~CommandMgr() {
 }
 
 void CommandMgr::
-handleCommand(Command *cmd, const CommandContext *ctx)
+handleCommand(const Command &cmd, const CommandContext *ctx)
 {
-	CommandMap::const_iterator found = d->commandMap.find(cmd->getName());
+	CommandMap::const_iterator found = d->commandMap.find(cmd.getName());
 	if (found == d->commandMap.end()) return;
 	CommandHandlerList hlist = found->second;
 	for (CommandHandlerList::const_iterator i = hlist.begin();

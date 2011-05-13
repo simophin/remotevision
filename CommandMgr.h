@@ -18,7 +18,7 @@ class CommandMgr {
 public:
 	CommandMgr();
 	~CommandMgr();
-	void handleCommand (Command *, const CommandContext *);
+	void handleCommand (const Command &, const CommandContext *);
 	void registerCommandHandler (const std::string &name, CommandHandler *);
 
 	static CommandMgr * getInstance();

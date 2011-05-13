@@ -10,6 +10,7 @@
 
 #include <string>
 
+class Command;
 class CommandBuilder {
 public:
 	CommandBuilder();
@@ -21,7 +22,7 @@ public:
 	void appendArgument (const std::string &);
 	void clearArguments();
 
-	std::string build();
+	void build(Command &);
 
 	class Impl;
 private:

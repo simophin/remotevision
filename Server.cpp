@@ -94,12 +94,14 @@ start()
 
 void Server::ServerImpl::entry() {
 	int rc;
+	Command raw_cmd;
 	while(!shouldStop()) {
 		rc = controlDevice->poll(IODevice::POLL_READ, 500);
 		if (rc < 0) break;
 		else if (rc == 0) continue;
-		Command *raw_cmd = cmdExe.readCommand();
+		if (!cmdExe.readCommand(raw_cmd)) {
+			break;
+		}
 		CommandMgr::getInstance()->handleCommand(raw_cmd,&cmdCtx);
-		delete raw_cmd;
 	}
 }

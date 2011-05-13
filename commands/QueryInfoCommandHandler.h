@@ -14,7 +14,7 @@ class QueryInfoCommandHandler: public CommandHandler {
 public:
 	QueryInfoCommandHandler();
 	virtual ~QueryInfoCommandHandler();
-	virtual void onHandle(Command *, const CommandContext *);
+	virtual void onHandle(const Command &, const CommandContext *);
 };
 
 #endif /* QUERYINFOCOMMANDHANDLER_H_ */

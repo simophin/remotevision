@@ -10,6 +10,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <memory>
+#include <string>
 
 class IODevice;
 class Command;
@@ -21,8 +22,10 @@ public:
 	void setDevice(IODevice *);
 	IODevice *getDevice() const;
 
-	Command *readCommand();
-	int writeCommand (const Command *);
+	bool readCommand(Command &);
+	bool writeCommand (const Command &);
+
+	std::string getLastError() const;
 
 private:
 	class Impl;

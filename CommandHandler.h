@@ -15,7 +15,7 @@ public:
 	CommandHandler();
 	virtual ~CommandHandler();
 
-	virtual void onHandle(Command *, const CommandContext *) = 0;
+	virtual void onHandle(const Command &, const CommandContext *) = 0;
 };
 
 #endif /* COMMANDHANDLER_H_ */
