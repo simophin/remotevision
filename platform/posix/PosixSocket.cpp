@@ -126,31 +126,35 @@ int PosixSocket::doConnect(const SocketAddress *addr) {
 
 int PosixSocket::
 doPoll(PosixSocket::PollType p, int timeout) {
-#ifdef OS_UNIX
-	pollfd pfd;
-	pfd.fd = d->fd;
+	fd_set readfds, writefds, exceptfds;
+	FD_ZERO(&readfds);
+	FD_ZERO(&writefds);
+	FD_ZERO(&exceptfds);
 
 	switch(p){
 	case POLL_READ:{
-		pfd.events = POLLIN;
+		FD_SET(d->fd,&readfds);
 		break;
 	}
 
 	case POLL_WRITE:{
-		pfd.events = POLLOUT;
+		FD_SET(d->fd,&writefds);
 		break;
 	}
 
 	case POLL_ERROR:{
-		pfd.events = POLLERR;
+		FD_SET(d->fd,&exceptfds);
 		break;
 	}
 	}
 
-	return ::poll(&pfd,1,timeout);
-#else
-	//TODO: implement win32 poll
-#endif
+	struct timeval to, *tv = 0;
+	if (timeout > 0) {
+		to.tv_sec = 0;
+		to.tv_usec = timeout*1000;
+		tv = &to;
+	}
+	return select(d->fd+1, &readfds, &writefds, &exceptfds, tv);
 }
 
 std::string PosixSocket::doGetLastError() {

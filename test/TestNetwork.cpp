@@ -40,6 +40,7 @@ int main() {
 	}
 
 	TCPSocketAddress *addr = 0;
+	server.poll(IODevice::POLL_READ,-1);
 	TCPSocket *socket = (TCPSocket *)(server.accept((SocketAddress **)&addr));
 	if (socket == NULL) {
 		std::wcout << "Error while accepting new connection: " << (wchar_t *)server.getLastError().c_str()<< std::endl;
