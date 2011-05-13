@@ -25,7 +25,7 @@ Socket *PosixServerSocket::
 doAccept(SocketAddress **accepted_addr){
 	sockaddr *addr = (sockaddr *)::malloc(MAX_ADDRESS_LENGTH);
 	assert(addr != 0);
-	size_t addr_len = 0;
+	size_t addr_len = MAX_ADDRESS_LENGTH;
 	PosixSocket *ret = 0;
 
 	int fd = ::accept(getFileDescriptor(),addr,(socklen_t *)&addr_len);

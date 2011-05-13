@@ -23,12 +23,12 @@ int main() {
 #ifdef OS_WIN32
 	WSAData wsaData;
 	int nCode;
-	assert( WSAStartup(MAKEWORD(1, 1), &wsaData) == 0);
+	assert( WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
 #endif
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 
 	TCPServerSocket server (sock);
-	TCPSocketAddress localAddr("0.0.0.0", 10001);
+	TCPSocketAddress localAddr("127.0.0.1", 10001);
 	if (server.bind(&localAddr)){
 		std::cout << server.getLastError() << std::endl;
 		return -1;
@@ -42,7 +42,7 @@ int main() {
 	TCPSocketAddress *addr = 0;
 	TCPSocket *socket = (TCPSocket *)(server.accept((SocketAddress **)&addr));
 	if (socket == NULL) {
-		std::cout << "Error while accepting new connection: " << server.getLastError()<< std::endl;
+		std::wcout << "Error while accepting new connection: " << (wchar_t *)server.getLastError().c_str()<< std::endl;
 		return -3;
 	}
 
