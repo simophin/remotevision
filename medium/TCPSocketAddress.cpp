@@ -8,9 +8,6 @@
 #include "TCPSocketAddress.h"
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -20,6 +17,7 @@
 #include <string>
 #include <boost/cast.hpp>
 #include <boost/lexical_cast.hpp>
+#include "platform/posix/PosixCompactHeader.h"
 
 
 class TCPSocketAddress::TCPSocketAddressImpl {
@@ -86,7 +84,7 @@ setAddress(const std::string &saddr) {
 		addr = *(sockaddr_in *)(raddr);
 	}
 
-	addr.sin_addr.s_addr = inet_network(saddr.c_str());
+	addr.sin_addr.s_addr = inet_addr(saddr.c_str());
 	assert(addr.sin_addr.s_addr != (in_addr_t)(-1));
 	setPosixAddress((sockaddr *)&addr,sizeof(addr));
 }

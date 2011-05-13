@@ -7,10 +7,11 @@
 
 #include "PosixServerSocket.h"
 #include "PosixSocketAddress.h"
-#include <sys/socket.h>
 #include <assert.h>
 #include <stdlib.h>
 #include "config.h"
+
+#include "PosixCompactHeader.h"
 
 PosixServerSocket::PosixServerSocket(int fd)
 :PosixSocket(fd){

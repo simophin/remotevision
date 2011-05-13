@@ -30,5 +30,13 @@ poll(IODevice::PollType type, int timeout) {
 }
 
 int IODevice::doPoll(PollType, int) {
+	return 0;
+}
 
+std::string IODevice::getLastError() {
+	return doGetLastError();
+}
+
+std::string IODevice::doGetLastError() {
+	return std::string();
 }

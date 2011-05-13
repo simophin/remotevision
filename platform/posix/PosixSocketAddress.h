@@ -9,8 +9,9 @@
 #define POSIXSOCKETADDRESS_H_
 
 #include "SocketAddress.h"
-#include <sys/types.h>
-#include <sys/socket.h>
+
+#include "PosixCompactHeader.h"
+
 #include <memory>
 
 class PosixSocketAddress: public SocketAddress {

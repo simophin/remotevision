@@ -10,9 +10,9 @@
 
 #include "platform/posix/PosixSocketAddress.h"
 #include <string>
-#include <sys/types.h>
-#include <sys/socket.h>
 
+
+struct sockaddr ;
 
 class TCPSocketAddress: public PosixSocketAddress {
 public:

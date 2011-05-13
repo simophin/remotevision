@@ -11,6 +11,7 @@ option(BUILD_SYMBIAN "Building for Symbian (library)" FALSE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 set(Linux TRUE)
 add_definitions(-DOS_LINUX)
+add_definitions(-DOS_UNIX)
 set(BUILD_LINUX TRUE)
 endif()
 
@@ -43,8 +44,6 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif()
 
-MESSAGE(STATUS ${FFMPEG_LIBRARIES})
-
 # Files
 FILE(GLOB SOURCES *.cpp)
 ADD_SUBDIRECTORY(medium)
@@ -53,6 +52,7 @@ ADD_SUBDIRECTORY(commands)
 ADD_SUBDIRECTORY(providers)
 ADD_SUBDIRECTORY(codecs)
 ADD_LIBRARY(RemoteVision SHARED ${SOURCES})
+
 TARGET_LINK_LIBRARIES(RemoteVision ${DEPEND_LIBS})
 
 ADD_SUBDIRECTORY(test)

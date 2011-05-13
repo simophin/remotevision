@@ -11,8 +11,7 @@
 #include "medium/TCPSocketAddress.h"
 #include "RemoteVision.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
+#include "platform/posix/PosixCompactHeader.h"
 #include <iostream>
 #include <errno.h>
 #include <string.h>

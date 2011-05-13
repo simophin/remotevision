@@ -11,10 +11,9 @@
 #include <boost/scoped_ptr.hpp>
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <string.h>
-#include <sys/poll.h>
 #include <stdlib.h>
+#include "PosixCompactHeader.h"
 
 const int MAX_ADDRESS_LENGTH = 1024;
 
@@ -127,6 +126,7 @@ int PosixSocket::doConnect(const SocketAddress *addr) {
 
 int PosixSocket::
 doPoll(PosixSocket::PollType p, int timeout) {
+#ifdef OS_UNIX
 	pollfd pfd;
 	pfd.fd = d->fd;
 
@@ -148,6 +148,20 @@ doPoll(PosixSocket::PollType p, int timeout) {
 	}
 
 	return ::poll(&pfd,1,timeout);
+#else
+	//TODO: implement win32 poll
+#endif
 }
 
+std::string PosixSocket::doGetLastError() {
+	int err = 0;
+#ifdef OS_UNIX
+	err = errno;
+#endif
 
+#ifdef OS_WIN32
+	err = WSAGetLastError();
+#endif
+
+	return std::string(::strerror(err));
+}
