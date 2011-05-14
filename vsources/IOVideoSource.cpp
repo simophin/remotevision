@@ -10,6 +10,7 @@
 #include "VideoFormat.h"
 #include "ImageBuffer.h"
 #include "Command.h"
+#include "Log.h"
 
 #include "Commander.h"
 #include "commands/CommandBuilder.h"
@@ -49,12 +50,22 @@ doGetInformation(int ms) const
 
 		Command cmd;
 		builder.build(cmd);
-		d->cmdParser.writeCommand(cmd);
-		d->cmdParser.readCommand(cmd);
+		if (!d->cmdParser.writeCommand(cmd)) {
+			Log::log(Log::LOG_ERROR, d->cmdParser.getLastError());
+			goto write_error;
+		}
+		if (!d->cmdParser.readCommand(cmd)) {
+			Log::log(Log::LOG_ERROR, d->cmdParser.getLastError());
+			goto read_error;
+		}
 
-		if (cmd.mName == "OK" ) {
+		if (cmd.getName() == "OK" ) {
 
 		}
+
+		write_error:
+		read_error:
+		return Information ();
 	}
 
 	return d->info;
