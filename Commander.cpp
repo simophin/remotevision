@@ -25,7 +25,7 @@
 class Commander::Impl {
 public:
 	IODevice *device;
-	std::string lastError;
+	Error lastError;
 };
 
 Commander::Commander(IODevice *device)
@@ -133,7 +133,7 @@ writeCommand (const Command & cmd) {
 	return true;
 }
 
-std::string Commander::
+Error Commander::
 getLastError() const {
 	return d->lastError;
 }

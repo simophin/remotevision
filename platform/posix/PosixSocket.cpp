@@ -157,24 +157,14 @@ doPoll(PosixSocket::PollType p, int timeout) {
 	return select(d->fd+1, &readfds, &writefds, &exceptfds, tv);
 }
 
-std::string PosixSocket::doGetLastError() {
-	std::string ret;
+Error PosixSocket::doGetLastError() {
+	Error ret;
 #ifdef OS_UNIX
-	ret = ::strerror(errno);
+	ret.setErrno(errno);
 #endif
 
 #ifdef OS_WIN32
-	LPWSTR buf = NULL;
-	DWORD e = WSAGetLastError();
-	FormatMessage(  FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER,
-	                  0,
-	                  e,
-	                  0,
-	                  (LPSTR)&buf,
-	                  0,
-	                  0);
-	ret = std::string((char *)buf, wcslen((wchar_t *)buf)*sizeof(wchar_t));
-	LocalFree(buf);
+	ret.setErrno(WSAGetLastError());
 #endif
 
 	return ret;

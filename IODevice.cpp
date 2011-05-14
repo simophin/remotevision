@@ -6,6 +6,7 @@
  */
 
 #include "IODevice.h"
+#include "Error.h"
 
 ssize_t IODevice::
 read(char *data, size_t size) {
@@ -33,10 +34,10 @@ int IODevice::doPoll(PollType, int) {
 	return 0;
 }
 
-std::string IODevice::getLastError() {
+Error IODevice::getLastError() {
 	return doGetLastError();
 }
 
-std::string IODevice::doGetLastError() {
-	return std::string();
+Error IODevice::doGetLastError() {
+	return Error();
 }

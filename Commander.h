@@ -12,6 +12,8 @@
 #include <memory>
 #include <string>
 
+#include "Error.h"
+
 class IODevice;
 class Command;
 class Commander: public boost::noncopyable {
@@ -25,7 +27,7 @@ public:
 	bool readCommand(Command &);
 	bool writeCommand (const Command &);
 
-	std::string getLastError() const;
+	Error getLastError() const;
 
 private:
 	class Impl;

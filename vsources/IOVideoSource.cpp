@@ -51,11 +51,11 @@ doGetInformation(int ms) const
 		Command cmd;
 		builder.build(cmd);
 		if (!d->cmdParser.writeCommand(cmd)) {
-			Log::log(Log::LOG_ERROR, d->cmdParser.getLastError().c_str());
+			Log::log(Log::LOG_ERROR, d->cmdParser.getLastError().getErrorString().c_str());
 			goto write_error;
 		}
 		if (!d->cmdParser.readCommand(cmd)) {
-			Log::log(Log::LOG_ERROR, d->cmdParser.getLastError().c_str());
+			Log::log(Log::LOG_ERROR, d->cmdParser.getLastError().getErrorString().c_str());
 			goto read_error;
 		}
 

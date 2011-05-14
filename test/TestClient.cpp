@@ -25,7 +25,7 @@ int main () {
 	TCPSocketAddress remoteAddr ("127.0.0.1", 10001);
 
 	if (socket.connect(&remoteAddr)) {
-		std::cerr << socket.getLastError() << std::endl;
+		std::cerr << socket.getLastError().getErrorString() << std::endl;
 		return -1;
 	}
 

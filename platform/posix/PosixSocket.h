@@ -31,7 +31,7 @@ protected:
 	virtual const SocketAddress * doGetAddress() const;
 	virtual const SocketAddress * doGetPeerAddress() const;
 	virtual int doConnect(const SocketAddress *);
-	virtual std::string doGetLastError();
+	virtual Error doGetLastError();
 
 private:
 	void init();

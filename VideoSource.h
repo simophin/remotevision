@@ -38,8 +38,8 @@ protected:
 	virtual ssize_t doWrite (const char *, size_t);
 	virtual int doPoll(PollType, int);
 	virtual void doClose();
-	virtual std::string doGetLastError();
-	void setLastError(const std::string &);
+	virtual Error doGetLastError();
+	void setLastError(const Error &);
 
 	virtual bool doInit (const Option &options, int ms) = 0;
 	virtual VideoInfo doGetInformation(int ms) const = 0;

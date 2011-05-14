@@ -11,7 +11,7 @@
 
 class VideoSource::Impl {
 public:
-	std::string lastError;
+	Error lastError;
 };
 
 VideoSource::VideoSource()
@@ -42,14 +42,14 @@ void VideoSource::doClose(){
 }
 
 
-std::string VideoSource::
+Error VideoSource::
 doGetLastError(){
 	return d->lastError;
 }
 
 void VideoSource::
-setLastError(const std::string &str) {
-	d->lastError = str;
+setLastError(const Error &err) {
+	d->lastError = err;
 }
 
 bool  VideoSource::init (const Option &options, int ms){

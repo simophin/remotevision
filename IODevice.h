@@ -11,6 +11,8 @@
 #include <sys/types.h>
 #include <string>
 
+#include "Error.h"
+
 class IODevice {
 public:
 	typedef enum {
@@ -23,14 +25,14 @@ public:
 	ssize_t write(const char *,size_t);
 	void close();
 	int poll(PollType, int timeout);
-	std::string getLastError();
+	Error getLastError();
 
 protected:
 	virtual ssize_t doRead (char *, size_t) = 0;
 	virtual ssize_t doWrite (const char *, size_t) = 0;
 	virtual int doPoll(PollType, int);
 	virtual void doClose();
-	virtual std::string doGetLastError();
+	virtual Error doGetLastError();
 };
 
 #endif /* IODEVICE_H_ */
