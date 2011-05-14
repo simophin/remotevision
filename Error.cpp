@@ -11,6 +11,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include "Log.h"
+
 #ifdef OS_WIN32
 #include <windows.h>
 #endif
@@ -70,3 +72,6 @@ void Error::setErrorString (const std::string & str) {
 	d->errorString = str;
 }
 
+std::ostream& operator <<(std::ostream &os,const Error &obj) {
+	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
+}

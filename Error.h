@@ -9,6 +9,7 @@
 #define ERROR_H_
 
 #include <string>
+#include <ostream>
 
 typedef int syserrno_t;
 extern syserrno_t syserrno_success;
@@ -25,9 +26,12 @@ public:
 	std::string getErrorString () const;
 	void setErrorString (const std::string &);
 
+	friend std::ostream& operator <<(std::ostream &os,const Error &obj);
+
 	class Impl;
 private:
 	Impl *d;
 };
+
 
 #endif /* ERROR_H_ */

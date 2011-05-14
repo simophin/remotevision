@@ -22,10 +22,10 @@ int main () {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	TCPSocket socket (sock);
 
-	TCPSocketAddress remoteAddr ("127.0.0.1", 10001);
+	TCPSocketAddress remoteAddr ("127.0.0.1", 100);
 
 	if (socket.connect(&remoteAddr)) {
-		std::cerr << socket.getLastError().getErrorString() << std::endl;
+		std::cerr << socket.getLastError() << std::endl;
 		return -1;
 	}
 
