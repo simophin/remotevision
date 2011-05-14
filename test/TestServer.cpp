@@ -17,8 +17,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 int main () {
+#ifdef OS_WIN32
+	WSAData wsaData;
+	int nCode;
+	assert( WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
+#endif
+
 	RemoteVision rv;
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 

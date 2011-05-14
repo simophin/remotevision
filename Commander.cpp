@@ -102,11 +102,32 @@ writeCommand (const Command & cmd) {
 	IODevice *dd = d->device;
 	assert(dd != 0);
 
+
+	std::stringstream buf;
+	buf << cmd.getName() << '\0';
+
+	std::vector<std::string> args = cmd.getArguments();
+	for (int i=0;i<args.size();i++) {
+		buf << args[i] << '\0';
+	}
+
+	std::string data = buf.str();
 	CommandHeader hdr;
-	std::stringbuf buf;
 	// Write header
 	{
+		hdr.length = data.size();
+	}
 
+	// Write data
+	{
+		if (dd->write((char *)&hdr, sizeof(hdr)) < 0 ) {
+			d->lastError = dd->getLastError();
+			return false;
+		}
+		if (dd->write(data.c_str(), data.size()) < 0 ) {
+			d->lastError = dd->getLastError();
+			return false;
+		}
 	}
 
 	return true;

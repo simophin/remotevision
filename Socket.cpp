@@ -24,3 +24,8 @@ const SocketAddress * Socket::
 getPeerAddress() const {
 	return doGetPeerAddress();
 }
+
+int Socket::
+connect(const SocketAddress * addr) {
+	return doConnect(addr);
+}
