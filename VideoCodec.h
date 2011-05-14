@@ -19,6 +19,9 @@ public:
 public:
 	static std::string getStringFromId (VideoCodecId);
 	static VideoCodecId getIdFromString(const std::string &);
+
+	static VideoCodec fromString (const std::string &);
+	std::string toString() const;
 };
 
 #endif /* VIDEOCODEC_H_ */

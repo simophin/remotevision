@@ -10,11 +10,15 @@
 
 #include "CommandHandler.h"
 
+class VideoInfo;
+class Command;
 class QueryInfoCommandHandler: public CommandHandler {
 public:
 	QueryInfoCommandHandler();
 	virtual ~QueryInfoCommandHandler();
 	virtual void onHandle(const Command &, const CommandContext *);
+
+	static VideoInfo parseVideoInformationFromCommand(const Command &);
 };
 
 #endif /* QUERYINFOCOMMANDHANDLER_H_ */

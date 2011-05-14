@@ -25,6 +25,10 @@ public:
 		return mArguments;
 	}
 
+	inline std::string getArgument(int i) const {
+		return mArguments.at(i);
+	}
+
 	inline void setName(const std::string &n) {
 		mName = n;
 	}

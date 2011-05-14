@@ -32,6 +32,10 @@ struct PIX_CONV_TABLE_T {
 	PixelFormat ffmt;
 };
 
+struct s_geometry {
+	int width,height;
+};
+
 static ID_CONV_TABLE_T ID_CONV_TABLE[] = {
 		{ VCODEC_INVALID, CODEC_ID_NONE },
 		{ VCODEC_FLV, 	CODEC_ID_FLV1 },
@@ -44,7 +48,7 @@ static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
 		{ IF_YUV420P, PIX_FMT_YUV420P },
 };
 
-struct Geometry SUPPORTTED_GEOMETRIES[] = {
+struct s_geometry SUPPORTTED_GEOMETRIES[] = {
 		{320,240},
 };
 
@@ -73,7 +77,8 @@ queryInfo() const {
 	if (d->videoInfo == 0) {
 		VideoInfo *info = new VideoInfo;
 		for (int i=0;i<ARRAY_SIZE(SUPPORTTED_GEOMETRIES);i++) {
-			info->supportedGeometry.push_back(SUPPORTTED_GEOMETRIES[i]);
+			info->supportedGeometry.push_back(Geometry(SUPPORTTED_GEOMETRIES[i].width,
+					SUPPORTTED_GEOMETRIES[i].height ));
 		}
 
 		AVCodec *codec = NULL;

@@ -20,7 +20,7 @@ public:
 
 protected:
 	virtual bool doInit (const Option &options, int ms);
-	virtual Information doGetInformation(int ms) const;
+	virtual VideoInfo doGetInformation(int ms) const;
 	virtual VideoFormat doGetFormat(int ms) const;
 	virtual bool doSetFormat(VideoFormat &,int ms);
 	virtual bool doStartCapture(int ms);

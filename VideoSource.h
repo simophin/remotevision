@@ -12,6 +12,7 @@
 #include <string>
 
 #include "IODevice.h"
+#include "VideoInfo.h"
 
 class ImageBuffer;
 class VideoFormat;
@@ -21,10 +22,9 @@ public:
 	virtual ~VideoSource();
 
 	typedef std::map<std::string,std::string> Option;
-	typedef std::map<std::string,std::string> Information;
 
 	bool init (const Option &options = Option(), int ms = -1);
-	Information getInformation(int ms = -1) const;
+	VideoInfo getInformation(int ms = -1) const;
 	VideoFormat getFormat(int ms = -1) const;
 	bool setFormat(VideoFormat &, int ms = -1);
 	bool startCapture(int ms = -1);
@@ -42,7 +42,7 @@ protected:
 	void setLastError(const std::string &);
 
 	virtual bool doInit (const Option &options, int ms) = 0;
-	virtual Information doGetInformation(int ms) const = 0;
+	virtual VideoInfo doGetInformation(int ms) const = 0;
 	virtual VideoFormat doGetFormat(int ms) const = 0;
 	virtual bool doSetFormat(VideoFormat &,int ms) = 0;
 	virtual bool doStartCapture(int ms) = 0;

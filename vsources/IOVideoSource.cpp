@@ -14,6 +14,7 @@
 
 #include "Commander.h"
 #include "commands/CommandBuilder.h"
+#include "commands/QueryInfoCommandHandler.h"
 
 
 class IOVideoSource::Impl {
@@ -21,7 +22,7 @@ public:
 	IODevice *ctrlDev, *dataDev;
 	Commander cmdParser;
 
-	VideoSource::Information info;
+	VideoInfo info;
 	bool needFetchInfo;
 
 	Impl(IODevice *ctrl, IODevice *data)
@@ -40,11 +41,10 @@ IOVideoSource::~IOVideoSource() {
 	delete d;
 }
 
-IOVideoSource::Information IOVideoSource::
+VideoInfo IOVideoSource::
 doGetInformation(int ms) const
 {
 	if (d->needFetchInfo) {
-		Information info;
 		CommandBuilder builder;
 		builder.appendArgument("QUERY_INFO");
 
@@ -59,13 +59,14 @@ doGetInformation(int ms) const
 			goto read_error;
 		}
 
-		if (cmd.getName() == "OK" ) {
-
+		if (cmd.getName() == "QUERY_INFO_OK" ) {
+			d->info = QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
+			d->needFetchInfo = false;
 		}
 
 		write_error:
 		read_error:
-		return Information ();
+		return VideoInfo ();
 	}
 
 	return d->info;

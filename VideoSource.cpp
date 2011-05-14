@@ -55,7 +55,7 @@ setLastError(const std::string &str) {
 bool  VideoSource::init (const Option &options, int ms){
 	return doInit(options,ms);
 }
-VideoSource::Information  VideoSource::getInformation(int ms) const{
+VideoInfo  VideoSource::getInformation(int ms) const{
 	return doGetInformation(ms);
 }
 VideoFormat  VideoSource::getFormat(int ms) const{
