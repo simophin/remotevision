@@ -48,9 +48,9 @@ handleCommand(const Command &cmd, const CommandContext *ctx)
 
 
 void CommandMgr::
-registerCommandHandler(const std::string & name, CommandHandler *handler)
+registerCommandHandler(CommandHandler *handler)
 {
-	d->commandMap[name].push_back(handler);
+	d->commandMap[handler->getCommandName()].push_back(handler);
 }
 
 CommandMgr * CommandMgr::

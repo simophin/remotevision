@@ -11,6 +11,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <boost/lexical_cast.hpp>
+
 #include "Log.h"
 
 #ifdef OS_WIN32
@@ -58,7 +60,8 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 #endif
 
 #ifdef OS_UNIX
-		d->errorString = ::strerrno(e);
+		std::string tmp_str(::strerror(e));
+		d->errorString = std::wstring(tmp_str.begin(), tmp_str.end());
 #endif
 	}
 }
@@ -72,6 +75,7 @@ void Error::setErrorString (const errorstring_t & str) {
 	d->errorString = str;
 }
 
+
 std::wostream& operator <<(std::wostream &os,const Error &obj) {
-	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
+	//os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
 }

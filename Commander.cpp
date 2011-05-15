@@ -81,9 +81,10 @@ readCommand(Command &cmd) {
 		name = buf;
 		offset += ::strlen(buf)+1;
 
-		while(offset < hdr.length) {
+
+		while( (unsigned int)offset < (unsigned )hdr.length) {
 			args.push_back(buf+offset);
-			offset += ::strlen(buf+offset);
+			offset += ::strlen(buf+offset)+1;
 		}
 
 		cmd.setName(name);

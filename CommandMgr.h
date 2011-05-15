@@ -19,7 +19,7 @@ public:
 	CommandMgr();
 	~CommandMgr();
 	void handleCommand (const Command &, const CommandContext *);
-	void registerCommandHandler (const std::string &name, CommandHandler *);
+	void registerCommandHandler ( CommandHandler *);
 
 	static CommandMgr * getInstance();
 

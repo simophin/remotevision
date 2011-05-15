@@ -7,11 +7,10 @@
 
 #include "CommandHandler.h"
 
-CommandHandler::CommandHandler() {
-	// TODO Auto-generated constructor stub
+CommandHandler::CommandHandler(const std::string &cmdName)
+:mKey(cmdName){
 
 }
 
 CommandHandler::~CommandHandler() {
-	// TODO Auto-generated destructor stub
 }

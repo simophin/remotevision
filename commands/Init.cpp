@@ -9,5 +9,5 @@
 #include "CommandMgr.h"
 
 void initCommands() {
-	CommandMgr::getInstance()->registerCommandHandler("QUERY_INFO", new QueryInfoCommandHandler);
+	CommandMgr::getInstance()->registerCommandHandler( new QueryInfoCommandHandler);
 }

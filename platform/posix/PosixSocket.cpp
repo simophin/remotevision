@@ -11,6 +11,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #include <sys/types.h>
+#include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include "PosixCompactHeader.h"

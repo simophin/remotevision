@@ -24,7 +24,8 @@
 
 #include <assert.h>
 
-QueryInfoCommandHandler::QueryInfoCommandHandler() {
+QueryInfoCommandHandler::QueryInfoCommandHandler()
+:CommandHandler("QUERY_INFO"){
 }
 
 QueryInfoCommandHandler::~QueryInfoCommandHandler() {
