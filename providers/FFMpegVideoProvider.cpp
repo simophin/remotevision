@@ -91,6 +91,7 @@ queryInfo() const {
 
 		d->videoInfo = info;
 	}
+	return *d->videoInfo;
 }
 
 void FFMpegVideoProvider::init() {

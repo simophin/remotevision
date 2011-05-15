@@ -46,7 +46,7 @@ doGetInformation(int ms) const
 {
 	if (d->needFetchInfo) {
 		CommandBuilder builder;
-		builder.appendArgument("QUERY_INFO");
+		builder.setRequestCommand("QUERY_INFO");
 
 		Command cmd;
 		builder.build(cmd);

@@ -60,7 +60,7 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 #endif
 
 #ifdef OS_UNIX
-		std::string tmp_str(::strerror(e));
+		std::string tmp_str = ::strerror(e);
 		d->errorString = std::wstring(tmp_str.begin(), tmp_str.end());
 #endif
 	}
@@ -77,5 +77,5 @@ void Error::setErrorString (const errorstring_t & str) {
 
 
 std::wostream& operator <<(std::wostream &os,const Error &obj) {
-	//os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
+	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
 }

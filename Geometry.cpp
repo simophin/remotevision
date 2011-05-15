@@ -36,13 +36,11 @@ fromString (const std::string & str) {
 
 std::string Geometry::
 toString () const {
-	std::string ret;
+	std::stringstream ret;
 
-	ret = boost::lexical_cast<std::string>(width);
-	ret += ",";
-	ret += boost::lexical_cast<std::string>(height);
+	ret << width << "," << height;
 
-	return ret;
+	return ret.str();
 }
 
 bool Geometry::

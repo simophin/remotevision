@@ -32,5 +32,15 @@ int main () {
 	IOVideoSource source (&socket,NULL);
 	VideoInfo info = source.getInformation();
 
+	std::cout << "Supported geometry are: "<<std::endl;
+	for (int i=0;i<info.supportedGeometry.size();i++) {
+		std::cout << "(" << info.supportedGeometry[i].toString() << ")" << std::endl;
+	}
+
+	std::cout << "Supported codecs are: "<<std::endl;
+	for (int i=0;i<info.supportedVideoCodecs.size();i++) {
+		std::cout << "(" << info.supportedVideoCodecs[i].toString() << ")" << std::endl;
+	}
+
 	return 0;
 }
