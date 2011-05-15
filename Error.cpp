@@ -22,7 +22,7 @@ syserrno_t syserrno_success = 0;
 class Error::Impl {
 public:
 	syserrno_t errorNumber;
-	std::string errorString;
+	errorstring_t errorString;
 
 	Impl(syserrno_t e)
 	:errorNumber(e) {
@@ -46,7 +46,7 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 	d->errorNumber = e;
 	if (fetchFromSystem) {
 #ifdef OS_WIN32
-		LPSTR buf = NULL;
+		LPWSTR buf = NULL;
 		::FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 				NULL,
 				e,
@@ -54,7 +54,7 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 				(LPSTR)&buf,
 				0,
 				NULL);
-		d->errorString = buf;
+		d->errorString = std::wstring(buf,wcslen((LPWSTR)buf));
 #endif
 
 #ifdef OS_UNIX
@@ -63,15 +63,15 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 	}
 }
 
-std::string Error::
+errorstring_t Error::
 getErrorString () const {
 	return d->errorString;
 }
 
-void Error::setErrorString (const std::string & str) {
+void Error::setErrorString (const errorstring_t & str) {
 	d->errorString = str;
 }
 
-std::ostream& operator <<(std::ostream &os,const Error &obj) {
+std::wostream& operator <<(std::wostream &os,const Error &obj) {
 	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
 }

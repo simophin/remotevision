@@ -12,6 +12,7 @@
 #include <ostream>
 
 typedef int syserrno_t;
+typedef std::wstring errorstring_t;
 extern syserrno_t syserrno_success;
 
 class Error {
@@ -23,10 +24,10 @@ public:
 	syserrno_t getErrno() const;
 	void setErrno(syserrno_t,bool fetchFromSystem = true);
 
-	std::string getErrorString () const;
-	void setErrorString (const std::string &);
+	errorstring_t getErrorString () const;
+	void setErrorString (const errorstring_t &);
 
-	friend std::ostream& operator <<(std::ostream &os,const Error &obj);
+	friend std::wostream& operator <<(std::wostream &os,const Error &obj);
 
 	class Impl;
 private:
