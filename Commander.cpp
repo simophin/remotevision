@@ -91,6 +91,7 @@ readCommand(Command &cmd) {
 		cmd.setArguments(args);
 	}
 
+	if (buf) ::free(buf);
 	return true;
 
 	out:

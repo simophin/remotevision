@@ -85,6 +85,7 @@ queryInfo() const {
 		while ((codec = av_codec_next(codec)) != NULL) {
 			VideoCodec vcodec;
 			vcodec.codecId = getIdFromFFMpeg(codec->id);
+			if (vcodec.codecId == VCODEC_INVALID) continue;
 			vcodec.pixelFormat = getPixFmtFromFFMpeg(PIX_FMT_YUV420P);
 			info->supportedVideoCodecs.push_back(vcodec);
 		}

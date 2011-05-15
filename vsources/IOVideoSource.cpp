@@ -63,13 +63,13 @@ doGetInformation(int ms) const
 			d->info = QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
 			d->needFetchInfo = false;
 		}
-
-		write_error:
-		read_error:
-		return VideoInfo ();
 	}
 
 	return d->info;
+
+	write_error:
+	read_error:
+	return VideoInfo ();
 }
 
 
