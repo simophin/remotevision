@@ -23,6 +23,8 @@ public:
 	virtual VideoInfo queryInfo() const;
 	virtual Error getLastError() const;
 	virtual bool setParam (const Param &);
+	virtual bool startCapture();
+	virtual bool stopCapture();
 
 	class Impl;
 private:
