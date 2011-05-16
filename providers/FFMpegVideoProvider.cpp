@@ -10,6 +10,8 @@
 #include "VideoCodec.h"
 #include "Geometry.h"
 
+#include <algorithm>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -86,6 +88,9 @@ queryInfo() const {
 			VideoCodec vcodec;
 			vcodec.codecId = getIdFromFFMpeg(codec->id);
 			if (vcodec.codecId == VCODEC_INVALID) continue;
+			std::vector<VideoCodec>::iterator found = std::find(info->supportedVideoCodecs.begin(),
+					info->supportedVideoCodecs.end(), vcodec);
+			if (found != info->supportedVideoCodecs.end()) continue;
 			vcodec.pixelFormat = getPixFmtFromFFMpeg(PIX_FMT_YUV420P);
 			info->supportedVideoCodecs.push_back(vcodec);
 		}

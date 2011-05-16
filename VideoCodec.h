@@ -22,6 +22,10 @@ public:
 
 	static VideoCodec fromString (const std::string &);
 	std::string toString() const;
+
+	bool operator==(const VideoCodec &rhs) {
+		return (rhs.codecId == codecId);
+	}
 };
 
 #endif /* VIDEOCODEC_H_ */
