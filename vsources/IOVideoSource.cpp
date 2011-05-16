@@ -14,7 +14,7 @@
 
 #include "Commander.h"
 #include "commands/CommandBuilder.h"
-#include "commands/QueryInfoCommandHandler.h"
+#include "commands/VideoCommand.h"
 
 
 class IOVideoSource::Impl {
@@ -60,7 +60,7 @@ doGetInformation(int ms) const
 		}
 
 		if (cmd.getName() == "QUERY_INFO_OK" ) {
-			d->info = QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
+			d->info = VideoCommand::QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
 			d->needFetchInfo = false;
 		}
 	}

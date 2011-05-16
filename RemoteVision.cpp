@@ -8,7 +8,7 @@
 #include "RemoteVision.h"
 #include "CommandMgr.h"
 #include "providers/FFMpegVideoProvider.h"
-#include "commands/QueryInfoCommandHandler.h"
+#include "commands/VideoCommand.h"
 
 
 extern void initCommands();
@@ -17,11 +17,11 @@ class RemoteVision::Impl {
 public:
 	CommandMgr cmdMgr;
 	FFMpegVideoProvider videoProvider;
+	VideoCommand vcmd;
 };
 
 RemoteVision::RemoteVision()
 :d(new RemoteVision::Impl){
-	initCommands();
 }
 
 RemoteVision::~RemoteVision() {
