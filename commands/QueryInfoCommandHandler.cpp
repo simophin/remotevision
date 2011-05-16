@@ -77,7 +77,7 @@ parseVideoInformationFromCommand(const Command & cmd) {
 	// Parse codec information
 	{
 		std::vector<std::string> codecargs;
-		std::string codecarg_str = cmd.getArgument(0);
+		std::string codecarg_str = cmd.getArgument(1);
 		boost::algorithm::split(codecargs, codecarg_str, boost::is_any_of(";"));
 		for (int i=0;i<codecargs.size();i++) {
 			ret.supportedVideoCodecs.push_back(VideoCodec::fromString(codecargs.at(i)));
