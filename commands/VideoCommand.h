@@ -16,17 +16,6 @@ class Geometry;
 class VideoCodec;
 class VideoCommand {
 public:
-	VideoCommand();
-	virtual ~VideoCommand();
-
-	typedef enum {
-		STATE_READY,
-		STATE_CAPTURING
-	} State;
-
-	State getState() const;
-	void setState(State);
-
 	class QueryInfoCommandHandler: public CommandHandler {
 	public:
 		QueryInfoCommandHandler();
@@ -50,15 +39,6 @@ public:
 		static const char * ERROR_STRING;
 		static const char * REQUEST_STRING;
 	};
-
-	friend class QueryInfoCommandHandler;
-	friend class SetParameterCommandHandler;
-
-	class Impl;
-protected:
-	static VideoCommand *getInstance();
-private:
-	Impl *d;
 };
 
 #endif /* VIDEOCOMMAND_H_ */

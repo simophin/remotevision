@@ -36,52 +36,6 @@ const char * VideoCommand::SetParameterCommandHandler::REQUEST_STRING = "SET_PAR
 const char * VideoCommand::SetParameterCommandHandler::SUCCESS_STRING = "SET_PARAM_OK";
 const char * VideoCommand::SetParameterCommandHandler::ERROR_STRING   = "SET_PARAM_FAILED";
 
-class VideoCommand::Impl {
-public:
-	std::vector<CommandHandler *> mCommandHandlers;
-	State mState;
-
-	// Variable related to encoding/decoding
-	Geometry mVideoGeometry;
-	VideoCodec mVideoCodec;
-
-	Impl() {
-		mCommandHandlers.push_back(new QueryInfoCommandHandler());
-		mCommandHandlers.push_back(new SetParameterCommandHandler());
-	}
-
-	~Impl () {
-		for (int i=0;i<mCommandHandlers.size();i++)
-			delete mCommandHandlers[i];
-		mCommandHandlers.clear();
-	}
-};
-
-VideoCommand::VideoCommand()
-:d(new VideoCommand::Impl()){
-	VCMD_INSTANCE = this;
-	d->mState = STATE_READY;
-	for (int i=0;i<d->mCommandHandlers.size();i++)
-		CommandMgr::getInstance()->registerCommandHandler(d->mCommandHandlers[i]);
-}
-
-VideoCommand::~VideoCommand() {
-	delete d;
-}
-
-VideoCommand * VideoCommand::
-getInstance() {
-	return VCMD_INSTANCE;
-}
-
-VideoCommand::State VideoCommand::
-getState() const {
-	return d->mState;
-}
-
-void VideoCommand::setState(VideoCommand::State s) {
-	d->mState = s;
-}
 
 VideoCommand::QueryInfoCommandHandler::QueryInfoCommandHandler()
 :CommandHandler(REQUEST_STRING){
@@ -165,9 +119,7 @@ void VideoCommand::SetParameterCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
 	CommandBuilder builder;
-	if (getInstance()->getState() == STATE_CAPTURING) {
-		builder.setResponseCommand(ERROR_STRING, "the video device now is capturing");
-	}else if (cmd.getArguments().size() != 2) {
+	if (cmd.getArguments().size() != 2) {
 		builder.setResponseCommand(ERROR_STRING, "invalid argument count");
 	}else{
 		const char *err = 0;
@@ -200,9 +152,11 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 		}
 
 		{
-			VideoCommand::Impl *d = getInstance()->d;
-			d->mVideoCodec = requestCodec;
-			d->mVideoGeometry = requestGeo;
+			VideoProvider::Param param;
+			param.codec = requestCodec;
+			param.geo = requestGeo;
+			if (!ctx->videoProvider->setParam(param)) {
+			}
 		}
 
 		builder.setResponseCommand(SUCCESS_STRING);

@@ -28,6 +28,9 @@ public:
 	errorstring_t getErrorString () const;
 	void setErrorString (const errorstring_t &);
 
+	std::string toString() const;
+	static Error fromString(const std::string &,bool *ok = NULL);
+
 	friend std::wostream& operator <<(std::wostream &os,const Error &obj);
 
 	class Impl;

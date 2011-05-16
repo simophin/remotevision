@@ -21,6 +21,8 @@ public:
 	virtual ~FFMpegVideoProvider();
 
 	virtual VideoInfo queryInfo() const;
+	virtual Error getLastError() const;
+	virtual bool setParam (const Param &);
 
 	class Impl;
 private:

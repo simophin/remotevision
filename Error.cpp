@@ -12,6 +12,8 @@
 #include <errno.h>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/format.hpp>
+#include <sstream>
 
 #include "Log.h"
 
@@ -95,4 +97,14 @@ void Error::setErrorString (const errorstring_t & str) {
 
 std::wostream& operator <<(std::wostream &os,const Error &obj) {
 	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
+}
+
+std::string Error::toString() const {
+	std::stringstream stream;
+	stream << boost::format("$ERRNO:%1;$ERRSTR:%2") % d->errorNumber % std::string(d->errorString.begin(), d->errorString.end());
+	return stream.str();
+
+}
+Error Error::fromString(const std::string &str,bool *ok) {
+
 }
