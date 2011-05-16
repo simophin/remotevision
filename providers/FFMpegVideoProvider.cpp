@@ -9,8 +9,10 @@
 #include "VideoInfo.h"
 #include "VideoCodec.h"
 #include "Geometry.h"
+#include "Error.h"
 
 #include <algorithm>
+#include <assert.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -52,22 +54,33 @@ static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
 
 struct s_geometry SUPPORTTED_GEOMETRIES[] = {
 		{320,240},
+		{640,480},
+		{1024,768},
 };
 
 class FFMpegVideoProvider::Impl {
 public:
 	VideoInfo *videoInfo;
+	State state;
+	Error lastError;
+
+	// Related to ffmpeg decoding/encoding
+	Geometry mGeometry;
+	VideoCodec mVideoCodec;
+
 	~Impl () {
 		if (videoInfo) delete videoInfo;
 	}
 
 	Impl()
-	:videoInfo(0) {}
+	:videoInfo(0),state(STATE_READY) {}
 };
 
 FFMpegVideoProvider::FFMpegVideoProvider()
 :d(new FFMpegVideoProvider::Impl){
 	init();
+
+
 }
 
 FFMpegVideoProvider::~FFMpegVideoProvider() {
@@ -95,14 +108,22 @@ queryInfo() const {
 			info->supportedVideoCodecs.push_back(vcodec);
 		}
 
+
 		d->videoInfo = info;
 	}
+
+	d->videoInfo->currentGeometry = d->mGeometry;
+	d->videoInfo->currentVideoCodec = d->mVideoCodec;
 	return *d->videoInfo;
 }
 
 void FFMpegVideoProvider::init() {
 	av_register_all();
 	avdevice_register_all();
+
+	d->mGeometry.width = SUPPORTTED_GEOMETRIES[0].width;
+	d->mGeometry.height = SUPPORTTED_GEOMETRIES[0].height;
+	d->mVideoCodec.codecId = VCODEC_FLV;
 }
 
 VideoCodecId FFMpegVideoProvider::
@@ -146,6 +167,25 @@ getPixFmtFromFFMpeg(PixelFormat fmt)
 		}
 	}
 	return IF_INVALID;
+}
+
+Error FFMpegVideoProvider::
+getLastError() const {
+	return d->lastError;
+}
+bool FFMpegVideoProvider::
+setParam (const Param & param) {
+	assert(param.codec.codecId != VCODEC_INVALID);
+	assert(param.geo.isValid());
+
+	if (d->state == STATE_CAPTURING) {
+		d->lastError = Error("Video device is capturing");
+		return false;
+	}
+
+	d->mGeometry = param.geo;
+	d->mVideoCodec = param.codec;
+	return true;
 }
 
 

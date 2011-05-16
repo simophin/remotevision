@@ -29,6 +29,11 @@ private:
 	void init();
 	Impl *d;
 
+	typedef enum {
+		STATE_READY,
+		STATE_CAPTURING,
+	} State;
+
 
 public:
 	static VideoCodecId getIdFromFFMpeg(CodecID);

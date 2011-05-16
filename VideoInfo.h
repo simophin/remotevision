@@ -18,6 +18,9 @@ public:
 	/* Members */
 	std::vector<Geometry> supportedGeometry;
 	std::vector<VideoCodec> supportedVideoCodecs;
+
+	Geometry currentGeometry;
+	VideoCodec currentVideoCodec;
 };
 
 #endif /* VIDEOINFO_H_ */

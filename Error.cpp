@@ -106,5 +106,12 @@ std::string Error::toString() const {
 
 }
 Error Error::fromString(const std::string &str,bool *ok) {
-
+	syserrno_t e;
+	char buf[1024];
+	sscanf(str.c_str(),"$ERRNO:%d;$ERRSTR:%s", &e, buf);
+	buf[sizeof(buf)-1] = '\0';
+	Error ret;
+	ret.setErrno(e,false);
+	std::string r(buf);
+	ret.setErrorString(std::wstring(r.begin(),r.end()));
 }
