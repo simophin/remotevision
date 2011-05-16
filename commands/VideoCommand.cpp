@@ -25,6 +25,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/lexical_cast.hpp>
 #include <assert.h>
+#include <algorithm>
 
 static VideoCommand *VCMD_INSTANCE = 0;
 
@@ -183,6 +184,13 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 				err = "Invalid/Unsupported video codec";
 				goto error_out;
 			}
+
+			VideoInfo info = ctx->videoProvider->queryInfo();
+			if (std::find(info.supportedVideoCodecs.begin(), info.supportedVideoCodecs.end(),
+					requestCodec) == info.supportedVideoCodecs.end()) {
+				err = "Invalid/Unsupported video codec";
+				goto error_out;
+			}
 		}
 
 		{
@@ -205,6 +213,19 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 	if (!parser.writeCommand(response)) {
 		Log::logError("Write response to SET_PARAM failed: %s", parser.getLastError().getErrorString().c_str());
 	}
+}
+
+void VideoCommand::SetParameterCommandHandler::
+buildRequestCommand (Command &result, const Geometry &geo, const VideoCodec &codec) {
+	CommandBuilder builder;
+
+	assert(geo.isValid());
+	assert(codec.codecId != VCODEC_INVALID);
+
+	builder.setRequestCommand("SET_PARAM");
+	builder.appendArgument(geo.toString());
+	builder.appendArgument(codec.toString());
+	builder.build(result);
 }
 
 

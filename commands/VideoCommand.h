@@ -12,6 +12,8 @@
 
 class VideoInfo;
 class Command;
+class Geometry;
+class VideoCodec;
 class VideoCommand {
 public:
 	VideoCommand();
@@ -39,6 +41,8 @@ public:
 		SetParameterCommandHandler ();
 		virtual ~SetParameterCommandHandler();
 		virtual void onHandle(const Command &, const CommandContext *);
+
+		static void buildRequestCommand (Command &,const Geometry &, const VideoCodec &);
 	};
 
 	friend class QueryInfoCommandHandler;
