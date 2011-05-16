@@ -28,6 +28,13 @@
 #include <algorithm>
 
 static VideoCommand *VCMD_INSTANCE = 0;
+const char * VideoCommand::QueryInfoCommandHandler::ERROR_STRING = "QUERY_INFO_FAILED";
+const char * VideoCommand::QueryInfoCommandHandler::SUCCESS_STRING = "QUERY_INFO_OK";
+const char * VideoCommand::QueryInfoCommandHandler::REQUEST_STRING = "QUERY_INFO";
+
+const char * VideoCommand::SetParameterCommandHandler::REQUEST_STRING = "SET_PARAM";
+const char * VideoCommand::SetParameterCommandHandler::SUCCESS_STRING = "SET_PARAM_OK";
+const char * VideoCommand::SetParameterCommandHandler::ERROR_STRING   = "SET_PARAM_FAILED";
 
 class VideoCommand::Impl {
 public:
@@ -77,7 +84,7 @@ void VideoCommand::setState(VideoCommand::State s) {
 }
 
 VideoCommand::QueryInfoCommandHandler::QueryInfoCommandHandler()
-:CommandHandler("QUERY_INFO"){
+:CommandHandler(REQUEST_STRING){
 }
 
 VideoCommand::QueryInfoCommandHandler::~QueryInfoCommandHandler() {
@@ -87,7 +94,7 @@ void VideoCommand::QueryInfoCommandHandler::
 onHandle(const Command &cmd, const CommandContext * ctx) {
 	VideoInfo info = ctx->videoProvider->queryInfo();
 	CommandBuilder builder;
-	builder.setResponseCommand("QUERY_INFO_OK");
+	builder.setResponseCommand(SUCCESS_STRING);
 
 	// For geometry information
 	std::vector<std::string> geoargs;
@@ -113,7 +120,7 @@ onHandle(const Command &cmd, const CommandContext * ctx) {
 
 VideoInfo VideoCommand::QueryInfoCommandHandler::
 parseVideoInformationFromCommand(const Command & cmd) {
-	assert(cmd.getName() == "QUERY_INFO_OK" && cmd.getArguments().size() == 2);
+	assert(cmd.getName() == SUCCESS_STRING && cmd.getArguments().size() == 2);
 	VideoInfo ret;
 
 	// Parse geometry(s)
@@ -148,7 +155,7 @@ VideoCommand::SetParameterCommandHandler::
 
 VideoCommand::SetParameterCommandHandler::
 SetParameterCommandHandler()
-:CommandHandler("SET_PARAM")
+:CommandHandler(REQUEST_STRING)
 {
 }
 
@@ -158,11 +165,10 @@ void VideoCommand::SetParameterCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
 	CommandBuilder builder;
-	static const char * FAILED_STR = "SET_PARAM_FAILED", * SUCCESS_STR = "SET_PARAM_OK";
 	if (getInstance()->getState() == STATE_CAPTURING) {
-		builder.setResponseCommand(FAILED_STR, "the video device now is capturing");
+		builder.setResponseCommand(ERROR_STRING, "the video device now is capturing");
 	}else if (cmd.getArguments().size() != 2) {
-		builder.setResponseCommand(FAILED_STR, "invalid argument count");
+		builder.setResponseCommand(ERROR_STRING, "invalid argument count");
 	}else{
 		const char *err = 0;
 		Geometry requestGeo;
@@ -199,11 +205,11 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 			d->mVideoGeometry = requestGeo;
 		}
 
-		builder.setResponseCommand(SUCCESS_STR);
+		builder.setResponseCommand(SUCCESS_STRING);
 		goto out;
 
 		error_out:
-		builder.setResponseCommand(FAILED_STR, err);
+		builder.setResponseCommand(ERROR_STRING, err);
 	}
 
 	out:
@@ -211,7 +217,9 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 	Commander parser(ctx->controlDevice);
 	builder.build(response);
 	if (!parser.writeCommand(response)) {
-		Log::logError("Write response to SET_PARAM failed: %s", parser.getLastError().getErrorString().c_str());
+		Log::logError("Write response to %s failed: %s",
+				REQUEST_STRING,
+				parser.getLastError().getErrorString().c_str());
 	}
 }
 
@@ -222,7 +230,7 @@ buildRequestCommand (Command &result, const Geometry &geo, const VideoCodec &cod
 	assert(geo.isValid());
 	assert(codec.codecId != VCODEC_INVALID);
 
-	builder.setRequestCommand("SET_PARAM");
+	builder.setRequestCommand(REQUEST_STRING);
 	builder.appendArgument(geo.toString());
 	builder.appendArgument(codec.toString());
 	builder.build(result);

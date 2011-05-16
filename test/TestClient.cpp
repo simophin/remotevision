@@ -8,6 +8,7 @@
 #include "medium/TCPSocket.h"
 #include "medium/TCPSocketAddress.h"
 #include "vsources/IOVideoSource.h"
+#include "VideoFormat.h"
 
 #include <iostream>
 #include <assert.h>
@@ -40,6 +41,11 @@ int main () {
 	std::cout << "Supported codecs are: "<<std::endl;
 	for (int i=0;i<info.supportedVideoCodecs.size();i++) {
 		std::cout << "(" << info.supportedVideoCodecs[i].toString() << ")" << std::endl;
+	}
+
+	VideoFormat fmt(info.supportedVideoCodecs[0],info.supportedGeometry[0]);
+	if (!source.setFormat(fmt)) {
+		std::wcout << "Error is "<<source.getLastError() << std::endl;
 	}
 
 	return 0;

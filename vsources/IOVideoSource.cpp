@@ -46,7 +46,7 @@ doGetInformation(int ms) const
 {
 	if (d->needFetchInfo) {
 		CommandBuilder builder;
-		builder.setRequestCommand("QUERY_INFO");
+		builder.setRequestCommand(VideoCommand::QueryInfoCommandHandler::REQUEST_STRING);
 
 		Command cmd;
 		builder.build(cmd);
@@ -59,7 +59,7 @@ doGetInformation(int ms) const
 			goto read_error;
 		}
 
-		if (cmd.getName() == "QUERY_INFO_OK" ) {
+		if (cmd.getName() == VideoCommand::QueryInfoCommandHandler::SUCCESS_STRING ) {
 			d->info = VideoCommand::QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
 			d->needFetchInfo = false;
 		}
@@ -77,6 +77,34 @@ doGetInformation(int ms) const
 bool IOVideoSource::
 doSetFormat(VideoFormat & fmt, int ms)
 {
+	Command request,response;
+	VideoCommand::SetParameterCommandHandler::buildRequestCommand(request,fmt.getGeometry(),fmt.getVideoCodec());
+
+	// Do request and get response
+	{
+		if (!d->cmdParser.writeCommand(request)) {
+			setLastError(d->cmdParser.getLastError());
+			return false;
+		}
+
+		if (!d->cmdParser.readCommand(response)) {
+			setLastError(d->cmdParser.getLastError());
+			return false;
+		}
+	}
+
+	// Parse response
+	{
+		if (response.getName() == VideoCommand::SetParameterCommandHandler::SUCCESS_STRING) {
+			return true;
+		}else{
+			if (response.getName() == VideoCommand::SetParameterCommandHandler::ERROR_STRING )
+			setLastError(Error(response.getArgument(1).c_str(),response.getArgument(1).size()));
+			else
+			setLastError(Error("Unknown error"));
+			return false;
+		}
+	}
 }
 
 

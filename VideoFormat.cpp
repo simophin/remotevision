@@ -7,11 +7,3 @@
 
 #include "VideoFormat.h"
 
-VideoFormat::VideoFormat() {
-	// TODO Auto-generated constructor stub
-
-}
-
-VideoFormat::~VideoFormat() {
-	// TODO Auto-generated destructor stub
-}

@@ -34,6 +34,9 @@ public:
 		virtual void onHandle(const Command &, const CommandContext *);
 
 		static VideoInfo parseVideoInformationFromCommand(const Command &);
+		static const char * SUCCESS_STRING;
+		static const char * ERROR_STRING;
+		static const char * REQUEST_STRING;
 	};
 
 	class SetParameterCommandHandler: public CommandHandler {
@@ -43,6 +46,9 @@ public:
 		virtual void onHandle(const Command &, const CommandContext *);
 
 		static void buildRequestCommand (Command &,const Geometry &, const VideoCodec &);
+		static const char * SUCCESS_STRING;
+		static const char * ERROR_STRING;
+		static const char * REQUEST_STRING;
 	};
 
 	friend class QueryInfoCommandHandler;

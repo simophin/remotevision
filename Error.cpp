@@ -37,6 +37,23 @@ Error::Error(syserrno_t e)
 
 }
 
+Error::Error(const errorstring_t &str)
+:d(new Error::Impl(syserrno_success)) {
+	d->errorString = str;
+}
+
+Error::Error(const char *str ,size_t size)
+:d(new Error::Impl(syserrno_success)) {
+	std::string r;
+	if (size > 0) {
+		r = std::string(str,size);
+	}else{
+		r = std::string(str);
+	}
+	d->errorString = std::wstring(r.begin(), r.end());
+}
+
+
 Error::~Error() {
 	delete d;
 }

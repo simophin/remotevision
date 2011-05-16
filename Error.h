@@ -18,7 +18,8 @@ extern syserrno_t syserrno_success;
 class Error {
 public:
 	explicit Error(syserrno_t e = syserrno_success);
-	explicit Error(const std::string &);
+	explicit Error(const errorstring_t &);
+	explicit Error(const char *, size_t size = 0);
 	virtual ~Error();
 
 	syserrno_t getErrno() const;
