@@ -85,6 +85,7 @@ public:
 	AVFormatContext * mInputFmtCtx;
 	AVCodecContext  * mInputCodecCtx, * mOutputCodecCtx;
 	AVCodec * mInputCodec, * mOutputCodec;
+	SwsContext *mSwsCtx;
 
 	// Buffer related
 	std::list<VBuffer *> mBuffers;
@@ -302,6 +303,33 @@ void FFMpegVideoProvider::Impl::entry() {
 		}
 	}
 
+	// The encoder
+	{
+		mOutputCodec = avcodec_find_encoder(getIdFromRemoteVision(mVideoCodec.codecId));
+		if (mOutputCodec == NULL) {
+			strncpy(error, "Can't find encoder", sizeof(error));
+			goto find_encoder_error;
+		}
+
+		mOutputCodecCtx = avcodec_alloc_context3(mOutputCodec);
+		if (mOutputCodecCtx == NULL) {
+			goto alloc_context_error;
+		}
+		mOutputCodecCtx->height = mGeometry.height;
+		mOutputCodecCtx->width  = mGeometry.width;
+	}
+
+	// The sws scaler
+	{
+		mSwsCtx = sws_getCachedContext(mSwsCtx, mOutputCodecCtx->width,
+				mOutputCodecCtx->height,mOutputCodecCtx->pix_fmt,mGeometry.width,
+				mGeometry.height,mOutputCodecCtx->pix_fmt,SWS_FAST_BILINEAR,NULL,NULL,NULL);
+		if (mSwsCtx == NULL) {
+			av_strerror(rc,error,sizeof(error));
+			goto sws_init_error;
+		}
+	}
+
 	// The main loop
 	while (!shouldStop()) {
 
@@ -310,6 +338,13 @@ void FFMpegVideoProvider::Impl::entry() {
 	state = STATE_READY;
 	return;
 
+sws_init_error:
+	avcodec_close(mOutputCodecCtx);
+open_encoder_error:
+	mOutputCodecCtx = NULL;
+alloc_context_error:
+find_encoder_error:
+	mOutputCodec = NULL;
 open_codec_error:
 	mInputCodec = NULL;
 	mInputCodecCtx = NULL;
