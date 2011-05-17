@@ -17,10 +17,15 @@ class RemoteVision::Impl {
 public:
 	CommandMgr cmdMgr;
 	FFMpegVideoProvider videoProvider;
+
+	Impl(const std::string &name)
+	:videoProvider(name) {
+
+	}
 };
 
-RemoteVision::RemoteVision()
-:d(new RemoteVision::Impl){
+RemoteVision::RemoteVision(const std::string &name)
+:d(new RemoteVision::Impl(name)){
 	d->cmdMgr.registerCommandHandler(new VideoCommand::QueryInfoCommandHandler);
 	d->cmdMgr.registerCommandHandler(new VideoCommand::SetParameterCommandHandler);
 }

@@ -8,9 +8,11 @@
 #ifndef REMOTEVISION_H_
 #define REMOTEVISION_H_
 
+#include <string>
+
 class RemoteVision {
 public:
-	RemoteVision();
+	RemoteVision(const std::string &filename);
 	virtual ~RemoteVision();
 
 	class Impl;

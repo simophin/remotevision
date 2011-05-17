@@ -10,6 +10,7 @@
 #include "VideoCodec.h"
 #include "Geometry.h"
 #include "Error.h"
+#include "Thread.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -58,29 +59,38 @@ struct s_geometry SUPPORTTED_GEOMETRIES[] = {
 		{1024,768},
 };
 
-class FFMpegVideoProvider::Impl {
+class FFMpegVideoProvider::Impl: public Thread {
 public:
 	VideoInfo *videoInfo;
 	State state;
 	Error lastError;
 
+	std::string mFileName;
+
 	// Related to ffmpeg decoding/encoding
 	Geometry mGeometry;
 	VideoCodec mVideoCodec;
+
+	AVInputFormat * mInputFmt;
+	AVFormatContext * mInputFmtCtx;
+	AVCodecContext  * mInputCodecCtx, * mOutputCodecCtx;
+	AVCodec * mInputCodec, * mOutputCodec;
+
+	// Thread entry
+	virtual void entry();
 
 	~Impl () {
 		if (videoInfo) delete videoInfo;
 	}
 
-	Impl()
-	:videoInfo(0),state(STATE_READY) {}
+	Impl(const std::string &f)
+	:videoInfo(0),state(STATE_READY),
+	 mFileName(f){}
 };
 
-FFMpegVideoProvider::FFMpegVideoProvider()
-:d(new FFMpegVideoProvider::Impl){
+FFMpegVideoProvider::FFMpegVideoProvider(const std::string &filename)
+:d(new FFMpegVideoProvider::Impl(filename)){
 	init();
-
-
 }
 
 FFMpegVideoProvider::~FFMpegVideoProvider() {
@@ -158,6 +168,23 @@ PixelFormat FFMpegVideoProvider::getPixFmtFromRemoteVision(ImageFormat fmt)
 
 
 
+bool FFMpegVideoProvider::startCapture()
+{
+	if (d->state != STATE_READY) {
+		d->lastError = Error("Video is not ready or is being capturing");
+		return false;
+	}
+
+}
+
+bool FFMpegVideoProvider::stopCapture()
+{
+}
+
+size_t FFMpegVideoProvider::getData(unsigned char *buf, size_t size)
+{
+}
+
 ImageFormat FFMpegVideoProvider::
 getPixFmtFromFFMpeg(PixelFormat fmt)
 {
@@ -188,4 +215,78 @@ setParam (const Param & param) {
 	return true;
 }
 
+void FFMpegVideoProvider::Impl::entry() {
+	state = STATE_CAPTURING;
 
+	char error[2048];
+	int rc;
+	AVFormatParameters inputParam;
+
+	// Initialize ffmpeg
+	{
+		memset(&inputParam,0,sizeof(inputParam));
+		inputParam.width = 320;
+		inputParam.height = 240;
+
+		mInputFmtCtx = NULL;
+		if ( (rc = av_open_input_file(&mInputFmtCtx,mFileName.c_str(),NULL,0,&inputParam)) != 0) {
+			av_strerror(rc,error,sizeof(error));
+			goto open_input_file_error;
+		}
+
+		mInputFmt = mInputFmtCtx->iformat;
+	}
+
+	// Find decoder
+	{
+		mInputCodecCtx = NULL;
+		for (unsigned i=0;i<mInputFmtCtx->nb_streams; i++) {
+			if (mInputFmtCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+				mInputCodecCtx = mInputFmtCtx->streams[i]->codec;
+				break;
+			}
+		}
+		if (mInputCodecCtx == NULL) {
+			strncpy(error, "Can't find codec for video", sizeof(error));
+			goto find_input_codec_error;
+		}
+	}
+
+	// Find and open decoder
+	{
+		mInputCodec = avcodec_find_decoder(mInputCodecCtx->codec_id);
+		if (mInputCodec == NULL) {
+			strncpy(error, "Can't find decoder", sizeof(error));
+			goto find_codec_error;
+		}
+
+		if (mInputCodec->capabilities & CODEC_CAP_TRUNCATED) {
+			mInputCodecCtx->flags |= CODEC_FLAG_TRUNCATED;
+		}
+
+		if ( (rc = avcodec_open(mInputCodecCtx, mInputCodec)) != 0) {
+			av_strerror(rc,error,sizeof(error));
+			goto open_codec_error;
+		}
+	}
+
+	while (!shouldStop()) {
+
+	}
+
+	state = STATE_READY;
+	return;
+
+open_codec_error:
+	mInputCodec = NULL;
+	mInputCodecCtx = NULL;
+find_codec_error:
+find_input_codec_error:
+	av_close_input_file(mInputFmtCtx);
+	mInputFmtCtx = mInputFmt = NULL;
+open_input_file_error:
+	error[sizeof(error)-1] = '\0';
+	lastError = Error(error);
+	state = STATE_READY;
+	return;
+}

@@ -29,6 +29,9 @@ public:
 	virtual bool setParam (const Param &p) = 0;
 
 	virtual Error getLastError() const = 0;
+	virtual bool startCapture() = 0;
+	virtual bool stopCapture() = 0;
+	virtual size_t getData(unsigned char *, size_t) = 0;
 
 	static VideoProvider * getInstance();
 };

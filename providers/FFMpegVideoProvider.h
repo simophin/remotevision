@@ -17,7 +17,7 @@ extern "C" {
 
 class FFMpegVideoProvider: public VideoProvider {
 public:
-	FFMpegVideoProvider();
+	FFMpegVideoProvider(const std::string &filename);
 	virtual ~FFMpegVideoProvider();
 
 	virtual VideoInfo queryInfo() const;
@@ -25,6 +25,7 @@ public:
 	virtual bool setParam (const Param &);
 	virtual bool startCapture();
 	virtual bool stopCapture();
+	virtual size_t getData(unsigned char *, size_t);
 
 	class Impl;
 private:

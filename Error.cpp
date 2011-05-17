@@ -114,4 +114,5 @@ Error Error::fromString(const std::string &str,bool *ok) {
 	ret.setErrno(e,false);
 	std::string r(buf);
 	ret.setErrorString(std::wstring(r.begin(),r.end()));
+	return ret;
 }
