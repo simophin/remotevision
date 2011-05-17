@@ -34,9 +34,10 @@ private:
 };
 
 class MutexImpl;
-
+class Condition;
 class Mutex: public boost::noncopyable {
 	friend class MutexImpl;
+	friend class Condition;
 public:
 	enum Type {
 		Normal,
@@ -51,7 +52,7 @@ public:
 	virtual bool trylock();
 
 private:
-	std::auto_ptr<ThreadImpl> d;
+	std::auto_ptr<MutexImpl> d;
 };
 
 
@@ -63,12 +64,16 @@ public:
 	Condition();
 	virtual ~Condition();
 
-	virtual bool wait(int ms = -1);
+	virtual bool wait(Mutex &,int ms = -1);
 	virtual void signal();
 	virtual void broadcast();
 
 private:
 	std::auto_ptr<ConditionImpl> d;
 };
+
+
+
+
 
 #endif /* THREAD_H_ */

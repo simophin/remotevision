@@ -26,3 +26,7 @@ VideoProvider * VideoProvider::
 getInstance() {
 	return INSTANCE;
 }
+
+size_t VideoProvider::getData(ImageBuffer &buf) {
+	return getData(buf.getData(),buf.getSize());
+}

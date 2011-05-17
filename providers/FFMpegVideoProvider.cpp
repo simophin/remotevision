@@ -11,8 +11,10 @@
 #include "Geometry.h"
 #include "Error.h"
 #include "Thread.h"
+#include "ImageBuffer.h"
 
 #include <algorithm>
+#include <list>
 #include <assert.h>
 
 extern "C" {
@@ -59,6 +61,14 @@ struct s_geometry SUPPORTTED_GEOMETRIES[] = {
 		{1024,768},
 };
 
+class VBuffer {
+public:
+	ImageBuffer buf;
+	Condition   cond;
+	Mutex       mutex;
+	size_t      size;
+};
+
 class FFMpegVideoProvider::Impl: public Thread {
 public:
 	VideoInfo *videoInfo;
@@ -75,6 +85,11 @@ public:
 	AVFormatContext * mInputFmtCtx;
 	AVCodecContext  * mInputCodecCtx, * mOutputCodecCtx;
 	AVCodec * mInputCodec, * mOutputCodec;
+
+	// Buffer related
+	std::list<VBuffer *> mBuffers;
+	Condition mBufferCond;
+	Mutex mBufferMutex;
 
 	// Thread entry
 	virtual void entry();
@@ -170,7 +185,7 @@ PixelFormat FFMpegVideoProvider::getPixFmtFromRemoteVision(ImageFormat fmt)
 
 bool FFMpegVideoProvider::startCapture()
 {
-	if (d->state != STATE_READY) {
+	if (d->state != STATE_READY || d->isRunning()) {
 		d->lastError = Error("Video is not ready or is being capturing");
 		return false;
 	}
@@ -183,6 +198,23 @@ bool FFMpegVideoProvider::stopCapture()
 
 size_t FFMpegVideoProvider::getData(unsigned char *buf, size_t size)
 {
+	if (!d->mBufferMutex.lock(2000)) {
+		return 0;
+	}
+	VBuffer vbuf;
+	vbuf.buf.setData(buf,size);
+	d->mBuffers.push_back(&vbuf);
+	d->mBufferMutex.unlock();
+	d->mBufferCond.signal();
+
+	if (!vbuf.mutex.lock(2000)) {
+		return 0;
+	}
+	if (!vbuf.cond.wait(vbuf.mutex) ){
+		return 0;
+	}
+	vbuf.mutex.unlock();
+	return vbuf.size;
 }
 
 ImageFormat FFMpegVideoProvider::
@@ -270,6 +302,7 @@ void FFMpegVideoProvider::Impl::entry() {
 		}
 	}
 
+	// The main loop
 	while (!shouldStop()) {
 
 	}
@@ -283,7 +316,8 @@ open_codec_error:
 find_codec_error:
 find_input_codec_error:
 	av_close_input_file(mInputFmtCtx);
-	mInputFmtCtx = mInputFmt = NULL;
+	mInputFmtCtx = NULL;
+	mInputFmt = NULL;
 open_input_file_error:
 	error[sizeof(error)-1] = '\0';
 	lastError = Error(error);

@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "Log.h"
+
 class ThreadImpl {
 	friend class Thread;
 	typedef enum  {
@@ -37,6 +39,15 @@ class ThreadImpl {
 
 	static void *entry(void *);
 };
+
+static void getPthreadDelay (struct timespec *to, int ms) {
+	struct timeval tv;
+	::gettimeofday(&tv,NULL);
+
+
+	to->tv_sec = ms / 1000 + tv.tv_sec + (ms % 1000 + tv.tv_usec / 1000) / 1000;
+	to->tv_nsec    = (ms % 1000 * 1000 + tv.tv_usec) % 1000000 * 1000;
+}
 
 Thread::Thread()
 :d(new ThreadImpl) {
@@ -67,13 +78,8 @@ bool Thread::wait(int ms){
 	int rc;
 
 	if (ms > 0) {
-		struct timeval tv;
-		::gettimeofday(&tv,NULL);
-
 		struct timespec to;
-
-		to.tv_sec = ms / 1000 + tv.tv_sec + (ms % 1000 + tv.tv_usec / 1000) / 1000;
-		to.tv_nsec    = (ms % 1000 * 1000 + tv.tv_usec) % 1000000 * 1000;
+		getPthreadDelay(&to,ms);
 
 		pthread_mutex_lock(&d->threadMutex);
 		rc = pthread_cond_timedwait(&d->threadCond, &d->threadMutex,&to);
@@ -98,4 +104,115 @@ bool Thread::isRunning() const {
 
 void Thread::sleep(int ms) {
 	::usleep(ms*1000);
+}
+
+class MutexImpl {
+public:
+	pthread_mutex_t mInternalMutex;
+};
+
+Mutex::Mutex(Type t)
+:d(new MutexImpl)
+{
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, (t == Recursive) ? PTHREAD_MUTEX_RECURSIVE :
+		PTHREAD_MUTEX_DEFAULT);
+	pthread_mutex_init(&d->mInternalMutex, &attr);
+	pthread_mutexattr_destroy(&attr);
+}
+
+
+
+Mutex::~Mutex()
+{
+	pthread_mutex_destroy(&d->mInternalMutex);
+}
+
+
+
+bool Mutex::lock(int ms)
+{
+	int rc;
+	if (ms > 0) {
+		struct timespec to;
+		getPthreadDelay(&to,ms);
+		rc = pthread_mutex_timedlock(&d->mInternalMutex, &to);
+	}else{
+		rc = pthread_mutex_lock(&d->mInternalMutex);
+	}
+
+	if (rc != 0) {
+		Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
+		return false;
+	}
+	return true;
+}
+
+
+
+void Mutex::unlock()
+{
+	pthread_mutex_unlock(&d->mInternalMutex);
+}
+
+
+
+bool Mutex::trylock()
+{
+	return pthread_mutex_trylock(&d->mInternalMutex);
+}
+
+
+class ConditionImpl {
+public:
+	pthread_cond_t mCond;
+};
+
+Condition::Condition()
+:d(new ConditionImpl)
+{
+	pthread_cond_init(&d->mCond,NULL);
+}
+
+
+
+Condition::~Condition()
+{
+	pthread_cond_destroy(&d->mCond);
+}
+
+
+
+bool Condition::wait(Mutex & mutex, int ms)
+{
+	int rc;
+	if (ms > 0) {
+		struct timespec to;
+		getPthreadDelay(&to,ms);
+
+		rc = pthread_cond_timedwait(&d->mCond, &mutex.d->mInternalMutex, &to);
+	}else{
+		rc = pthread_cond_wait(&d->mCond, &mutex.d->mInternalMutex);
+	}
+
+	if (rc != 0) {
+		Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
+		return false;
+	}
+	return true;
+}
+
+
+
+void Condition::signal()
+{
+	pthread_cond_signal(&d->mCond);
+}
+
+
+
+void Condition::broadcast()
+{
+	pthread_cond_broadcast(&d->mCond);
 }

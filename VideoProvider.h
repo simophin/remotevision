@@ -10,6 +10,7 @@
 
 #include "VideoCodec.h"
 #include "Geometry.h"
+#include "ImageBuffer.h"
 
 class Error;
 class VideoInfo;
@@ -32,6 +33,7 @@ public:
 	virtual bool startCapture() = 0;
 	virtual bool stopCapture() = 0;
 	virtual size_t getData(unsigned char *, size_t) = 0;
+	size_t getData(ImageBuffer &);
 
 	static VideoProvider * getInstance();
 };

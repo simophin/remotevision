@@ -6,12 +6,3 @@
  */
 
 #include "ImageBuffer.h"
-
-ImageBuffer::ImageBuffer() {
-	// TODO Auto-generated constructor stub
-
-}
-
-ImageBuffer::~ImageBuffer() {
-	// TODO Auto-generated destructor stub
-}
