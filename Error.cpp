@@ -97,6 +97,7 @@ void Error::setErrorString (const errorstring_t & str) {
 
 std::wostream& operator <<(std::wostream &os,const Error &obj) {
 	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
+	return os;
 }
 
 std::string Error::toString() const {

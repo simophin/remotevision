@@ -95,7 +95,7 @@ public:
 	// Thread entry
 	virtual void entry();
 
-	~Impl () {
+	virtual ~Impl () {
 		if (videoInfo) delete videoInfo;
 	}
 
@@ -191,10 +191,12 @@ bool FFMpegVideoProvider::startCapture()
 		return false;
 	}
 
+	return true;
 }
 
 bool FFMpegVideoProvider::stopCapture()
 {
+	return true;
 }
 
 size_t FFMpegVideoProvider::getData(unsigned char *buf, size_t size)
@@ -253,6 +255,7 @@ void FFMpegVideoProvider::Impl::entry() {
 
 	char error[2048];
 	int rc;
+	unsigned char * swsBuf;
 	AVFormatParameters inputParam;
 
 	// Initialize ffmpeg
@@ -328,16 +331,92 @@ void FFMpegVideoProvider::Impl::entry() {
 			av_strerror(rc,error,sizeof(error));
 			goto sws_init_error;
 		}
+
+		swsBuf = (unsigned char *)::malloc(avpicture_get_size(mOutputCodecCtx->pix_fmt, mGeometry.width, mGeometry.height));
+		if (!swsBuf) {
+			strncpy(error,"Can't allocate memory for swscale",sizeof(error));
+			goto sws_alloc_error;
+		}
 	}
 
 	// The main loop
-	while (!shouldStop()) {
+	{
+		VBuffer *vbuf;
+
+		int rc = 0;
+		while (!shouldStop()) {
+			if (!mBufferMutex.lock(500)) continue;
+			if (mBuffers.size() < 1) {
+				mBufferMutex.unlock();
+				continue;
+			}
+			vbuf = mBuffers.front();
+			mBuffers.pop_front();
+			assert (vbuf != 0);
+			mBufferMutex.unlock();
+
+			// Got a buffer. Use ffmpeg to encode data.
+			AVPacket pkt;
+			AVFrame *frame = avcodec_alloc_frame();
+			assert (frame != NULL);
+			int got_picture = 0;
+			while (!got_picture && !shouldStop()) {
+				// DECODE packet
+				rc = av_read_packet(mInputFmtCtx, &pkt);
+				if (rc != 0) {
+					av_strerror(rc,error,sizeof(error));
+					break;
+				}
+				if ( mInputFmtCtx->streams[pkt.stream_index]->codec != mInputCodecCtx) {
+					av_free_packet(&pkt);
+					continue;
+				}
+				if ((rc = avcodec_decode_video2(mInputCodecCtx,frame,&got_picture,&pkt)) < 0 ){
+					av_strerror(rc,error,sizeof(error));
+					av_free_packet(&pkt);
+					break;
+				}
+			}
+
+			if (!got_picture) {
+				av_free(frame);
+				break;
+			}
+
+			// Do SWSCALE and ENCODE
+			{
+				AVFrame *convertedFrame = avcodec_alloc_frame();
+				assert (convertedFrame != NULL);
+				avpicture_fill((AVPicture *)convertedFrame,swsBuf,
+						mOutputCodecCtx->pix_fmt, mOutputCodecCtx->width, mOutputCodecCtx->height);
+				rc = sws_scale(mSwsCtx,frame->data,frame->linesize,0,mOutputCodecCtx->height,
+						convertedFrame->data, convertedFrame->linesize);
+				if (rc < 0) {
+					av_strerror(rc,error,sizeof(error));
+				}else{
+					rc = avcodec_encode_video(mOutputCodecCtx, (uint8_t *)vbuf->buf.getData(),
+							vbuf->buf.getSize(),convertedFrame);
+					if (rc < 0) {
+						av_strerror(rc,error,sizeof(error));
+					}else{
+						vbuf->size = rc;
+						vbuf->cond.signal();
+					}
+				}
+
+				av_free(convertedFrame);
+			}
+
+			av_free(frame);
+		}
+
+
 
 	}
 
-	state = STATE_READY;
-	return;
 
+	::free(swsBuf);
+sws_alloc_error:
 sws_init_error:
 	avcodec_close(mOutputCodecCtx);
 open_encoder_error:

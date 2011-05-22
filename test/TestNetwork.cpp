@@ -51,4 +51,6 @@ int main() {
 
 	socket->close();
 	server.close();
+
+	return 0;
 }
