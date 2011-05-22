@@ -26,7 +26,7 @@ int main () {
 	TCPSocketAddress remoteAddr ("127.0.0.1", 10001);
 
 	if (socket.connect(&remoteAddr)) {
-		std::wcerr << socket.getLastError() << std::endl;
+		std::cerr << socket.getLastError() << std::endl;
 		return -1;
 	}
 
@@ -45,7 +45,7 @@ int main () {
 
 	VideoFormat fmt(info.supportedVideoCodecs[0],info.supportedGeometry[0]);
 	if (!source.setFormat(fmt)) {
-		std::wcout << "Error is "<<source.getLastError() << std::endl;
+		std::cout << "Error is "<<source.getLastError() << std::endl;
 	}
 
 	return 0;

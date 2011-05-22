@@ -12,7 +12,7 @@
 #include <ostream>
 
 typedef int syserrno_t;
-typedef std::wstring errorstring_t;
+typedef std::string errorstring_t;
 extern syserrno_t syserrno_success;
 
 class Error {
@@ -31,7 +31,7 @@ public:
 	std::string toString() const;
 	static Error fromString(const std::string &,bool *ok = NULL);
 
-	friend std::wostream& operator <<(std::wostream &os,const Error &obj);
+	friend std::ostream& operator <<(std::ostream &os,const Error &obj);
 
 	class Impl;
 private:

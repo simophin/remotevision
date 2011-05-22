@@ -32,7 +32,7 @@ class ThreadImpl {
 	RunningStatus threadStatus;
 
 	ThreadImpl()
-	:shouldStop(false){
+	:shouldStop(false), threadStatus(StatusStopped){
 		pthread_cond_init(&threadCond,NULL);
 		pthread_mutex_init(&threadMutex,NULL);
 	}
@@ -69,7 +69,7 @@ entry(void *arg) {
 }
 
 void Thread::run() {
-	assert(d->threadStatus == ThreadImpl::StatusRunning);
+	assert(d->threadStatus != ThreadImpl::StatusRunning);
 	int rc = pthread_create (&d->thread, NULL, &ThreadImpl::entry, this);
 	assert(rc == 0);
 	d->threadStatus =  ThreadImpl::StatusRunning;

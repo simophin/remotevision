@@ -32,7 +32,7 @@ int main () {
 	TCPServerSocket server (sock);
 	TCPSocketAddress localAddr("0.0.0.0", 10001);
 	if (server.bind(&localAddr)) {
-		std::wcerr << server.getLastError();
+		std::cerr << server.getLastError();
 		return -1;
 	}
 
@@ -44,7 +44,7 @@ int main () {
 	TCPSocketAddress *addr = 0;
 	TCPSocket *socket = (TCPSocket *)(server.accept((SocketAddress **)&addr));
 	if (socket == NULL) {
-		std::wcerr << server.getLastError();
+		std::cerr << server.getLastError();
 		return -3;
 	}
 

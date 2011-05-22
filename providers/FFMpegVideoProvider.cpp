@@ -191,6 +191,8 @@ bool FFMpegVideoProvider::startCapture()
 		return false;
 	}
 
+	d->run();
+
 	return true;
 }
 
@@ -320,12 +322,13 @@ void FFMpegVideoProvider::Impl::entry() {
 		}
 		mOutputCodecCtx->height = mGeometry.height;
 		mOutputCodecCtx->width  = mGeometry.width;
+		mOutputCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	}
 
 	// The sws scaler
 	{
-		mSwsCtx = sws_getCachedContext(mSwsCtx, mOutputCodecCtx->width,
-				mOutputCodecCtx->height,mOutputCodecCtx->pix_fmt,mGeometry.width,
+		mSwsCtx = sws_getCachedContext(mSwsCtx, mInputCodecCtx->width,
+				mInputCodecCtx->height,mInputCodecCtx->pix_fmt,mGeometry.width,
 				mGeometry.height,mOutputCodecCtx->pix_fmt,SWS_FAST_BILINEAR,NULL,NULL,NULL);
 		if (mSwsCtx == NULL) {
 			av_strerror(rc,error,sizeof(error));
@@ -409,9 +412,6 @@ void FFMpegVideoProvider::Impl::entry() {
 
 			av_free(frame);
 		}
-
-
-
 	}
 
 

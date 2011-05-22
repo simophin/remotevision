@@ -52,7 +52,7 @@ Error::Error(const char *str ,size_t size)
 	}else{
 		r = std::string(str);
 	}
-	d->errorString = std::wstring(r.begin(), r.end());
+	d->errorString = r;
 }
 
 
@@ -67,7 +67,7 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 	d->errorNumber = e;
 	if (fetchFromSystem) {
 #ifdef OS_WIN32
-		LPWSTR buf = NULL;
+		LPSTR buf = NULL;
 		::FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 				NULL,
 				e,
@@ -75,12 +75,11 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 				(LPSTR)&buf,
 				0,
 				NULL);
-		d->errorString = std::wstring(buf,wcslen((LPWSTR)buf));
+		d->errorString = std::string(buf);
 #endif
 
 #ifdef OS_UNIX
-		std::string tmp_str = ::strerror(e);
-		d->errorString = std::wstring(tmp_str.begin(), tmp_str.end());
+		d->errorString = ::strerror(e);
 #endif
 	}
 }
@@ -95,7 +94,7 @@ void Error::setErrorString (const errorstring_t & str) {
 }
 
 
-std::wostream& operator <<(std::wostream &os,const Error &obj) {
+std::ostream& operator <<(std::ostream &os,const Error &obj) {
 	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
 	return os;
 }
@@ -113,7 +112,6 @@ Error Error::fromString(const std::string &str,bool *ok) {
 	buf[sizeof(buf)-1] = '\0';
 	Error ret;
 	ret.setErrno(e,false);
-	std::string r(buf);
-	ret.setErrorString(std::wstring(r.begin(),r.end()));
+	ret.setErrorString(buf);
 	return ret;
 }
