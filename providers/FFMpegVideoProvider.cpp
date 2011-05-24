@@ -12,7 +12,7 @@
 #include "Error.h"
 #include "Thread.h"
 #include "ImageBuffer.h"
-#include "FFMpegInfo.h"
+#include "3rdparty/ffmpeg/FFMpegInfo.h"
 
 #include <algorithm>
 #include <list>
@@ -111,10 +111,6 @@ queryInfo() const {
 }
 
 void FFMpegVideoProvider::init() {
-	av_register_all();
-	avcodec_register_all();
-	avdevice_register_all();
-
 	/*
 	d->mGeometry.width = SUPPORTTED_GEOMETRIES[0].width;
 	d->mGeometry.height = SUPPORTTED_GEOMETRIES[0].height;
