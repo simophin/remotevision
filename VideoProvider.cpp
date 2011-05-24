@@ -8,6 +8,9 @@
 #include "VideoProvider.h"
 #include "Error.h"
 #include "VideoInfo.h"
+#include "Utils.h"
+
+#include <sstream>
 
 VideoProvider::VideoProvider(){
 }
@@ -72,5 +75,25 @@ bool VideoProvider::setParam(const Param & param)
 void VideoProvider::doInitDevice()
 {
 }
+
+std::string VideoProvider::Info::
+toString() const
+{
+	std::stringstream stream;
+	stream << Utils::arrayToString(supportedCodecs) << "|";
+	stream << Utils::arrayToString(supportedGeometries) << "|";
+	stream << Utils::arrayToString(supportedFrameRates);
+	return stream.str();
+}
+
+
+
+VideoProvider::Info VideoProvider::Info::
+fromString(const std::string & str)
+{
+
+}
+
+
 
 

@@ -36,6 +36,10 @@ const char * VideoCommand::SetParameterCommandHandler::REQUEST_STRING = "SET_PAR
 const char * VideoCommand::SetParameterCommandHandler::SUCCESS_STRING = "SET_PARAM_OK";
 const char * VideoCommand::SetParameterCommandHandler::ERROR_STRING   = "SET_PARAM_FAILED";
 
+const char * VideoCommand::GetParameterCommandHandler::REQUEST_STRING = "GET_PARAM";
+const char * VideoCommand::GetParameterCommandHandler::SUCCESS_STRING = "GET_PARAM_OK";
+const char * VideoCommand::GetParameterCommandHandler::ERROR_STRING   = "GET_PARAM_FAILED";
+
 
 VideoCommand::QueryInfoCommandHandler::QueryInfoCommandHandler()
 :CommandHandler(REQUEST_STRING){
@@ -74,7 +78,7 @@ onHandle(const Command &cmd, const CommandContext * ctx) {
 
 VideoProvider::Info VideoCommand::QueryInfoCommandHandler::
 parseVideoInformationFromCommand(const Command & cmd) {
-	assert(cmd.getName() == SUCCESS_STRING && cmd.getArguments().size() == 2);
+	assert(cmd.getName() == SUCCESS_STRING && cmd.getArguments().size() == 3);
 	VideoProvider::Info ret;
 
 	// Parse geometry(s)
@@ -94,6 +98,16 @@ parseVideoInformationFromCommand(const Command & cmd) {
 		boost::algorithm::split(codecargs, codecarg_str, boost::is_any_of(";"));
 		for (int i=0;i<codecargs.size();i++) {
 			ret.supportedCodecs.push_back(VideoCodec::fromString(codecargs.at(i)));
+		}
+	}
+
+	// Parse framerates information
+	{
+		std::vector<std::string> ffargs;
+		std::string ffarg_str = cmd.getArgument(2);
+		boost::split(ffargs,ffarg_str,boost::is_any_of(";"));
+		for (int i=0;i<ffargs.size();i++) {
+			ret.supportedFrameRates.push_back(FrameRate::fromString(ffargs.at(i)));
 		}
 	}
 
@@ -190,5 +204,19 @@ buildRequestCommand (Command &result, const Geometry &geo, const VideoCodec &cod
 	builder.appendArgument(codec.toString());
 	builder.build(result);
 }
+
+void VideoCommand::GetParameterCommandHandler::
+onHandle(const Command & cmd, const CommandContext *ctx)
+{
+}
+
+
+
+VideoInfo VideoCommand::GetParameterCommandHandler::
+parseInfoFromCommand(const Command & cmd)
+{
+}
+
+
 
 

@@ -12,8 +12,10 @@
 #include "Geometry.h"
 #include "ImageBuffer.h"
 #include "FrameRate.h"
+#include "Serializable.hpp"
 
 #include <vector>
+#include <string>
 
 class Error;
 class VideoInfo;
@@ -26,11 +28,15 @@ public:
 
 	typedef VideoInfo Param;
 
-	class Info {
+	class Info: public Serializable {
 	public:
 		std::vector<VideoCodec> supportedCodecs;
 		std::vector<Geometry>   supportedGeometries;
 		std::vector<FrameRate>  supportedFrameRates;
+
+		virtual std::string toString() const;
+		virtual bool isValid() const { return true; }
+		static Info fromString(const std::string &);
 	};
 
 

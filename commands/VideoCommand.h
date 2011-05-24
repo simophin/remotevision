@@ -29,6 +29,16 @@ public:
 		static const char * REQUEST_STRING;
 	};
 
+	class GetParameterCommandHandler: public CommandHandler {
+	public:
+		virtual void onHandle(const Command &, const CommandContext *);
+
+		static VideoInfo parseInfoFromCommand (const Command &);
+		static const char * SUCCESS_STRING;
+		static const char * ERROR_STRING;
+		static const char * REQUEST_STRING;
+	};
+
 	class SetParameterCommandHandler: public CommandHandler {
 	public:
 		SetParameterCommandHandler ();

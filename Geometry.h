@@ -9,8 +9,9 @@
 #define GEOMETRY_H_
 
 #include <string>
+#include "Serializable.hpp"
 
-class Geometry {
+class Geometry: public Serializable {
 public:
 	int width, height;
 
@@ -18,7 +19,7 @@ public:
 	:width(w), height(h) {}
 
 	static Geometry fromString (const std::string &);
-	std::string toString () const;
+	virtual std::string toString () const;
 	bool isValid() const;
 	void invalid();
 
