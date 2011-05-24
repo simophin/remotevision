@@ -91,7 +91,17 @@ toString() const
 VideoProvider::Info VideoProvider::Info::
 fromString(const std::string & str)
 {
+	std::vector<std::string> args;
+	boost::split(args,str,boost::is_any_of("|"));
+	if (args.size() != 3) return VideoProvider::Info();
 
+	VideoProvider::Info ret;
+
+	ret.supportedCodecs = Utils::stringToArray< std::vector<VideoCodec> >(args.at(0));
+	ret.supportedGeometries = Utils::stringToArray< std::vector<Geometry> >(args.at(1));
+	ret.supportedFrameRates = Utils::stringToArray< std::vector<FrameRate> >(args.at(2));
+
+	return ret;
 }
 
 

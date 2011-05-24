@@ -53,22 +53,7 @@ onHandle(const Command &cmd, const CommandContext * ctx) {
 	VideoProvider::Info info = ctx->videoProvider->queryInfo();
 	CommandBuilder builder;
 	builder.setResponseCommand(SUCCESS_STRING);
-
-	// For geometry information
-	std::vector<std::string> geoargs;
-	for (int i=0;i<info.supportedGeometries.size();i++) {
-		const Geometry &geo = info.supportedGeometries[i];
-		geoargs.push_back(geo.toString());
-	}
-	builder.appendArgument(boost::algorithm::join(geoargs,";"));
-
-	// For codec information
-	std::vector<std::string> codecargs;
-	for (int i=0;i<info.supportedCodecs.size();i++) {
-		const VideoCodec &codec = info.supportedCodecs[i];
-		codecargs.push_back(codec.toString());
-	}
-	builder.appendArgument(boost::algorithm::join(codecargs,";"));
+	builder.appendArgument(info.toString());
 
 	Commander parser(ctx->controlDevice);
 	Command response;
@@ -78,40 +63,8 @@ onHandle(const Command &cmd, const CommandContext * ctx) {
 
 VideoProvider::Info VideoCommand::QueryInfoCommandHandler::
 parseVideoInformationFromCommand(const Command & cmd) {
-	assert(cmd.getName() == SUCCESS_STRING && cmd.getArguments().size() == 3);
-	VideoProvider::Info ret;
-
-	// Parse geometry(s)
-	{
-		std::vector<std::string> geoargs;
-		std::string geoarg_str = cmd.getArgument(0);
-		boost::algorithm::split(geoargs, geoarg_str, boost::is_any_of(";"));
-		for (int i=0;i<geoargs.size();i++) {
-			ret.supportedGeometries.push_back(Geometry::fromString(geoargs.at(i)));
-		}
-	}
-
-	// Parse codec information
-	{
-		std::vector<std::string> codecargs;
-		std::string codecarg_str = cmd.getArgument(1);
-		boost::algorithm::split(codecargs, codecarg_str, boost::is_any_of(";"));
-		for (int i=0;i<codecargs.size();i++) {
-			ret.supportedCodecs.push_back(VideoCodec::fromString(codecargs.at(i)));
-		}
-	}
-
-	// Parse framerates information
-	{
-		std::vector<std::string> ffargs;
-		std::string ffarg_str = cmd.getArgument(2);
-		boost::split(ffargs,ffarg_str,boost::is_any_of(";"));
-		for (int i=0;i<ffargs.size();i++) {
-			ret.supportedFrameRates.push_back(FrameRate::fromString(ffargs.at(i)));
-		}
-	}
-
-	return ret;
+	assert(cmd.getName() == SUCCESS_STRING && cmd.getArguments().size() == 1);
+	return VideoProvider::Info::fromString(cmd.getArgument(0));
 }
 
 VideoCommand::SetParameterCommandHandler::
@@ -208,6 +161,7 @@ buildRequestCommand (Command &result, const Geometry &geo, const VideoCodec &cod
 void VideoCommand::GetParameterCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
+
 }
 
 
