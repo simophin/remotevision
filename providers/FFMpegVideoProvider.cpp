@@ -12,6 +12,7 @@
 #include "Error.h"
 #include "Thread.h"
 #include "ImageBuffer.h"
+#include "FFMpegInfo.h"
 
 #include <algorithm>
 #include <list>
@@ -24,42 +25,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavdevice/avdevice.h>
 }
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof((x))/sizeof((x[0])))
-#endif
-
-struct ID_CONV_TABLE_T {
-	VideoCodecId rid;
-	CodecID fid;
-};
-
-struct PIX_CONV_TABLE_T {
-	ImageFormat rfmt;
-	PixelFormat ffmt;
-};
-
-struct s_geometry {
-	int width,height;
-};
-
-static ID_CONV_TABLE_T ID_CONV_TABLE[] = {
-		{ VCODEC_INVALID, CODEC_ID_NONE },
-		{ VCODEC_FLV, 	CODEC_ID_FLV1 },
-		{ VCODEC_MJPEG, CODEC_ID_MJPEG },
-		{ VCODEC_RAW,	CODEC_ID_RAWVIDEO },
-};
-
-static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
-		{ IF_INVALID, PIX_FMT_NONE },
-		{ IF_YUV420P, PIX_FMT_YUV420P },
-};
-
-struct s_geometry SUPPORTTED_GEOMETRIES[] = {
-		{320,240},
-		{640,480},
-		{1024,768},
-};
 
 class VBuffer {
 public:
@@ -117,6 +82,7 @@ VideoInfo FFMpegVideoProvider::
 queryInfo() const {
 	if (d->videoInfo == 0) {
 		VideoInfo *info = new VideoInfo;
+		/*
 		for (int i=0;i<ARRAY_SIZE(SUPPORTTED_GEOMETRIES);i++) {
 			info->supportedGeometry.push_back(Geometry(SUPPORTTED_GEOMETRIES[i].width,
 					SUPPORTTED_GEOMETRIES[i].height ));
@@ -133,6 +99,7 @@ queryInfo() const {
 			vcodec.pixelFormat = getPixFmtFromFFMpeg(PIX_FMT_YUV420P);
 			info->supportedVideoCodecs.push_back(vcodec);
 		}
+		*/
 
 
 		d->videoInfo = info;
@@ -145,42 +112,17 @@ queryInfo() const {
 
 void FFMpegVideoProvider::init() {
 	av_register_all();
+	avcodec_register_all();
 	avdevice_register_all();
 
+	/*
 	d->mGeometry.width = SUPPORTTED_GEOMETRIES[0].width;
 	d->mGeometry.height = SUPPORTTED_GEOMETRIES[0].height;
 	d->mVideoCodec.codecId = VCODEC_FLV;
+	*/
 }
 
-VideoCodecId FFMpegVideoProvider::
-getIdFromFFMpeg(CodecID id) {
-	for (int i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
-		if (ID_CONV_TABLE[i].fid == id) {
-			return ID_CONV_TABLE[i].rid;
-		}
-	}
-	return VCODEC_INVALID;
-}
 
-CodecID FFMpegVideoProvider::
-getIdFromRemoteVision(VideoCodecId id) {
-	for (int i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
-		if (ID_CONV_TABLE[i].rid == id) {
-			return ID_CONV_TABLE[i].fid;
-		}
-	}
-	return CODEC_ID_NONE;
-}
-
-PixelFormat FFMpegVideoProvider::getPixFmtFromRemoteVision(ImageFormat fmt)
-{
-	for (int i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
-		if (PIX_CONV_TABLE[i].rfmt == fmt) {
-			return PIX_CONV_TABLE[i].ffmt;
-		}
-	}
-	return PIX_FMT_NONE;
-}
 
 
 
@@ -222,16 +164,7 @@ size_t FFMpegVideoProvider::getData(unsigned char *buf, size_t size)
 	return vbuf.size;
 }
 
-ImageFormat FFMpegVideoProvider::
-getPixFmtFromFFMpeg(PixelFormat fmt)
-{
-	for (int i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
-		if (PIX_CONV_TABLE[i].ffmt == fmt) {
-			return PIX_CONV_TABLE[i].rfmt;
-		}
-	}
-	return IF_INVALID;
-}
+
 
 Error FFMpegVideoProvider::
 getLastError() const {
@@ -257,7 +190,7 @@ void FFMpegVideoProvider::Impl::entry() {
 
 	char error[2048];
 	int rc;
-	unsigned char * swsBuf;
+	AVFrame *convertedFrame = avcodec_alloc_frame();
 	AVFormatParameters inputParam;
 
 	// Initialize ffmpeg
@@ -310,7 +243,7 @@ void FFMpegVideoProvider::Impl::entry() {
 
 	// The encoder
 	{
-		mOutputCodec = avcodec_find_encoder(getIdFromRemoteVision(mVideoCodec.codecId));
+		mOutputCodec = avcodec_find_encoder(FFMpegInfo::getIdFromRemoteVision(mVideoCodec.codecId));
 		if (mOutputCodec == NULL) {
 			strncpy(error, "Can't find encoder", sizeof(error));
 			goto find_encoder_error;
@@ -323,6 +256,12 @@ void FFMpegVideoProvider::Impl::entry() {
 		mOutputCodecCtx->height = mGeometry.height;
 		mOutputCodecCtx->width  = mGeometry.width;
 		mOutputCodecCtx->pix_fmt = PIX_FMT_YUV420P;
+		mOutputCodecCtx->time_base = (AVRational){1,30};
+
+		if ((rc = avcodec_open(mOutputCodecCtx, mOutputCodec)) != 0) {
+			av_strerror(rc,error,sizeof(error));
+			goto open_encoder_error;
+		}
 	}
 
 	// The sws scaler
@@ -335,11 +274,11 @@ void FFMpegVideoProvider::Impl::entry() {
 			goto sws_init_error;
 		}
 
-		swsBuf = (unsigned char *)::malloc(avpicture_get_size(mOutputCodecCtx->pix_fmt, mGeometry.width, mGeometry.height));
-		if (!swsBuf) {
-			strncpy(error,"Can't allocate memory for swscale",sizeof(error));
+
+		if (avpicture_alloc((AVPicture *)convertedFrame,mOutputCodecCtx->pix_fmt,mGeometry.width,mGeometry.height) != 0) {
 			goto sws_alloc_error;
 		}
+
 	}
 
 	// The main loop
@@ -386,19 +325,16 @@ void FFMpegVideoProvider::Impl::entry() {
 				break;
 			}
 
+
 			// Do SWSCALE and ENCODE
 			{
-				AVFrame *convertedFrame = avcodec_alloc_frame();
-				assert (convertedFrame != NULL);
-				avpicture_fill((AVPicture *)convertedFrame,swsBuf,
-						mOutputCodecCtx->pix_fmt, mOutputCodecCtx->width, mOutputCodecCtx->height);
 				rc = sws_scale(mSwsCtx,frame->data,frame->linesize,0,mOutputCodecCtx->height,
 						convertedFrame->data, convertedFrame->linesize);
 				if (rc < 0) {
 					av_strerror(rc,error,sizeof(error));
 				}else{
 					rc = avcodec_encode_video(mOutputCodecCtx, (uint8_t *)vbuf->buf.getData(),
-							vbuf->buf.getSize(),convertedFrame);
+							vbuf->buf.getSize()/10,convertedFrame);
 					if (rc < 0) {
 						av_strerror(rc,error,sizeof(error));
 					}else{
@@ -406,17 +342,17 @@ void FFMpegVideoProvider::Impl::entry() {
 						vbuf->cond.signal();
 					}
 				}
-
-				av_free(convertedFrame);
 			}
 
 			av_free(frame);
+			av_free_packet(&pkt);
 		}
 	}
 
 
-	::free(swsBuf);
+	avpicture_free((AVPicture *)convertedFrame);
 sws_alloc_error:
+	av_free(convertedFrame);
 sws_init_error:
 	avcodec_close(mOutputCodecCtx);
 open_encoder_error:

@@ -12,7 +12,7 @@ SET( FFMPEG_ROOT "/usr" CACHE PATH "root directory of ffmpeg")
 message("Searcing for FFMPEG library...")
 FIND_PATH( FFMPEG_INCLUDE_DIR 
     NAMES libavcodec/avcodec.h
-    PATHS /usr/include/ffmpeg /usr/include /usr/local/include ${FFMPEG_ROOT}/include
+    PATHS ${FFMPEG_ROOT}/include /usr/include/ffmpeg /usr/include /usr/local/include 
 )
 
 

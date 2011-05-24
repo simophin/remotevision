@@ -39,10 +39,7 @@ private:
 
 
 public:
-	static VideoCodecId getIdFromFFMpeg(CodecID);
-	static CodecID getIdFromRemoteVision(VideoCodecId);
-	static PixelFormat getPixFmtFromRemoteVision(ImageFormat);
-	static ImageFormat getPixFmtFromFFMpeg(PixelFormat);
+
 };
 
 #endif /* FFMPEGVIDEOPROVIDER_H_ */
