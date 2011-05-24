@@ -152,10 +152,11 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 		}
 
 		{
-			VideoProvider::Param param;
-			param.codec = requestCodec;
-			param.geo = requestGeo;
-			if (!ctx->videoProvider->setParam(param)) {
+			if (!ctx->videoProvider->setVideoCodec(requestCodec)) {
+
+			}
+			if (!ctx->videoProvider->setVideoGeometry(requestGeo)) {
+
 			}
 		}
 

@@ -20,12 +20,27 @@ public:
 	FFMpegVideoProvider(const std::string &filename);
 	virtual ~FFMpegVideoProvider();
 
+	/*
 	virtual VideoInfo queryInfo() const;
 	virtual Error getLastError() const;
 	virtual bool setParam (const Param &);
 	virtual bool startCapture();
 	virtual bool stopCapture();
 	virtual size_t getData(unsigned char *, size_t);
+	virtual Param getParam() const;\
+	*/
+
+protected:
+	virtual void doInitDevice();
+	virtual VideoProvider::Info doQueryInfo() const;
+
+	virtual bool doSetVideoCodec (const VideoCodec &);
+	virtual bool doSetVideoGeometry (const Geometry &);
+
+	virtual Error doGetLastError() const;
+	virtual bool doStartCapture();
+	virtual bool doStopCapture();
+	virtual size_t doGetData(unsigned char *, size_t);
 
 	class Impl;
 private:

@@ -21,6 +21,8 @@ public:
 	std::string toString () const;
 	bool isValid() const;
 	void invalid();
+
+	bool operator== (const Geometry &rhs) const;
 };
 
 #endif /* GEOMETRY_H_ */

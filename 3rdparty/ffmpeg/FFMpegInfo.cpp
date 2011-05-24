@@ -61,6 +61,15 @@ PixelFormat FFMpegInfo::getPixFmtFromRemoteVision(ImageFormat fmt)
 	return PIX_FMT_NONE;
 }
 
+FFMpegCodecInfo FFMpegInfo::findCodecInfo(CodecID id)
+{
+}
+
+FFMpegCodecInfo FFMpegInfo::findCodecInfo(const VideoCodec & codec)
+{
+	return findCodecInfo(getIdFromRemoteVision(codec.codecId));
+}
+
 ImageFormat FFMpegInfo::
 getPixFmtFromFFMpeg(PixelFormat fmt)
 {

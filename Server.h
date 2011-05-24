@@ -12,9 +12,10 @@
 #include <memory>
 
 class IODevice;
+class VideoProvider;
 class Server: public boost::noncopyable {
 public:
-	Server(IODevice *ctrl_device = 0, IODevice *data_device = 0);
+	Server(IODevice *ctrl_device = 0, IODevice *data_device = 0, VideoProvider *p = 0);
 	virtual ~Server();
 
 	int start();

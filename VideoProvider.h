@@ -14,6 +14,8 @@
 
 class Error;
 class VideoInfo;
+
+
 class VideoProvider {
 public:
 	VideoProvider();
@@ -25,17 +27,33 @@ public:
 		Geometry   geo;
 	};
 
-	virtual void initDevice();
-	virtual VideoInfo queryInfo() const = 0;
-	virtual bool setParam (const Param &p) = 0;
+	typedef VideoInfo Info;
 
-	virtual Error getLastError() const = 0;
-	virtual bool startCapture() = 0;
-	virtual bool stopCapture() = 0;
-	virtual size_t getData(unsigned char *, size_t) = 0;
+	void initDevice();
+	Info queryInfo() const;
+
+	bool setVideoCodec (const VideoCodec &);
+	bool setVideoGeometry (const Geometry &);
+
+	Error getLastError() const;
+	bool startCapture();
+	bool stopCapture();
+
 	size_t getData(ImageBuffer &);
+	size_t getData(unsigned char *, size_t);
 
-	static VideoProvider * getInstance();
+protected:
+	virtual void doInitDevice();
+	virtual VideoProvider::Info doQueryInfo() const = 0;
+
+	virtual bool doSetVideoCodec (const VideoCodec &) = 0;
+	virtual bool doSetVideoGeometry (const Geometry &) = 0;
+
+	virtual Error doGetLastError() const = 0;
+	virtual bool doStartCapture() = 0;
+	virtual bool doStopCapture() = 0;
+	virtual size_t doGetData(unsigned char *, size_t) = 0;
 };
+
 
 #endif /* VIDEOPROVIDER_H_ */

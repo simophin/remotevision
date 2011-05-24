@@ -34,6 +34,8 @@ public:
 	size_t      size;
 };
 
+
+
 class FFMpegVideoProvider::Impl: public Thread {
 public:
 	VideoInfo *videoInfo;
@@ -43,14 +45,14 @@ public:
 	std::string mFileName;
 
 	// Related to ffmpeg decoding/encoding
-	Geometry mGeometry;
-	VideoCodec mVideoCodec;
+	Param mCurrentParam;
 
-	AVInputFormat * mInputFmt;
-	AVFormatContext * mInputFmtCtx;
-	AVCodecContext  * mInputCodecCtx, * mOutputCodecCtx;
-	AVCodec * mInputCodec, * mOutputCodec;
-	SwsContext *mSwsCtx;
+	struct ffmpeg_context{
+		AVFormatContext * inputFmtCtx;
+		AVCodecContext  * inputCodecCtx, * outputCodecCtx;
+		AVCodec * inputCodec, * outputCodec;
+		SwsContext *swsCtx;
+	} mCtx;
 
 	// Buffer related
 	std::list<VBuffer *> mBuffers;
@@ -62,11 +64,25 @@ public:
 
 	virtual ~Impl () {
 		if (videoInfo) delete videoInfo;
+		if (mCtx.inputFmtCtx) {
+			av_close_input_file(mCtx.inputFmtCtx);
+		}
+		if (mCtx.inputCodecCtx) {
+			avcodec_close(mCtx.inputCodecCtx);
+		}
+		if (mCtx.outputCodecCtx) {
+			avcodec_close(mCtx.outputCodecCtx);
+		}
+		if (mCtx.swsCtx) {
+			sws_freeContext(mCtx.swsCtx);
+		}
 	}
 
 	Impl(const std::string &f)
 	:videoInfo(0),state(STATE_READY),
-	 mFileName(f){}
+	 mFileName(f){
+		::memset(&mCtx,0,sizeof(mCtx));
+	}
 };
 
 FFMpegVideoProvider::FFMpegVideoProvider(const std::string &filename)
@@ -78,11 +94,12 @@ FFMpegVideoProvider::~FFMpegVideoProvider() {
 	delete d;
 }
 
+/*
 VideoInfo FFMpegVideoProvider::
 queryInfo() const {
 	if (d->videoInfo == 0) {
 		VideoInfo *info = new VideoInfo;
-		/*
+
 		for (int i=0;i<ARRAY_SIZE(SUPPORTTED_GEOMETRIES);i++) {
 			info->supportedGeometry.push_back(Geometry(SUPPORTTED_GEOMETRIES[i].width,
 					SUPPORTTED_GEOMETRIES[i].height ));
@@ -99,15 +116,54 @@ queryInfo() const {
 			vcodec.pixelFormat = getPixFmtFromFFMpeg(PIX_FMT_YUV420P);
 			info->supportedVideoCodecs.push_back(vcodec);
 		}
-		*/
+
 
 
 		d->videoInfo = info;
 	}
 
-	d->videoInfo->currentGeometry = d->mGeometry;
-	d->videoInfo->currentVideoCodec = d->mVideoCodec;
+	//d->videoInfo->currentGeometry = d->mGeometry;
+	//d->videoInfo->currentVideoCodec = d->mVideoCodec;
 	return *d->videoInfo;
+}
+
+FFMpegVideoProvider::Param
+FFMpegVideoProvider::getParam() const
+{
+	return d->mCurrentParam;
+}
+*/
+
+void FFMpegVideoProvider::doInitDevice()
+{
+}
+
+VideoProvider::Info FFMpegVideoProvider::doQueryInfo() const
+{
+}
+
+bool FFMpegVideoProvider::doSetVideoCodec(const VideoCodec & codec)
+{
+}
+
+bool FFMpegVideoProvider::doSetVideoGeometry(const Geometry & geo)
+{
+}
+
+Error FFMpegVideoProvider::doGetLastError() const
+{
+}
+
+bool FFMpegVideoProvider::doStartCapture()
+{
+}
+
+bool FFMpegVideoProvider::doStopCapture()
+{
+}
+
+size_t FFMpegVideoProvider::doGetData(unsigned char *data, size_t size)
+{
 }
 
 void FFMpegVideoProvider::init() {
@@ -120,7 +176,7 @@ void FFMpegVideoProvider::init() {
 
 
 
-
+/*
 
 bool FFMpegVideoProvider::startCapture()
 {
@@ -180,7 +236,13 @@ setParam (const Param & param) {
 	d->mVideoCodec = param.codec;
 	return true;
 }
+*/
 
+void FFMpegVideoProvider::Impl::entry() {
+
+}
+
+/*
 void FFMpegVideoProvider::Impl::entry() {
 	state = STATE_CAPTURING;
 
@@ -370,3 +432,4 @@ open_input_file_error:
 	state = STATE_READY;
 	return;
 }
+*/

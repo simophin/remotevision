@@ -27,14 +27,14 @@ public:
 };
 
 Server::
-Server(IODevice *ctrl_device, IODevice *data_device)
+Server(IODevice *ctrl_device, IODevice *data_device, VideoProvider *p)
 :d(new Server::ServerImpl)
 {
 	setDataDevice(data_device);
 	setControlDevice(ctrl_device);
 	d->cmdCtx.server = this;
 	d->cmdCtx.client = 0;
-	d->cmdCtx.videoProvider = VideoProvider::getInstance();
+	d->cmdCtx.videoProvider = p;
 }
 
 Server::~Server() {

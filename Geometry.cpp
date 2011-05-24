@@ -52,3 +52,10 @@ void Geometry::
 invalid() {
 	width = height = -1;
 }
+
+bool Geometry::operator ==(const Geometry & rhs) const
+{
+	return (width == rhs.width && height == rhs.height);
+}
+
+

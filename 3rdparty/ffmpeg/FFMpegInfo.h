@@ -23,6 +23,7 @@ extern "C" {
 
 class FFMpegCodecInfo {
 public:
+	CodecID codecId;
 	PixelFormat pixelFormat;
 	std::vector<Geometry> supportedGeometries;
 	std::vector<AVRational> supportedRationals;
@@ -32,6 +33,7 @@ public:
 class FFMpegInfo {
 public:
 public:
+	static FFMpegCodecInfo findCodecInfo(CodecID);
 	static FFMpegCodecInfo findCodecInfo (const VideoCodec &);
 	static VideoCodecId getIdFromFFMpeg(CodecID);
 	static CodecID getIdFromRemoteVision(VideoCodecId);
