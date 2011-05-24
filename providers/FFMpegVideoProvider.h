@@ -33,10 +33,8 @@ public:
 protected:
 	virtual void doInitDevice();
 	virtual VideoProvider::Info doQueryInfo() const;
-
-	virtual bool doSetVideoCodec (const VideoCodec &);
-	virtual bool doSetVideoGeometry (const Geometry &);
-
+	virtual Param doGetParam() const;
+	virtual bool doSetParam(const Param &);
 	virtual Error doGetLastError() const;
 	virtual bool doStartCapture();
 	virtual bool doStopCapture();

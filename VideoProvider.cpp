@@ -27,17 +27,6 @@ queryInfo() const
 	return doQueryInfo();
 }
 
-bool VideoProvider::
-setVideoCodec(const VideoCodec & codec)
-{
-	return doSetVideoCodec(codec);
-}
-
-bool VideoProvider::
-setVideoGeometry(const Geometry & geo)
-{
-	return doSetVideoGeometry(geo);
-}
 
 Error VideoProvider::
 getLastError() const
@@ -68,6 +57,17 @@ getData(unsigned char *data, size_t size)
 }
 
 
+
+VideoProvider::Param VideoProvider::
+getParam() const
+{
+	return doGetParam();
+}
+
+bool VideoProvider::setParam(const Param & param)
+{
+	return doSetParam(param);
+}
 
 void VideoProvider::doInitDevice()
 {

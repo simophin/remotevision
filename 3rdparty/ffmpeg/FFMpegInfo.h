@@ -28,9 +28,15 @@ public:
 	std::vector<Geometry> supportedGeometries;
 	std::vector<AVRational> supportedRationals;
 	std::vector<PixelFormat> supportedPixelFormat;
+
+	FFMpegCodecInfo()
+	:codecId(CODEC_ID_NONE),
+	 pixelFormat(PIX_FMT_NONE){}
 };
 
+class FFMpeg;
 class FFMpegInfo {
+	friend class FFMpeg;
 public:
 public:
 	static FFMpegCodecInfo findCodecInfo(CodecID);
@@ -39,6 +45,9 @@ public:
 	static CodecID getIdFromRemoteVision(VideoCodecId);
 	static PixelFormat getPixFmtFromRemoteVision(ImageFormat);
 	static ImageFormat getPixFmtFromFFMpeg(PixelFormat);
+
+private:
+	static void init();
 };
 
 

@@ -46,22 +46,22 @@ VideoCommand::QueryInfoCommandHandler::~QueryInfoCommandHandler() {
 
 void VideoCommand::QueryInfoCommandHandler::
 onHandle(const Command &cmd, const CommandContext * ctx) {
-	VideoInfo info = ctx->videoProvider->queryInfo();
+	VideoProvider::Info info = ctx->videoProvider->queryInfo();
 	CommandBuilder builder;
 	builder.setResponseCommand(SUCCESS_STRING);
 
 	// For geometry information
 	std::vector<std::string> geoargs;
-	for (int i=0;i<info.supportedGeometry.size();i++) {
-		const Geometry &geo = info.supportedGeometry[i];
+	for (int i=0;i<info.supportedGeometries.size();i++) {
+		const Geometry &geo = info.supportedGeometries[i];
 		geoargs.push_back(geo.toString());
 	}
 	builder.appendArgument(boost::algorithm::join(geoargs,";"));
 
 	// For codec information
 	std::vector<std::string> codecargs;
-	for (int i=0;i<info.supportedVideoCodecs.size();i++) {
-		const VideoCodec &codec = info.supportedVideoCodecs[i];
+	for (int i=0;i<info.supportedCodecs.size();i++) {
+		const VideoCodec &codec = info.supportedCodecs[i];
 		codecargs.push_back(codec.toString());
 	}
 	builder.appendArgument(boost::algorithm::join(codecargs,";"));
@@ -72,10 +72,10 @@ onHandle(const Command &cmd, const CommandContext * ctx) {
 	parser.writeCommand(response);
 }
 
-VideoInfo VideoCommand::QueryInfoCommandHandler::
+VideoProvider::Info VideoCommand::QueryInfoCommandHandler::
 parseVideoInformationFromCommand(const Command & cmd) {
 	assert(cmd.getName() == SUCCESS_STRING && cmd.getArguments().size() == 2);
-	VideoInfo ret;
+	VideoProvider::Info ret;
 
 	// Parse geometry(s)
 	{
@@ -83,7 +83,7 @@ parseVideoInformationFromCommand(const Command & cmd) {
 		std::string geoarg_str = cmd.getArgument(0);
 		boost::algorithm::split(geoargs, geoarg_str, boost::is_any_of(";"));
 		for (int i=0;i<geoargs.size();i++) {
-			ret.supportedGeometry.push_back(Geometry::fromString(geoargs.at(i)));
+			ret.supportedGeometries.push_back(Geometry::fromString(geoargs.at(i)));
 		}
 	}
 
@@ -93,7 +93,7 @@ parseVideoInformationFromCommand(const Command & cmd) {
 		std::string codecarg_str = cmd.getArgument(1);
 		boost::algorithm::split(codecargs, codecarg_str, boost::is_any_of(";"));
 		for (int i=0;i<codecargs.size();i++) {
-			ret.supportedVideoCodecs.push_back(VideoCodec::fromString(codecargs.at(i)));
+			ret.supportedCodecs.push_back(VideoCodec::fromString(codecargs.at(i)));
 		}
 	}
 
@@ -143,19 +143,19 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 				goto error_out;
 			}
 
-			VideoInfo info = ctx->videoProvider->queryInfo();
-			if (std::find(info.supportedVideoCodecs.begin(), info.supportedVideoCodecs.end(),
-					requestCodec) == info.supportedVideoCodecs.end()) {
+			VideoProvider::Info info = ctx->videoProvider->queryInfo();
+			if (std::find(info.supportedCodecs.begin(), info.supportedCodecs.end(),
+					requestCodec) == info.supportedCodecs.end()) {
 				err = "Invalid/Unsupported video codec";
 				goto error_out;
 			}
 		}
 
 		{
-			if (!ctx->videoProvider->setVideoCodec(requestCodec)) {
-
-			}
-			if (!ctx->videoProvider->setVideoGeometry(requestGeo)) {
+			VideoProvider::Param p = ctx->videoProvider->getParam();
+			p.currentGeometry = requestGeo;
+			p.currentCodec = requestCodec;
+			if (!ctx->videoProvider->setParam(p)) {
 
 			}
 		}

@@ -9,6 +9,7 @@
 #define VIDEOCOMMAND_H_
 
 #include "CommandHandler.h"
+#include "VideoProvider.h"
 
 class VideoInfo;
 class Command;
@@ -22,7 +23,7 @@ public:
 		virtual ~QueryInfoCommandHandler();
 		virtual void onHandle(const Command &, const CommandContext *);
 
-		static VideoInfo parseVideoInformationFromCommand(const Command &);
+		static VideoProvider::Info parseVideoInformationFromCommand(const Command &);
 		static const char * SUCCESS_STRING;
 		static const char * ERROR_STRING;
 		static const char * REQUEST_STRING;

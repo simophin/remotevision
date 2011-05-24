@@ -15,6 +15,9 @@ class VideoCodec {
 public:
 	VideoCodecId codecId;
 
+	VideoCodec (VideoCodecId id = VCODEC_INVALID)
+	:codecId(id) {}
+
 public:
 	static std::string getStringFromId (VideoCodecId);
 	static VideoCodecId getIdFromString(const std::string &);

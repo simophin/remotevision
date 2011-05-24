@@ -8,6 +8,12 @@
 #include "FFMpegInfo.h"
 #include "Utils.h"
 
+#include <vector>
+#include <boost/lambda/lambda.hpp>
+
+static std::vector<FFMpegCodecInfo> FFMPEG_CODEC_INFO;
+
+
 struct ID_CONV_TABLE_T {
 	VideoCodecId rid;
 	CodecID fid;
@@ -61,8 +67,16 @@ PixelFormat FFMpegInfo::getPixFmtFromRemoteVision(ImageFormat fmt)
 	return PIX_FMT_NONE;
 }
 
+
 FFMpegCodecInfo FFMpegInfo::findCodecInfo(CodecID id)
 {
+	std::vector<FFMpegCodecInfo>::iterator i;
+	for (i=FFMPEG_CODEC_INFO.begin();i != FFMPEG_CODEC_INFO.end(); ++i) {
+		if (i->codecId == id) {
+			return *i;
+		}
+	}
+	return FFMpegCodecInfo();
 }
 
 FFMpegCodecInfo FFMpegInfo::findCodecInfo(const VideoCodec & codec)
@@ -80,4 +94,11 @@ getPixFmtFromFFMpeg(PixelFormat fmt)
 	}
 	return IF_INVALID;
 }
+
+void FFMpegInfo::init()
+{
+
+}
+
+
 

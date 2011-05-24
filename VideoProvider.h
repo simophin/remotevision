@@ -11,6 +11,9 @@
 #include "VideoCodec.h"
 #include "Geometry.h"
 #include "ImageBuffer.h"
+#include "FrameRate.h"
+
+#include <vector>
 
 class Error;
 class VideoInfo;
@@ -21,19 +24,21 @@ public:
 	VideoProvider();
 	virtual ~VideoProvider();
 
-	class Param {
+	typedef VideoInfo Param;
+
+	class Info {
 	public:
-		VideoCodec codec;
-		Geometry   geo;
+		std::vector<VideoCodec> supportedCodecs;
+		std::vector<Geometry>   supportedGeometries;
+		std::vector<FrameRate>  supportedFrameRates;
 	};
 
-	typedef VideoInfo Info;
 
 	void initDevice();
 	Info queryInfo() const;
 
-	bool setVideoCodec (const VideoCodec &);
-	bool setVideoGeometry (const Geometry &);
+	Param getParam() const;
+	bool setParam(const Param &);
 
 	Error getLastError() const;
 	bool startCapture();
@@ -44,10 +49,10 @@ public:
 
 protected:
 	virtual void doInitDevice();
-	virtual VideoProvider::Info doQueryInfo() const = 0;
+	virtual Info doQueryInfo() const = 0;
 
-	virtual bool doSetVideoCodec (const VideoCodec &) = 0;
-	virtual bool doSetVideoGeometry (const Geometry &) = 0;
+	virtual Param doGetParam() const = 0;
+	virtual bool doSetParam(const Param &) = 0;
 
 	virtual Error doGetLastError() const = 0;
 	virtual bool doStartCapture() = 0;

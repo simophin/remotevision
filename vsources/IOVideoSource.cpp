@@ -41,9 +41,10 @@ IOVideoSource::~IOVideoSource() {
 	delete d;
 }
 
-VideoInfo IOVideoSource::
+IOVideoSource::Info IOVideoSource::
 doGetInformation(int ms) const
 {
+	/*
 	if (d->needFetchInfo) {
 		CommandBuilder builder;
 		builder.setRequestCommand(VideoCommand::QueryInfoCommandHandler::REQUEST_STRING);
@@ -70,6 +71,7 @@ doGetInformation(int ms) const
 	write_error:
 	read_error:
 	return VideoInfo ();
+	*/
 }
 
 

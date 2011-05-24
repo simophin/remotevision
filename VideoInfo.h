@@ -10,17 +10,15 @@
 
 #include "Geometry.h"
 #include "VideoCodec.h"
+#include "FrameRate.h"
 
 #include <vector>
 
 class VideoInfo {
 public:
-	/* Members */
-	std::vector<Geometry> supportedGeometry;
-	std::vector<VideoCodec> supportedVideoCodecs;
-
-	Geometry currentGeometry;
-	VideoCodec currentVideoCodec;
+	VideoCodec currentCodec;
+	Geometry   currentGeometry;
+	FrameRate  currentFrameRate;
 };
 
 #endif /* VIDEOINFO_H_ */

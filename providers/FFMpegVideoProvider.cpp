@@ -13,6 +13,7 @@
 #include "Thread.h"
 #include "ImageBuffer.h"
 #include "3rdparty/ffmpeg/FFMpegInfo.h"
+#include "Utils.h"
 
 #include <algorithm>
 #include <list>
@@ -34,7 +35,11 @@ public:
 	size_t      size;
 };
 
-
+static VideoCodecId SUPPORTED_CODES[] = {
+		VCODEC_FLV,
+		VCODEC_MJPEG,
+		VCODEC_RAW
+};
 
 class FFMpegVideoProvider::Impl: public Thread {
 public:
@@ -140,15 +145,20 @@ void FFMpegVideoProvider::doInitDevice()
 
 VideoProvider::Info FFMpegVideoProvider::doQueryInfo() const
 {
+	Info ret;
+	FFMpegCodecInfo cf = FFMpegInfo::findCodecInfo(d->mCurrentParam.currentCodec);
+	if (cf.codecId == CODEC_ID_NONE) {
+		d->lastError = Error("No such codec");
+		return ret;
+	}
+
+
+	for (int i=0;i<ARRAY_SIZE(SUPPORTED_CODES);i++) {
+		ret.supportedCodecs.push_back(VideoCodec(SUPPORTED_CODES[i]));
+	}
+	return ret;
 }
 
-bool FFMpegVideoProvider::doSetVideoCodec(const VideoCodec & codec)
-{
-}
-
-bool FFMpegVideoProvider::doSetVideoGeometry(const Geometry & geo)
-{
-}
 
 Error FFMpegVideoProvider::doGetLastError() const
 {
@@ -166,12 +176,26 @@ size_t FFMpegVideoProvider::doGetData(unsigned char *data, size_t size)
 {
 }
 
+FFMpegVideoProvider::Param FFMpegVideoProvider::doGetParam() const
+{
+}
+
+bool FFMpegVideoProvider::doSetParam(const Param & param)
+{
+}
+
 void FFMpegVideoProvider::init() {
 	/*
 	d->mGeometry.width = SUPPORTTED_GEOMETRIES[0].width;
 	d->mGeometry.height = SUPPORTTED_GEOMETRIES[0].height;
 	d->mVideoCodec.codecId = VCODEC_FLV;
 	*/
+	d->mCurrentParam.currentCodec = SUPPORTED_CODES[0];
+	FFMpegCodecInfo cf = FFMpegInfo::findCodecInfo(d->mCurrentParam.currentCodec);
+	assert (cf.codecId != CODEC_ID_NONE);
+	d->mCurrentParam.currentGeometry = cf.supportedGeometries[0];
+	d->mCurrentParam.currentFrameRate.num = cf.supportedRationals[0].num;
+	d->mCurrentParam.currentFrameRate.den = cf.supportedRationals[0].den;
 }
 
 

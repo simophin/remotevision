@@ -31,19 +31,19 @@ int main () {
 	}
 
 	IOVideoSource source (&socket,NULL);
-	VideoInfo info = source.getInformation();
+	IOVideoSource::Info info = source.getInformation();
 
 	std::cout << "Supported geometry are: "<<std::endl;
-	for (int i=0;i<info.supportedGeometry.size();i++) {
-		std::cout << "(" << info.supportedGeometry[i].toString() << ")" << std::endl;
+	for (int i=0;i<info.providerInfo.supportedGeometries.size();i++) {
+		std::cout << "(" << info.providerInfo.supportedGeometries[i].toString() << ")" << std::endl;
 	}
 
 	std::cout << "Supported codecs are: "<<std::endl;
-	for (int i=0;i<info.supportedVideoCodecs.size();i++) {
-		std::cout << "(" << info.supportedVideoCodecs[i].toString() << ")" << std::endl;
+	for (int i=0;i<info.providerInfo.supportedCodecs.size();i++) {
+		std::cout << "(" << info.providerInfo.supportedCodecs[i].toString() << ")" << std::endl;
 	}
 
-	VideoFormat fmt(info.supportedVideoCodecs[0],info.supportedGeometry[0]);
+	VideoFormat fmt( info.providerInfo.supportedCodecs[0],info.providerInfo.supportedGeometries[0]);
 	if (!source.setFormat(fmt)) {
 		std::cout << "Error is "<<source.getLastError() << std::endl;
 	}
