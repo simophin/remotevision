@@ -27,6 +27,7 @@ public:
 
 	errorstring_t getErrorString () const;
 	void setErrorString (const errorstring_t &);
+	void setErrorString (const char *, size_t size = 0);
 
 	std::string toString() const;
 	static Error fromString(const std::string &,bool *ok = NULL);

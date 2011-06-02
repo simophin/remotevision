@@ -97,7 +97,28 @@ getPixFmtFromFFMpeg(PixelFormat fmt)
 
 void FFMpegInfo::init()
 {
+	// Default geometries
+	std::vector<Geometry> defaultGeometries;
+	defaultGeometries.push_back(Geometry(320,240));
+	defaultGeometries.push_back(Geometry(640,480));
+	defaultGeometries.push_back(Geometry(1024,768));
 
+	// Default rational
+	std::vector<AVRational> defaultRationals;
+	defaultRationals.push_back((AVRational){1,15});
+	defaultRationals.push_back((AVRational){1,25});
+	defaultRationals.push_back((AVRational){1,30});
+
+	// For flv
+	{
+		FFMpegCodecInfo info;
+		info.codecId = CODEC_ID_FLV1;
+		info.pixelFormat = PIX_FMT_YUV420P;
+		info.supportedGeometries = defaultGeometries;
+		info.supportedPixelFormat.push_back(info.pixelFormat);
+		info.supportedRationals = defaultRationals;
+		FFMPEG_CODEC_INFO.push_back(info);
+	}
 }
 
 

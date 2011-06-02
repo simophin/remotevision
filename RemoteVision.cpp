@@ -9,27 +9,56 @@
 #include "CommandMgr.h"
 #include "providers/FFMpegVideoProvider.h"
 #include "commands/VideoCommand.h"
+#include "3rdparty/ffmpeg/FFMpeg.h"
 
+#include <assert.h>
 
-extern void initCommands();
+static RemoteVisionApp * INSTANCE = 0;
 
-class RemoteVision::Impl {
+class RemoteVisionApp::Impl {
 public:
 	CommandMgr cmdMgr;
-	FFMpegVideoProvider videoProvider;
+	FFMpegVideoProvider *videoProvider;
 
 	Impl(const std::string &name)
-	:videoProvider(name) {
+	:videoProvider(0) {
+		FFMpeg::init();
+		videoProvider = new FFMpegVideoProvider(name);
+	}
 
+	~Impl() {
+		if (videoProvider) delete videoProvider;
 	}
 };
 
-RemoteVision::RemoteVision(const std::string &name)
-:d(new RemoteVision::Impl(name)){
+RemoteVisionApp::RemoteVisionApp(const std::string &name)
+:d(new RemoteVisionApp::Impl(name)){
+	assert (INSTANCE == 0);
+	INSTANCE = this;
 	d->cmdMgr.registerCommandHandler(new VideoCommand::QueryInfoCommandHandler);
 	d->cmdMgr.registerCommandHandler(new VideoCommand::SetParameterCommandHandler);
 }
 
-RemoteVision::~RemoteVision() {
+RemoteVisionApp::~RemoteVisionApp() {
 	delete d;
 }
+
+VideoProvider *RemoteVisionApp::getProvider() const
+{
+	return d->videoProvider;
+}
+
+
+
+CommandMgr *RemoteVisionApp::getCommandMgr() const
+{
+	return &d->cmdMgr;
+}
+
+
+
+RemoteVisionApp *RemoteVisionApp::getInstance() {
+	return INSTANCE;
+}
+
+

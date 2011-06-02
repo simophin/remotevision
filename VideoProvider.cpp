@@ -18,9 +18,9 @@ VideoProvider::VideoProvider(){
 VideoProvider::~VideoProvider() {
 }
 
-void VideoProvider::
+bool VideoProvider::
 initDevice() {
-
+	return doInitDevice();
 }
 
 
@@ -56,7 +56,7 @@ size_t VideoProvider::getData(ImageBuffer &buf) {
 size_t VideoProvider::
 getData(unsigned char *data, size_t size)
 {
-	return getData(data,size);
+	return doGetData(data,size);
 }
 
 
@@ -72,7 +72,7 @@ bool VideoProvider::setParam(const Param & param)
 	return doSetParam(param);
 }
 
-void VideoProvider::doInitDevice()
+bool VideoProvider::doInitDevice()
 {
 }
 

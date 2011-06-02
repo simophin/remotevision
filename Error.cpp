@@ -94,6 +94,15 @@ void Error::setErrorString (const errorstring_t & str) {
 }
 
 
+void Error::setErrorString(const char *buf, size_t size)
+{
+	if (size > 0) {
+		d->errorString = errorstring_t (buf,size);
+	}else{
+		d->errorString = buf;
+	}
+}
+
 std::ostream& operator <<(std::ostream &os,const Error &obj) {
 	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
 	return os;

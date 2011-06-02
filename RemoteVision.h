@@ -10,10 +10,17 @@
 
 #include <string>
 
-class RemoteVision {
+class CommandMgr;
+class VideoProvider;
+class RemoteVisionApp {
 public:
-	RemoteVision(const std::string &filename);
-	virtual ~RemoteVision();
+	RemoteVisionApp(const std::string &filename);
+	virtual ~RemoteVisionApp();
+
+	VideoProvider *getProvider() const;
+	CommandMgr *   getCommandMgr() const;
+
+	static RemoteVisionApp * getInstance();
 
 	class Impl;
 private:

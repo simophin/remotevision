@@ -23,6 +23,7 @@ public:
 
 	const IODevice * getControlDevice() const;
 	const IODevice * getDataDevice() const;
+	VideoProvider  * getProvider() const;
 	void setControlDevice(IODevice *);
 	void setDataDevice(IODevice *);
 

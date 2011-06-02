@@ -12,8 +12,12 @@
 
 int main () {
 	FFMpeg::init();
-	FFMpegVideoProvider provider("/home/simophin/movie.rmvb");
+	FFMpegVideoProvider provider("/dev/video0");
 
+	if (!provider.initDevice()) {
+		std::cerr << provider.getLastError() << std::endl;
+		return 2;
+	}
 
 	if (!provider.startCapture()) {
 		std::cerr << provider.getLastError() << std::endl;

@@ -31,7 +31,7 @@ public:
 	*/
 
 protected:
-	virtual void doInitDevice();
+	virtual bool doInitDevice();
 	virtual VideoProvider::Info doQueryInfo() const;
 	virtual Param doGetParam() const;
 	virtual bool doSetParam(const Param &);
@@ -46,6 +46,7 @@ private:
 	Impl *d;
 
 	typedef enum {
+		STATE_UNINTIALIZED,
 		STATE_READY,
 		STATE_CAPTURING,
 	} State;

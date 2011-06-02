@@ -40,7 +40,7 @@ public:
 	};
 
 
-	void initDevice();
+	bool initDevice();
 	Info queryInfo() const;
 
 	Param getParam() const;
@@ -54,7 +54,7 @@ public:
 	size_t getData(unsigned char *, size_t);
 
 protected:
-	virtual void doInitDevice();
+	virtual bool doInitDevice() = 0;
 	virtual Info doQueryInfo() const = 0;
 
 	virtual Param doGetParam() const = 0;

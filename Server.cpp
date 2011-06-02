@@ -40,6 +40,11 @@ Server(IODevice *ctrl_device, IODevice *data_device, VideoProvider *p)
 Server::~Server() {
 }
 
+VideoProvider *Server::getProvider() const
+{
+	return d->cmdCtx.videoProvider;
+}
+
 void Server::
 setDataDevice(IODevice *device)
 {
