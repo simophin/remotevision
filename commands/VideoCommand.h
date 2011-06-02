@@ -63,6 +63,17 @@ public:
 		static const char * ERROR_STRING;
 		static const char * REQUEST_STRING;
 	};
+
+	class StopCaptureCommandHandler: public CommandHandler {
+	public:
+		StopCaptureCommandHandler();
+		virtual ~StopCaptureCommandHandler();
+		virtual void onHandle(const Command &, const CommandContext *);
+
+		static const char * SUCCESS_STRING;
+		static const char * ERROR_STRING;
+		static const char * REQUEST_STRING;
+	};
 };
 
 #endif /* VIDEOCOMMAND_H_ */

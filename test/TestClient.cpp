@@ -22,6 +22,8 @@ int main () {
 
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	TCPSocket socket (sock);
+	sock = socket(AF_INET, SOCK_STREAM,0);
+	TCPSocket dataSocket (sock);
 
 	TCPSocketAddress remoteAddr ("127.0.0.1", 10001);
 
@@ -29,6 +31,12 @@ int main () {
 		std::cerr << socket.getLastError() << std::endl;
 		return -1;
 	}
+
+	if (dataSocket.connect(&remoteAddr)) {
+		std::cerr << dataSocket.getLastError() << std::endl;
+		return -2;
+	}
+
 
 	IOVideoSource source (&socket,NULL);
 	IOVideoSource::Info info = source.getInformation();
@@ -47,6 +55,8 @@ int main () {
 	if (!source.setFormat(fmt)) {
 		std::cout << "Error is "<<source.getLastError() << std::endl;
 	}
+
+
 
 	return 0;
 }

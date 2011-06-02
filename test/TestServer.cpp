@@ -49,7 +49,15 @@ int main () {
 		return -3;
 	}
 
-	Server s (socket,socket,rv.getProvider());
+	std::cout << "Remote: "<<addr->getReadable() << std::endl;
+
+	TCPSocket *dataSocket = (TCPSocket *)(server.accept());
+	if (dataSocket == NULL) {
+		std::cerr << server.getLastError();
+		return -4;
+	}
+
+	Server s (socket,dataSocket,rv.getProvider());
 	s.start();
 
 	socket = (TCPSocket *)(server.accept(0));

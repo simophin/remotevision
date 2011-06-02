@@ -47,6 +47,10 @@ const char * VideoCommand::StartCaptureCommandHandler::REQUEST_STRING = "START_C
 const char * VideoCommand::StartCaptureCommandHandler::SUCCESS_STRING = "START_CAPTURE_OK";
 const char * VideoCommand::StartCaptureCommandHandler::ERROR_STRING   = "START_CAPTURE_FAILED";
 
+const char * VideoCommand::StopCaptureCommandHandler::REQUEST_STRING = "STOP_CAPTURE";
+const char * VideoCommand::StopCaptureCommandHandler::SUCCESS_STRING = "STOP_CAPTURE_OK";
+const char * VideoCommand::StopCaptureCommandHandler::ERROR_STRING   = "STOP_CAPTURE_FAILED";
+
 
 VideoCommand::QueryInfoCommandHandler::QueryInfoCommandHandler()
 :CommandHandler(REQUEST_STRING){
@@ -256,6 +260,43 @@ void DataThread::entry() {
 
 	::free(vbuf);
 }
+
+VideoCommand::StopCaptureCommandHandler::StopCaptureCommandHandler()
+:CommandHandler(REQUEST_STRING)
+{
+}
+
+
+
+VideoCommand::StopCaptureCommandHandler::~StopCaptureCommandHandler()
+{
+}
+
+
+
+void VideoCommand::StopCaptureCommandHandler::
+onHandle(const Command & cmd, const CommandContext *ctx)
+{
+	Thread * t = ctx->dataThread;
+	if (t){
+		const_cast<CommandContext *>(ctx)->dataThread = NULL;
+		t->stop();
+		delete t;
+	}
+	ctx->videoProvider->stopCapture();
+
+	CommandBuilder builder;
+	Command rcmd;
+	Commander writer (ctx->controlDevice);
+	builder.setResponseCommand(SUCCESS_STRING);
+	builder.build(rcmd);
+	if (!writer.writeCommand(rcmd)) {
+		Log::logError("Can't write to data device: %s",
+				writer.getLastError().getErrorString().c_str());
+	}
+}
+
+
 
 
 

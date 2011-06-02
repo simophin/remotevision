@@ -11,13 +11,14 @@
 #include "ImageBuffer.h"
 #include "Command.h"
 #include "Log.h"
+#include "Thread.h"
 
 #include "Commander.h"
 #include "commands/CommandBuilder.h"
 #include "commands/VideoCommand.h"
 
 
-class IOVideoSource::Impl {
+class IOVideoSource::Impl: public Thread {
 public:
 	IODevice *ctrlDev, *dataDev;
 	Commander cmdParser;
@@ -31,6 +32,8 @@ public:
 	 cmdParser(ctrl),
 	 needFetchInfo(true){
 	}
+
+	virtual void entry();
 };
 
 IOVideoSource::IOVideoSource(IODevice *ctrl, IODevice *data)
@@ -135,6 +138,8 @@ doSetFormat(VideoFormat & fmt, int ms)
 			return false;
 		}
 	}
+
+	return true;
 }
 
 

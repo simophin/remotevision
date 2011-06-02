@@ -41,6 +41,8 @@ RemoteVisionApp::RemoteVisionApp(const std::string &name)
 	d->cmdMgr.registerCommandHandler(new VideoCommand::QueryInfoCommandHandler);
 	d->cmdMgr.registerCommandHandler(new VideoCommand::SetParameterCommandHandler);
 	d->cmdMgr.registerCommandHandler(new VideoCommand::GetParameterCommandHandler);
+	d->cmdMgr.registerCommandHandler(new VideoCommand::StartCaptureCommandHandler);
+	d->cmdMgr.registerCommandHandler(new VideoCommand::StopCaptureCommandHandler);
 }
 
 RemoteVisionApp::~RemoteVisionApp() {
