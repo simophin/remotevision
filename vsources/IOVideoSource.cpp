@@ -22,7 +22,7 @@ public:
 	IODevice *ctrlDev, *dataDev;
 	Commander cmdParser;
 
-	VideoInfo info;
+	Info info;
 	bool needFetchInfo;
 
 	Impl(IODevice *ctrl, IODevice *data)
@@ -44,34 +44,62 @@ IOVideoSource::~IOVideoSource() {
 IOVideoSource::Info IOVideoSource::
 doGetInformation(int ms) const
 {
-	/*
+	Info ret;
 	if (d->needFetchInfo) {
 		CommandBuilder builder;
-		builder.setRequestCommand(VideoCommand::QueryInfoCommandHandler::REQUEST_STRING);
-
 		Command cmd;
+
+		// Fetch information
+		builder.setRequestCommand(VideoCommand::QueryInfoCommandHandler::REQUEST_STRING);
 		builder.build(cmd);
+
 		if (!d->cmdParser.writeCommand(cmd)) {
 			const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
 			goto write_error;
 		}
+
 		if (!d->cmdParser.readCommand(cmd)) {
 			const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
 			goto read_error;
 		}
 
 		if (cmd.getName() == VideoCommand::QueryInfoCommandHandler::SUCCESS_STRING ) {
-			d->info = VideoCommand::QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
-			d->needFetchInfo = false;
+			ret.providerInfo = VideoCommand::QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
 		}
+
+		// Fetch command
+		builder.clearArguments();
+		builder.setRequestCommand(VideoCommand::GetParameterCommandHandler::REQUEST_STRING);
+		builder.build(cmd);
+
+		if (!d->cmdParser.writeCommand(cmd)) {
+			const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
+			goto write_error;
+		}
+
+		if (!d->cmdParser.readCommand(cmd)) {
+			const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
+			goto read_error;
+		}
+
+		if (cmd.getName() == VideoCommand::GetParameterCommandHandler::SUCCESS_STRING) {
+			ret.info = VideoCommand::GetParameterCommandHandler::parseInfoFromCommand(cmd);
+		}
+
+		if (ret.info.isValid() && ret.providerInfo.isValid()) {
+			d->needFetchInfo = false;
+			d->info = ret;
+		}
+	}else{
+		ret = d->info;
 	}
 
-	return d->info;
+	return ret;
 
 	write_error:
 	read_error:
-	return VideoInfo ();
-	*/
+	return Info();
+
 }
 
 
