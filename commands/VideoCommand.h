@@ -31,6 +31,8 @@ public:
 
 	class GetParameterCommandHandler: public CommandHandler {
 	public:
+		GetParameterCommandHandler();
+		virtual ~GetParameterCommandHandler() {}
 		virtual void onHandle(const Command &, const CommandContext *);
 
 		static VideoInfo parseInfoFromCommand (const Command &);

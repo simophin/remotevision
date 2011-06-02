@@ -161,14 +161,27 @@ buildRequestCommand (Command &result, const Geometry &geo, const VideoCodec &cod
 void VideoCommand::GetParameterCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
+	VideoProvider::Param param = ctx->videoProvider->getParam();
+	CommandBuilder builder;
+	Command response;
+	builder.setResponseCommand(SUCCESS_STRING);
+	builder.appendArgument(param.toString());
 
+	Commander cmder (ctx->controlDevice);
+	cmder.writeCommand(response);
 }
 
 
 
+VideoCommand::GetParameterCommandHandler::GetParameterCommandHandler()
+:CommandHandler (REQUEST_STRING)
+{
+}
+
 VideoInfo VideoCommand::GetParameterCommandHandler::
 parseInfoFromCommand(const Command & cmd)
 {
+	return VideoInfo::fromString(cmd.getArgument(0));
 }
 
 

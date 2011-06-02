@@ -35,7 +35,7 @@ public:
 	size_t      size;
 };
 
-static VideoCodecId SUPPORTED_CODES[] = {
+static VideoCodecId SUPPORTED_CODECS[] = {
 		VCODEC_FLV,
 		VCODEC_MJPEG,
 		VCODEC_RAW
@@ -205,9 +205,11 @@ VideoProvider::Info FFMpegVideoProvider::doQueryInfo() const
 	}
 
 
-	for (int i=0;i<ARRAY_SIZE(SUPPORTED_CODES);i++) {
-		ret.supportedCodecs.push_back(VideoCodec(SUPPORTED_CODES[i]));
+	for (int i=0;i<ARRAY_SIZE(SUPPORTED_CODECS);i++) {
+		ret.supportedCodecs.push_back(VideoCodec(SUPPORTED_CODECS[i]));
 	}
+	ret.supportedGeometries = cf.supportedGeometries;
+	//ret.supportedFrameRates = cf.supportedRationals;
 	return ret;
 }
 
@@ -288,7 +290,7 @@ bool FFMpegVideoProvider::doSetParam(const Param & param)
 }
 
 void FFMpegVideoProvider::init() {
-	d->mCurrentParam.currentCodec = SUPPORTED_CODES[0];
+	d->mCurrentParam.currentCodec = SUPPORTED_CODECS[0];
 	FFMpegCodecInfo cf = FFMpegInfo::findCodecInfo(d->mCurrentParam.currentCodec);
 	assert (cf.codecId != CODEC_ID_NONE);
 	d->mCurrentParam.currentGeometry = cf.supportedGeometries[0];
@@ -343,7 +345,7 @@ setOutputCodec(CodecID c, int w, int h, const AVRational & r, char *errstr , siz
 
 inline bool FFMpegVideoProvider::Impl::updateSws()
 {
-	assert (mCtx.outputCodecCtx != NULL && mCtx.inputCodecCtx != NULL);
+	assert ( (mCtx.outputCodecCtx != NULL) && (mCtx.inputCodecCtx != NULL));
 
 	SwsContext *swsCtx = sws_getCachedContext(NULL,
 			mCtx.inputCodecCtx->width,mCtx.inputCodecCtx->height,mCtx.inputCodecCtx->pix_fmt,

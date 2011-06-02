@@ -24,6 +24,9 @@ public:
 	:videoProvider(0) {
 		FFMpeg::init();
 		videoProvider = new FFMpegVideoProvider(name);
+		if (!videoProvider->initDevice()) {
+			assert (false);
+		}
 	}
 
 	~Impl() {
@@ -37,6 +40,7 @@ RemoteVisionApp::RemoteVisionApp(const std::string &name)
 	INSTANCE = this;
 	d->cmdMgr.registerCommandHandler(new VideoCommand::QueryInfoCommandHandler);
 	d->cmdMgr.registerCommandHandler(new VideoCommand::SetParameterCommandHandler);
+	d->cmdMgr.registerCommandHandler(new VideoCommand::GetParameterCommandHandler);
 }
 
 RemoteVisionApp::~RemoteVisionApp() {
