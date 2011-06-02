@@ -11,6 +11,8 @@
 #include <boost/noncopyable.hpp>
 #include <memory>
 
+
+
 class IODevice;
 class VideoProvider;
 class Server: public boost::noncopyable {
@@ -27,9 +29,13 @@ public:
 	void setControlDevice(IODevice *);
 	void setDataDevice(IODevice *);
 
-private:
 	class ServerImpl;
+private:
 	std::auto_ptr<ServerImpl> d;
 };
+
+
+
+
 
 #endif /* SERVER_H_ */

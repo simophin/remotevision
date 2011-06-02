@@ -12,12 +12,14 @@ class IODevice;
 class Server;
 class Client;
 class VideoProvider;
+class Thread;
 class CommandContext {
 public:
 	IODevice *controlDevice, *dataDevice;
 	Server *server;
 	Client *client;
 	VideoProvider *videoProvider;
+	Thread *dataThread;
 
 	CommandContext(IODevice *ctrl = 0,
 			IODevice *data = 0,
@@ -26,7 +28,8 @@ public:
 	:controlDevice(ctrl),
 	 dataDevice(data),
 	 server(server),
-	 client(c) {
+	 client(c),
+	 dataThread(0){
 
 	}
 };

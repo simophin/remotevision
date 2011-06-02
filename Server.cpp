@@ -13,9 +13,12 @@
 #include "CommandContext.h"
 #include "Command.h"
 #include "VideoProvider.h"
+#include "Log.h"
 
 #include <assert.h>
 #include <memory>
+#include <stdlib.h>
+
 
 class Server::ServerImpl: public Thread {
 public:
@@ -107,6 +110,8 @@ void Server::ServerImpl::entry() {
 		if (!cmdExe.readCommand(raw_cmd)) {
 			break;
 		}
+
 		CommandMgr::getInstance()->handleCommand(raw_cmd,&cmdCtx);
 	}
 }
+

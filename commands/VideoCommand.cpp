@@ -17,6 +17,7 @@
 #include "Commander.h"
 #include "Geometry.h"
 #include "Log.h"
+#include "Thread.h"
 
 #include <string>
 #include <vector>
@@ -26,6 +27,8 @@
 #include <boost/lexical_cast.hpp>
 #include <assert.h>
 #include <algorithm>
+
+#define MAX_VIDEO_DATA_BUFFER_SIZE 1024000
 
 static VideoCommand *VCMD_INSTANCE = 0;
 const char * VideoCommand::QueryInfoCommandHandler::ERROR_STRING = "QUERY_INFO_FAILED";
@@ -39,6 +42,10 @@ const char * VideoCommand::SetParameterCommandHandler::ERROR_STRING   = "SET_PAR
 const char * VideoCommand::GetParameterCommandHandler::REQUEST_STRING = "GET_PARAM";
 const char * VideoCommand::GetParameterCommandHandler::SUCCESS_STRING = "GET_PARAM_OK";
 const char * VideoCommand::GetParameterCommandHandler::ERROR_STRING   = "GET_PARAM_FAILED";
+
+const char * VideoCommand::StartCaptureCommandHandler::REQUEST_STRING = "START_CAPTURE";
+const char * VideoCommand::StartCaptureCommandHandler::SUCCESS_STRING = "START_CAPTURE_OK";
+const char * VideoCommand::StartCaptureCommandHandler::ERROR_STRING   = "START_CAPTURE_FAILED";
 
 
 VideoCommand::QueryInfoCommandHandler::QueryInfoCommandHandler()
@@ -182,6 +189,72 @@ VideoInfo VideoCommand::GetParameterCommandHandler::
 parseInfoFromCommand(const Command & cmd)
 {
 	return VideoInfo::fromString(cmd.getArgument(0));
+}
+
+
+class DataThread: public Thread {
+public:
+	DataThread(const CommandContext &ctx)
+	:mCtx(ctx) {}
+
+	virtual void entry();
+
+	const CommandContext &mCtx;
+};
+
+VideoCommand::StartCaptureCommandHandler::StartCaptureCommandHandler()
+:CommandHandler(REQUEST_STRING)
+{
+}
+
+
+
+VideoCommand::StartCaptureCommandHandler::~StartCaptureCommandHandler()
+{
+}
+
+
+
+void VideoCommand::StartCaptureCommandHandler::
+onHandle(const Command & cmd, const CommandContext *ctx)
+{
+	CommandBuilder response;
+	if (!ctx->videoProvider->startCapture()) {
+		response.setResponseCommand(ERROR_STRING,ctx->videoProvider->getLastError().getErrorString());
+	}else{
+		if (ctx->dataThread == NULL) {
+			const_cast<CommandContext *>(ctx)->dataThread = new DataThread(*ctx);
+		}
+		if (!ctx->dataThread->isRunning()) {
+			ctx->dataThread->run();
+		}
+
+		response.setResponseCommand(SUCCESS_STRING);
+	}
+
+	Command rcmd;
+	response.build(rcmd);
+
+	Commander writer (ctx->controlDevice);
+	if (!writer.writeCommand(rcmd)){
+		Log::logError("While writing to control device: %s", writer.getLastError().getErrorString().c_str());
+	}
+}
+
+void DataThread::entry() {
+	unsigned char *vbuf = (unsigned char *)::malloc(MAX_VIDEO_DATA_BUFFER_SIZE);
+
+	while (!shouldStop()) {
+		size_t size = mCtx.videoProvider->getData(vbuf,MAX_VIDEO_DATA_BUFFER_SIZE);
+		if (size > 0) {
+			if (mCtx.dataDevice->write((char *)vbuf, size) < 0) {
+				Log::logError("Can't write to data device: %s", mCtx.dataDevice->getLastError().getErrorString().c_str());
+				break;
+			}
+		}
+	}
+
+	::free(vbuf);
 }
 
 
