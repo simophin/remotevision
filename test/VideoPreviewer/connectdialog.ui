@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ConnectDialog</string>
+   <string>连接到服务器</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>

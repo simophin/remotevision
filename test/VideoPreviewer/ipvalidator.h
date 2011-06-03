@@ -1,7 +1,7 @@
 #ifndef IPVALIDATOR_H
 #define IPVALIDATOR_H
 
-#include <QRegExpValidator>
+#include <QtGui/QRegExpValidator>
 
 class IPValidator : public QRegExpValidator
 {

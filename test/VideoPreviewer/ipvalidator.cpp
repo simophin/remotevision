@@ -1,5 +1,5 @@
 #include "ipvalidator.h"
-#include <QRegExp>
+#include <QtCore/QRegExp>
 
 IPValidator::IPValidator(QObject *parent) :
     QRegExpValidator(parent)

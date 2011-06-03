@@ -10,3 +10,5 @@ TARGET_LINK_LIBRARIES(ClientTest RemoteVision pthread)
 
 ADD_EXECUTABLE(FFMPEGTest TestFFMPEG.cpp)
 TARGET_LINK_LIBRARIES(FFMPEGTest RemoteVision pthread)
+
+ADD_SUBDIRECTORY(VideoPreviewer)
