@@ -29,6 +29,8 @@ extern "C" {
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <sys/types.h>
+#include <errno.h>
 
 enum State {
 	STATE_UNINTIALIZED,

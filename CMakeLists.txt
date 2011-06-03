@@ -17,6 +17,7 @@ endif()
 
 if(WIN32)
 add_definitions(-DOS_WIN32)
+add_definitions(-include platform/win32/win32_config.h)
 set(BUILD_WIN32 TRUE)
 endif()
 
@@ -47,12 +48,12 @@ endif()
 # Files
 FILE(GLOB SOURCES *.cpp)
 ADD_SUBDIRECTORY(medium)
-ADD_SUBDIRECTORY(platform)
 ADD_SUBDIRECTORY(commands)
 ADD_SUBDIRECTORY(providers)
 ADD_SUBDIRECTORY(codecs)
 ADD_SUBDIRECTORY(vsources)
 ADD_SUBDIRECTORY(3rdparty)
+ADD_SUBDIRECTORY(platform)
 ADD_LIBRARY(RemoteVision SHARED ${SOURCES})
 
 TARGET_LINK_LIBRARIES(RemoteVision ${DEPEND_LIBS})
