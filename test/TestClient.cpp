@@ -8,7 +8,6 @@
 #include "medium/TCPSocket.h"
 #include "medium/TCPSocketAddress.h"
 #include "vsources/IOVideoSource.h"
-#include "VideoFormat.h"
 
 #include <iostream>
 #include <assert.h>
@@ -20,9 +19,9 @@ int main () {
 	assert( WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
 #endif
 
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	int sock = ::socket(AF_INET, SOCK_STREAM, 0);
 	TCPSocket socket (sock);
-	sock = socket(AF_INET, SOCK_STREAM,0);
+	sock = ::socket(AF_INET, SOCK_STREAM,0);
 	TCPSocket dataSocket (sock);
 
 	TCPSocketAddress remoteAddr ("127.0.0.1", 10001);
@@ -38,7 +37,7 @@ int main () {
 	}
 
 
-	IOVideoSource source (&socket,NULL);
+	IOVideoSource source (&socket,&dataSocket);
 	IOVideoSource::Info info = source.getInformation();
 
 	std::cout << "Supported geometry are: "<<std::endl;
@@ -51,11 +50,12 @@ int main () {
 		std::cout << "(" << info.providerInfo.supportedCodecs[i].toString() << ")" << std::endl;
 	}
 
+	/*
 	VideoFormat fmt( info.providerInfo.supportedCodecs[0],info.providerInfo.supportedGeometries[0]);
 	if (!source.setFormat(fmt)) {
 		std::cout << "Error is "<<source.getLastError() << std::endl;
 	}
-
+	*/
 
 
 	return 0;

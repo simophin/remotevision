@@ -21,12 +21,12 @@ public:
 protected:
 	virtual bool doInit (const Option &options, int ms);
 	virtual Info doGetInformation(int ms) const;
-	virtual VideoFormat doGetFormat(int ms) const;
-	virtual bool doSetFormat(VideoFormat &,int ms);
+	virtual ImageParam doGetImageParam(int ms) const;
+	virtual bool doSetImageParam(ImageParam &,int ms);
 	virtual bool doStartCapture(int ms);
 	virtual bool doStopCapture(int ms);
-	virtual void doPutBuffer(const ImageBuffer &, int ms);
-	virtual ImageBuffer doGetFilledBuffer (int ms);
+	virtual void doPutBuffer(const Buffer &, int ms);
+	virtual Buffer doGetFilledBuffer (int ms);
 
 private:
 	Impl *d;

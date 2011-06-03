@@ -7,7 +7,6 @@
 
 #include "VideoSource.h"
 #include "ImageBuffer.h"
-#include "VideoFormat.h"
 
 class VideoSource::Impl {
 public:
@@ -58,11 +57,12 @@ bool  VideoSource::init (const Option &options, int ms){
 VideoSource::Info  VideoSource::getInformation(int ms) const{
 	return doGetInformation(ms);
 }
-VideoFormat  VideoSource::getFormat(int ms) const{
-	return doGetFormat(ms);
+VideoSource::ImageParam  VideoSource::
+getImageParam(int ms) const{
+	return doGetImageParam(ms);
 }
-bool  VideoSource::setFormat(VideoFormat & fmt,int ms){
-	return doSetFormat(fmt,ms);
+bool  VideoSource::setImageParam(ImageParam & fmt,int ms){
+	return doSetImageParam(fmt,ms);
 }
 bool  VideoSource::startCapture(int ms){
 	return doStartCapture(ms);
@@ -70,9 +70,10 @@ bool  VideoSource::startCapture(int ms){
 bool  VideoSource::stopCapture(int ms){
 	return doStopCapture(ms);
 }
-void  VideoSource::putBuffer(const ImageBuffer &buf, int ms){
+void  VideoSource::putBuffer(const Buffer &buf, int ms){
 	return doPutBuffer(buf,ms);
 }
-ImageBuffer  VideoSource::getFilledBuffer (int ms){
+VideoSource::Buffer
+VideoSource::getFilledBuffer (int ms){
 	return doGetFilledBuffer(ms);
 }

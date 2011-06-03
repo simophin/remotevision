@@ -14,9 +14,11 @@
 #include "IODevice.h"
 #include "VideoInfo.h"
 #include "VideoProvider.h"
+#include "ImageFormat.h"
+#include "Geometry.h"
+#include "FrameRate.h"
 
 class ImageBuffer;
-class VideoFormat;
 class VideoSource: public IODevice {
 public:
 	VideoSource();
@@ -28,16 +30,33 @@ public:
 		VideoProvider::Info providerInfo;
 	};
 
+	class ImageParam {
+	public:
+		ImageFormat pixFmt;
+		Geometry    geo;
+		FrameRate   fps;
+	};
+
+	class Buffer {
+		friend class VideoSource;
+	public:
+		unsigned char * buf;
+		size_t size;
+
+		int index;
+		void *priv;
+	};
+
 	typedef std::map<std::string,std::string> Option;
 
 	bool init (const Option &options = Option(), int ms = -1);
 	Info getInformation(int ms = -1) const;
-	VideoFormat getFormat(int ms = -1) const;
-	bool setFormat(VideoFormat &, int ms = -1);
+	ImageParam getImageParam(int ms = -1) const;
+	bool setImageParam(ImageParam &, int ms = -1);
 	bool startCapture(int ms = -1);
 	bool stopCapture(int ms = -1);
-	void putBuffer(const ImageBuffer &, int ms = -1);
-	ImageBuffer getFilledBuffer (int ms = -1);
+	void putBuffer(const Buffer &, int ms = -1);
+	Buffer getFilledBuffer (int ms = -1);
 
 	class Impl;
 protected:
@@ -50,12 +69,12 @@ protected:
 
 	virtual bool doInit (const Option &options, int ms) = 0;
 	virtual Info doGetInformation(int ms) const = 0;
-	virtual VideoFormat doGetFormat(int ms) const = 0;
-	virtual bool doSetFormat(VideoFormat &,int ms) = 0;
+	virtual ImageParam doGetImageParam(int ms) const = 0;
+	virtual bool doSetImageParam(ImageParam &,int ms) = 0;
 	virtual bool doStartCapture(int ms) = 0;
 	virtual bool doStopCapture(int ms) = 0;
-	virtual void doPutBuffer(const ImageBuffer &, int ms) = 0;
-	virtual ImageBuffer doGetFilledBuffer (int ms) = 0;
+	virtual void doPutBuffer(const Buffer &, int ms) = 0;
+	virtual Buffer doGetFilledBuffer (int ms) = 0;
 private:
 	Impl *d;
 };
