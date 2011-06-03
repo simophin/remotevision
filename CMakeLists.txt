@@ -31,13 +31,15 @@ find_package(FFMPEG REQUIRED)
 #find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED)
 
+message(${Boost_INCLUDE_DIR})
+
 # Setup includes
 include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR} 
     ${FFMPEG_INCLUDE_DIR} 
     ${Boost_INCLUDE_DIR}
-    ${PROTOBUF_INCLUDE_DIRS})
+)
 
 # Setup flags
 if(CMAKE_COMPILER_IS_GNUCXX)

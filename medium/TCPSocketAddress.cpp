@@ -59,7 +59,8 @@ unsigned int TCPSocketAddress::getPort() const {
 	size_t addr_len;
 	const sockaddr_in * addr = (sockaddr_in *)getPosixAddress(&addr_len);
 	assert(addr != 0);
-	return ::ntohs(addr->sin_port);
+	unsigned short ret = ::ntohs(addr->sin_port);
+	return ret;
 }
 std::string TCPSocketAddress::getAddress() const {
 	size_t addr_len;
