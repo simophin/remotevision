@@ -105,6 +105,16 @@ doSetImageParam(ImageParam & fmt, int ms)
 		return false;
 	}
 
+	// Do validate for geometry
+	float specfied_ratio = (float)fmt.geo.width/(float)fmt.geo.height;
+	float origin_ratio = (float)d->param.geo.width/(float)d->param.geo.height;
+
+	if ( (specfied_ratio < 1 && origin_ratio > 1) || (
+			specfied_ratio > 1 && origin_ratio < 1)) {
+		Log::logWarning("Specified ratio is not fit");
+		//TODO: adjust user geometry
+	}
+
 	d->param = fmt;
 	d->updateFFmpeg();
 	if (d->decodeCtx == 0 || d->swsCtx == 0) {
@@ -309,8 +319,8 @@ doInit(const IOVideoSource::Option & options, int ms)
 
 		d->param.fps.den = 1;
 		d->param.fps.num = 15;
-		d->param.geo.height = 320;
-		d->param.geo.width  = 240;
+		d->param.geo.height = info.info.currentGeometry.height;
+		d->param.geo.width  = info.info.currentGeometry.width;
 		d->param.pixFmt = IF_RGB565;
 		d->updateFFmpeg();
 
@@ -357,7 +367,7 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 		decodeCtx->width = info.info.currentGeometry.width;
 		decodeCtx->height = info.info.currentGeometry.height;
 		decodeCtx->pix_fmt = finfo.supportedPixelFormat.front();
-		decodeCtx->time_base = (AVRational){info.info.currentFrameRate.den, info.info.currentFrameRate.num};
+		decodeCtx->time_base = (AVRational){info.info.currentFrameRate.num, info.info.currentFrameRate.den};
 
 		if (avcodec_open(decodeCtx,decodeCodec) != 0) {
 			Log::logError("Can't open decoder");
@@ -368,7 +378,8 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 	SwsContext *newSwsCtx;
 	// Create swsctx
 	{
-		newSwsCtx = sws_getCachedContext(NULL, decodeCtx->width, decodeCtx->height, decodeCtx->pix_fmt,
+		newSwsCtx = sws_getCachedContext(NULL,
+				decodeCtx->width, decodeCtx->height, decodeCtx->pix_fmt,
 				param.geo.width, param.geo.height, dstPixFmt,
 				SWS_FAST_BILINEAR,NULL,NULL,NULL);
 		if (!newSwsCtx) {
@@ -481,10 +492,13 @@ void IOVideoSource::Impl::entry() {
 
 
 					AVFrame *convertedBuf = convertedBuffers.at(index);
+
+
 					if (sws_scale(swsCtx,frame->data,frame->linesize,0,decodeCtx->height,
 							convertedBuf->data,convertedBuf->linesize) < 0) {
 						goto sws_error;
 					}
+
 
 					Log::logDebug("decode thread finish writing buffer %d", index);
 

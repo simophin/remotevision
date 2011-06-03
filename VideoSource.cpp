@@ -24,20 +24,16 @@ VideoSource::~VideoSource() {
 
 ssize_t  VideoSource::
 doRead (char *, size_t){
-	//TODO: implement read
 }
 ssize_t VideoSource::
 doWrite (const char *, size_t){
-	//TODO: implement write
 }
 
 int VideoSource::
 doPoll(PollType, int){
-	//TODO: implement poll
 }
 
 void VideoSource::doClose(){
-	//TODO: implement close
 }
 
 

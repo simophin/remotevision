@@ -86,8 +86,7 @@ bool Thread::wait(int ms){
 		if (rc != 0) return false;
 	}
 
-	rc = pthread_join(d->thread,NULL);
-	assert(rc == 0);
+	pthread_join(d->thread,NULL);
 	return true;
 }
 bool Thread::stop(int ms){
