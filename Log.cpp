@@ -77,7 +77,7 @@ void Log::vLog(Level level, const char *fmt, va_list va)
 	vsnprintf (buf, sizeof(buf), fmt, va);
 	buf[sizeof(buf)-1] = '\0';
 
-	std::cerr << levelFmt << buf;
+	std::cerr << levelFmt << buf << std::endl;
 }
 
 void Log::log(Level level, const std::string &str) {

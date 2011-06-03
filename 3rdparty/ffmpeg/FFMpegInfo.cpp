@@ -29,12 +29,14 @@ static ID_CONV_TABLE_T ID_CONV_TABLE[] = {
 		{ VCODEC_INVALID, CODEC_ID_NONE },
 		{ VCODEC_FLV, 	CODEC_ID_FLV1 },
 		{ VCODEC_MJPEG, CODEC_ID_MJPEG },
+		{ VCODEC_MPEG4, CODEC_ID_MPEG4 },
 		{ VCODEC_RAW,	CODEC_ID_RAWVIDEO },
 };
 
 static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
 		{ IF_INVALID, PIX_FMT_NONE },
 		{ IF_YUV420P, PIX_FMT_YUV420P },
+		{ IF_RGB565,  PIX_FMT_RGB565},
 };
 
 VideoCodecId FFMpegInfo::
@@ -113,6 +115,17 @@ void FFMpegInfo::init()
 	{
 		FFMpegCodecInfo info;
 		info.codecId = CODEC_ID_FLV1;
+		info.pixelFormat = PIX_FMT_YUV420P;
+		info.supportedGeometries = defaultGeometries;
+		info.supportedPixelFormat.push_back(info.pixelFormat);
+		info.supportedRationals = defaultRationals;
+		FFMPEG_CODEC_INFO.push_back(info);
+	}
+
+	// For mpeg4
+	{
+		FFMpegCodecInfo info;
+		info.codecId = CODEC_ID_MPEG4;
 		info.pixelFormat = PIX_FMT_YUV420P;
 		info.supportedGeometries = defaultGeometries;
 		info.supportedPixelFormat.push_back(info.pixelFormat);

@@ -71,7 +71,7 @@ public:
 	 decodeCtx(0),
 	 swsCtx(0){
 		::memset(&config,0,sizeof(config));
-		config.bufferCount = 10;
+		config.bufferCount = 3;
 		config.bufferSize = 102400;
 	}
 
@@ -120,15 +120,29 @@ IOVideoSource::Buffer IOVideoSource::
 doGetFilledBuffer(int ms)
 {
 	Buffer ret;
+	bool timeout;
 
-	if (!d->filledBufferMutex.lock(ms)) {
-		setLastError(Error(ETIMEDOUT));
+	if (d->state != STATE_CAPTURING || !d->isRunning()) {
+		Log::logError("State error");
+		return ret;
+	}
+
+	if (!d->filledBufferMutex.lock(ms,&timeout)) {
+		if (timeout) {
+			setLastError(Error(ETIMEDOUT));
+		}else{
+			setLastError(Error("Internal mutex error"));
+		}
 		return ret;
 	}
 
 	if (d->filledBuffers.size() < 1) {
-		if (!d->filledBufferCond.wait(d->filledBufferMutex,ms)) {
-			setLastError(Error(ETIMEDOUT));
+		if (!d->filledBufferCond.wait(d->filledBufferMutex,ms,&timeout)) {
+			if (timeout) {
+				setLastError(Error(ETIMEDOUT));
+			}else{
+				setLastError(Error("Internal mutex error"));
+			}
 			return ret;
 		}
 	}
@@ -136,7 +150,8 @@ doGetFilledBuffer(int ms)
 	int index = d->filledBuffers.front();
 	d->filledBuffers.pop_front();
 	d->filledBufferMutex.unlock();
-	AVFrame *frame = d->convertedBuffers.at(index);
+	Log::logDebug("Got buffer index = %d", index);
+	const AVFrame *frame = d->convertedBuffers.at(index);
 	ret.index = index;
 	ret.buf = frame->data[0];
 	ret.size = frame->linesize[0] + frame->linesize[1] + frame->linesize[2] + frame->linesize[3];
@@ -160,6 +175,10 @@ doStopCapture(int ms)
 void IOVideoSource::
 doPutBuffer(const Buffer & buf, int ms)
 {
+	if (d->state != STATE_CAPTURING || !d->isRunning()) {
+		Log::logError("State error");
+		return;
+	}
 	if (buf.index < 0 || buf.index >= d->convertedBuffers.size()) {
 		Log::logError("Index %d is not existed", buf.index);
 		return;
@@ -173,9 +192,14 @@ doPutBuffer(const Buffer & buf, int ms)
 		return;
 	}
 
+	Log::logDebug ("Trying to put buffer index = %d", buf.index);
+
 	if (std::find(d->emptyBuffers.begin(), d->emptyBuffers.end(), buf.index) == d->emptyBuffers.end() &&
 			std::find(d->filledBuffers.begin(), d->filledBuffers.end(), buf.index) == d->filledBuffers.end()) {
+
 		d->emptyBuffers.push_back(buf.index);
+		d->emptyBufferCond.signal();
+		Log::logDebug("Put buffer index = %d", buf.index);
 	}
 	d->filledBufferMutex.unlock();
 	d->emptyBufferMutex.unlock();
@@ -198,6 +222,8 @@ doStartCapture(int ms)
 		setLastError(Error("STATE ERROR"));
 		return false;
 	}
+
+
 
 	// Require remote to start
 	Command request,response;
@@ -222,6 +248,7 @@ doStartCapture(int ms)
 		return false;
 	}
 
+	d->state = STATE_CAPTURING;
 	d->run();
 	return true;
 }
@@ -252,6 +279,8 @@ doInit(const IOVideoSource::Option & options, int ms)
 
 	if (cmd.getName() == VideoCommand::QueryInfoCommandHandler::SUCCESS_STRING ) {
 		info.providerInfo = VideoCommand::QueryInfoCommandHandler::parseVideoInformationFromCommand(cmd);
+	}else{
+		goto read_error;
 	}
 
 	// Fetch command
@@ -271,11 +300,21 @@ doInit(const IOVideoSource::Option & options, int ms)
 
 	if (cmd.getName() == VideoCommand::GetParameterCommandHandler::SUCCESS_STRING) {
 		info.info = VideoCommand::GetParameterCommandHandler::parseInfoFromCommand(cmd);
+	}else{
+		goto read_error;
 	}
 
 	if (info.info.isValid() && info.providerInfo.isValid()) {
 		d->info = info;
+
+		d->param.fps.den = 1;
+		d->param.fps.num = 15;
+		d->param.geo.height = 320;
+		d->param.geo.width  = 240;
+		d->param.pixFmt = IF_RGB565;
 		d->updateFFmpeg();
+
+		d->state = STATE_READY;
 		return true;
 	}else{
 		return false;
@@ -289,13 +328,17 @@ doInit(const IOVideoSource::Option & options, int ms)
 inline void IOVideoSource::Impl::updateFFmpeg()
 {
 
+	FFMpegCodecInfo finfo;
+	PixelFormat dstPixFmt;
 	if (decodeCtx != 0) {
 		avcodec_close(decodeCtx);
 		av_free(decodeCtx);
 	}
 
 	{
-		decodeCodec = avcodec_find_decoder(FFMpegInfo::getIdFromRemoteVision(info.info.currentCodec.codecId));
+		finfo = FFMpegInfo::findCodecInfo(info.info.currentCodec.codecId);
+		dstPixFmt = FFMpegInfo::getPixFmtFromRemoteVision(param.pixFmt);
+		decodeCodec = avcodec_find_decoder(finfo.codecId);
 		if (!decodeCodec) {
 			Log::logError("Can't find decoder");
 			goto find_decoder_error;
@@ -303,7 +346,7 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 	}
 
 	{
-		FFMpegCodecInfo finfo = FFMpegInfo::findCodecInfo(decodeCodec->id);
+
 		if (finfo.codecId == CODEC_ID_NONE) {
 			Log::logError("Can't find decoder info");
 			goto find_decoder_info_error;
@@ -326,7 +369,7 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 	// Create swsctx
 	{
 		newSwsCtx = sws_getCachedContext(NULL, decodeCtx->width, decodeCtx->height, decodeCtx->pix_fmt,
-				param.geo.width, param.geo.height, FFMpegInfo::getPixFmtFromRemoteVision(param.pixFmt),
+				param.geo.width, param.geo.height, dstPixFmt,
 				SWS_FAST_BILINEAR,NULL,NULL,NULL);
 		if (!newSwsCtx) {
 			Log::logError("Can't create sws context");
@@ -353,7 +396,7 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 		AVFrame *frame;
 		for (int i=0; i<config.bufferCount;i++) {
 			frame = avcodec_alloc_frame();
-			if (avpicture_alloc((AVPicture *)frame,FFMpegInfo::getPixFmtFromRemoteVision(param.pixFmt),
+			if (avpicture_alloc((AVPicture *)frame,dstPixFmt,
 					info.info.currentGeometry.width,info.info.currentGeometry.height) != 0) {
 				Log::logError("Allocate memory for converting failed...");
 				break;
@@ -386,8 +429,6 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 }
 
 void IOVideoSource::Impl::entry() {
-	state = STATE_CAPTURING;
-
 	char *buf = (char *)::malloc(config.bufferSize);
 	assert (buf != NULL);
 
@@ -409,21 +450,27 @@ void IOVideoSource::Impl::entry() {
 		{
 			int usedSize = 0;
 			do {
-				usedSize = avcodec_decode_video(decodeCtx, frame, &got_frame, (uint8_t *)(buf + usedSize), readSize - usedSize);
+				usedSize += avcodec_decode_video(decodeCtx, frame, &got_frame, (uint8_t *)(buf + usedSize), readSize - usedSize);
 				if (usedSize < 0) goto decode_error;
 				if (got_frame) {
 					// Get a buffer to do swscale
 					int index = -1;
+					bool to;
 					do {
-						if (!emptyBufferMutex.lock(500)) continue;
+						if (!emptyBufferMutex.lock(2000,&to)) {
+							goto get_empty_buffer_error;
+						}
 						if (emptyBuffers.size() < 1) {
-							if (!emptyBufferCond.wait(emptyBufferMutex,500)){
+							if (!emptyBufferCond.wait(emptyBufferMutex,500,&to)){
 								emptyBufferMutex.unlock();
-								continue;
+								if (to) continue;
+								else goto get_empty_buffer_error;
 							}
 						}
 						index = emptyBuffers.front();
+						Log::logDebug("decode thread get buffer %d to write", index);
 						emptyBuffers.pop_front();
+						emptyBufferMutex.unlock();
 						break;
 					}while(!shouldStop());
 
@@ -431,22 +478,22 @@ void IOVideoSource::Impl::entry() {
 						goto get_empty_buffer_error;
 					}
 
+
+
 					AVFrame *convertedBuf = convertedBuffers.at(index);
-					if (sws_scale(swsCtx,frame->data,frame->linesize,0,decodeCtx->height,convertedBuf->data,convertedBuf->linesize) < 0) {
+					if (sws_scale(swsCtx,frame->data,frame->linesize,0,decodeCtx->height,
+							convertedBuf->data,convertedBuf->linesize) < 0) {
 						goto sws_error;
 					}
 
-					do {
-						if (!filledBufferMutex.lock(500)) continue;
-						if (filledBuffers.size() < 1) {
-							if (!filledBufferCond.wait(filledBufferMutex,500)){
-								filledBufferMutex.unlock();
-								continue;
-							}
-						}
+					Log::logDebug("decode thread finish writing buffer %d", index);
 
-						filledBuffers.push_back(index);
-					}while(!shouldStop());
+					if (!filledBufferMutex.lock(2000,&to)) {
+						goto lock_fill_buffer_error;
+					}
+					filledBuffers.push_back(index);
+					filledBufferCond.signal();
+					filledBufferMutex.unlock();
 
 					got_frame = 0;
 					av_free(frame);
@@ -457,15 +504,17 @@ void IOVideoSource::Impl::entry() {
 
 		continue;
 
+		lock_fill_buffer_error:
 		sws_error:
 		get_empty_buffer_error:
 		decode_error:
 		read_error:
 		av_free(frame);
+		Log::logWarning("Capturing thread ending unexpectedly");
 		break;
 	}
 
-
+	::free(buf);
 
 	state = STATE_READY;
 }

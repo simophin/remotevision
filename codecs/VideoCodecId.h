@@ -7,7 +7,8 @@ typedef enum  {
 	VCODEC_INVALID = -1,
 	VCODEC_RAW ,
 	VCODEC_FLV,
-	VCODEC_MJPEG
+	VCODEC_MJPEG,
+	VCODEC_MPEG4,
 } VideoCodecId;
 
 

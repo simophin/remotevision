@@ -177,6 +177,7 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 	Command response;
 	builder.setResponseCommand(SUCCESS_STRING);
 	builder.appendArgument(param.toString());
+	builder.build(response);
 
 	Commander cmder (ctx->controlDevice);
 	cmder.writeCommand(response);

@@ -8,6 +8,7 @@
 #include "medium/TCPSocket.h"
 #include "medium/TCPSocketAddress.h"
 #include "vsources/IOVideoSource.h"
+#include "3rdparty/ffmpeg/FFMpeg.h"
 
 #include <iostream>
 #include <assert.h>
@@ -37,7 +38,12 @@ int main () {
 	}
 
 
+	FFMpeg::init();
 	IOVideoSource source (&socket,&dataSocket);
+	if (!source.init()) {
+		std::cerr << source.getLastError() << std::endl;
+		return 3;
+	}
 	IOVideoSource::Info info = source.getInformation();
 
 	std::cout << "Supported geometry are: "<<std::endl;
@@ -56,6 +62,24 @@ int main () {
 		std::cout << "Error is "<<source.getLastError() << std::endl;
 	}
 	*/
+
+	if (!source.startCapture()) {
+		std::cerr << source.getLastError() << std::endl;
+		return 3;
+	}
+
+	for (int i=0; i<20; i++) {
+		VideoSource::Buffer buf = source.getFilledBuffer();
+		if (!buf.isValid()) {
+			std::cerr << "Buffer is not valid" << std::endl;
+			return 4;
+		}
+
+		//std::cout << "Get "<<buf.size<< " bytes data"<<std::endl;
+		source.putBuffer(buf);
+	}
+
+	source.stopCapture();
 
 
 	return 0;

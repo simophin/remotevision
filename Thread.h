@@ -47,7 +47,7 @@ public:
 	Mutex(Type t = Normal);
 	virtual ~Mutex();
 
-	virtual bool lock(int ms = -1);
+	virtual bool lock(int ms = -1, bool *timeout = 0);
 	virtual void unlock();
 	virtual bool trylock();
 
@@ -64,7 +64,7 @@ public:
 	Condition();
 	virtual ~Condition();
 
-	virtual bool wait(Mutex &,int ms = -1);
+	virtual bool wait(Mutex &,int ms = -1, bool *timeout = 0);
 	virtual void signal();
 	virtual void broadcast();
 

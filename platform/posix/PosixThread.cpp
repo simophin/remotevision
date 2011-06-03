@@ -131,19 +131,23 @@ Mutex::~Mutex()
 
 
 
-bool Mutex::lock(int ms)
+bool Mutex::lock(int ms, bool *timeout)
 {
 	int rc;
 	if (ms > 0) {
 		struct timespec to;
 		getPthreadDelay(&to,ms);
 		rc = pthread_mutex_timedlock(&d->mInternalMutex, &to);
+		if (timeout) {
+			*timeout = (rc == ETIMEDOUT) ? true : false;
+		}
 	}else{
 		rc = pthread_mutex_lock(&d->mInternalMutex);
 	}
 
 	if (rc != 0) {
-		Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
+		if (rc != ETIMEDOUT)
+			Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
 		return false;
 	}
 	return true;
@@ -184,7 +188,7 @@ Condition::~Condition()
 
 
 
-bool Condition::wait(Mutex & mutex, int ms)
+bool Condition::wait(Mutex & mutex, int ms,bool *timeout)
 {
 	int rc;
 	if (ms > 0) {
@@ -192,12 +196,16 @@ bool Condition::wait(Mutex & mutex, int ms)
 		getPthreadDelay(&to,ms);
 
 		rc = pthread_cond_timedwait(&d->mCond, &mutex.d->mInternalMutex, &to);
+		if (timeout) {
+			*timeout = (rc == ETIMEDOUT) ? true : false;
+		}
 	}else{
 		rc = pthread_cond_wait(&d->mCond, &mutex.d->mInternalMutex);
 	}
 
-	if (rc != 0) {
-		Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
+	if (rc != 0  ) {
+		if (rc != ETIMEDOUT)
+			Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
 		return false;
 	}
 	return true;

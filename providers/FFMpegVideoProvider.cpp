@@ -36,6 +36,7 @@ public:
 };
 
 static VideoCodecId SUPPORTED_CODECS[] = {
+		VCODEC_MPEG4,
 		VCODEC_FLV,
 		VCODEC_MJPEG,
 		VCODEC_RAW

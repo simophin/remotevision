@@ -18,6 +18,7 @@ static struct IdStrMap ID_STR_MAPS[] = {
 		{ VCODEC_FLV,			"FLV" },
 		{ VCODEC_MJPEG,		"MJPEG" },
 		{ VCODEC_RAW,			"RAW" },
+		{ VCODEC_MPEG4,		"MPEG4" },
 };
 
 const static size_t ID_STR_MAPS_SIZE = sizeof(ID_STR_MAPS)/sizeof(struct IdStrMap);

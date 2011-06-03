@@ -45,6 +45,14 @@ public:
 
 		int index;
 		void *priv;
+
+		Buffer()
+		:index(-1),priv(0),
+		 buf(0),size(0) {}
+
+		bool isValid () {
+			return (index >= 0);
+		}
 	};
 
 	typedef std::map<std::string,std::string> Option;
