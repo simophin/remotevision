@@ -18,6 +18,9 @@ public:
 
 	class Impl;
 
+	IODevice * getControlDevice () const;
+	IODevice * getDataDevice() const;
+
 protected:
 	virtual bool doInit (const Option &options, int ms);
 	virtual Info doGetInformation(int ms) const;

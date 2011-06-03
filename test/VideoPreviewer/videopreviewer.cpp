@@ -37,11 +37,16 @@ VideoPreviewer::~VideoPreviewer()
 }
 void VideoPreviewer::start()
 {
+	if (!d->mVideoSource->startCapture()) {
+		reportError(tr("开始捕捉：%1").arg(d->mVideoSource->getLastError().getErrorString().c_str()));
+		return;
+	}
 	d->mTimer.start( d->mParam.fps.den*1000/d->mParam.fps.num, this );
 }
 
 void VideoPreviewer::stop()
 {
+	d->mVideoSource->stopCapture();
 	d->mTimer.stop();
 }
 
@@ -73,7 +78,26 @@ void VideoPreviewer::timerEvent(QTimerEvent *evt)
 	VideoPreviewer::timerEvent(evt);
 }
 
+void VideoPreviewer::on_btnStart_clicked()
+{
+	ui->btnStop->setEnabled(true);
+	ui->btnStart->setEnabled(false);
+	start();
+}
+
+void VideoPreviewer::on_btnStop_clicked()
+{
+	ui->btnStop->setEnabled(false);
+	ui->btnStart->setEnabled(true);
+	stop();
+}
+
 void VideoPreviewer::reportError(const QString &str, bool exit) {
 	QMessageBox::critical(this,tr("错误"),str);
 	if(exit) close();
+}
+
+VideoSource * VideoPreviewer::
+getVideoSource() const {
+	return d->mVideoSource;
 }

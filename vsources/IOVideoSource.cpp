@@ -128,6 +128,16 @@ doSetImageParam(ImageParam & fmt, int ms)
 
 
 
+IODevice *IOVideoSource::getControlDevice() const
+{
+	return d->ctrlDev;
+}
+
+IODevice *IOVideoSource::getDataDevice() const
+{
+	return d->dataDev;
+}
+
 IOVideoSource::Buffer IOVideoSource::
 doGetFilledBuffer(int ms)
 {

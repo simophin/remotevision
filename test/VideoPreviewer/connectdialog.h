@@ -1,7 +1,7 @@
 #ifndef CONNECTDIALOG_H
 #define CONNECTDIALOG_H
 
-#include <QDialog>
+#include <QtGui/QDialog>
 
 namespace Ui {
     class ConnectDialog;
@@ -20,6 +20,8 @@ protected:
 
 private slots:
     void on_btnConnect_clicked();
+    void resetUI();
+    void onVideoPreviewerDestroyed(QObject *);
 
 private:
     Ui::ConnectDialog *ui;

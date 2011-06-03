@@ -20,6 +20,12 @@ public:
     void start ();
     void stop ();
 
+    VideoSource * getVideoSource() const;
+
+public slots:
+	void on_btnStart_clicked();
+	void on_btnStop_clicked();
+
 protected:
     virtual void timerEvent(QTimerEvent *);
 
