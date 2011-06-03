@@ -28,6 +28,7 @@ public slots:
 
 protected:
     virtual void timerEvent(QTimerEvent *);
+    virtual void closeEvent(QCloseEvent *);
 
     void init();
     void reportError(const QString &, bool exit = true);

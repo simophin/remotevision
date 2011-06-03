@@ -12,6 +12,7 @@ typedef enum {
 	IF_INVALID = -1,
 	IF_YUV420P,
 	IF_RGB565,
+	IF_RGB888,
 } ImageFormat;
 
 #endif /* IMAGEFORMAT_H_ */

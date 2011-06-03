@@ -41,7 +41,7 @@ void VideoPreviewer::start()
 		reportError(tr("开始捕捉：%1").arg(d->mVideoSource->getLastError().getErrorString().c_str()));
 		return;
 	}
-	d->mTimer.start( d->mParam.fps.den*1000/d->mParam.fps.num, this );
+	d->mTimer.start( 100, this );
 }
 
 void VideoPreviewer::stop()
@@ -57,8 +57,8 @@ void VideoPreviewer::init() {
 		return;
 	}
 
-	if (d->mParam.pixFmt != IF_RGB565) {
-		d->mParam.pixFmt = IF_RGB565;
+	if (d->mParam.pixFmt != IF_RGB888) {
+		d->mParam.pixFmt = IF_RGB888;
 		if (!d->mVideoSource->setImageParam(d->mParam)) {
 			reportError(tr("无法获得远端图像参数: %1").arg(d->mVideoSource->getLastError().getErrorString().c_str()));
 			return;
@@ -70,12 +70,14 @@ void VideoPreviewer::timerEvent(QTimerEvent *evt)
 {
 	VideoSource::Buffer buf = d->mVideoSource->getFilledBuffer();
 	if (buf.isValid()) {
-		QImage img (buf.buf, d->mParam.geo.width, d->mParam.geo.height, QImage::Format_RGB555);
+		QImage img (buf.buf, d->mParam.geo.width, d->mParam.geo.height, QImage::Format_RGB888);
 		d->mPixmap = QPixmap::fromImage(img);
 		ui->labelContent->setPixmap(d->mPixmap);
+
+		d->mVideoSource->putBuffer(buf);
 	}
 
-	VideoPreviewer::timerEvent(evt);
+	QWidget::timerEvent(evt);
 }
 
 void VideoPreviewer::on_btnStart_clicked()
@@ -90,6 +92,12 @@ void VideoPreviewer::on_btnStop_clicked()
 	ui->btnStop->setEnabled(false);
 	ui->btnStart->setEnabled(true);
 	stop();
+}
+
+void VideoPreviewer::closeEvent(QCloseEvent *evt)
+{
+	stop();
+	QWidget::closeEvent(evt);
 }
 
 void VideoPreviewer::reportError(const QString &str, bool exit) {

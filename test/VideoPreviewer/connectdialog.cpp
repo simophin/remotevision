@@ -82,9 +82,17 @@ void ConnectDialog::on_btnConnect_clicked()
 	}
 
 	IOVideoSource *src = new IOVideoSource(ctrl,data);
+
+	if (!src->init()) {
+		QMessageBox::critical(this,tr("连接失败"),tr("初始化视频源失败，原因为：%1").arg(src->getLastError().getErrorString().c_str()));
+		delete src;
+		resetUI();
+		return;
+	}
+
 	VideoPreviewer *previewer = new VideoPreviewer(src,NULL);
 	previewer->setAttribute(Qt::WA_DeleteOnClose,true);
-	this->connect (previewer,SIGNAL(destryoed(QObject *)), this,SLOT(onVideoPreviewerDestroyed(QObject *)));
+	this->connect (previewer,SIGNAL(destroyed(QObject *)), this,SLOT(onVideoPreviewerDestroyed(QObject *)));
 
 	accept();
 	previewer->show();

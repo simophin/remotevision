@@ -155,8 +155,8 @@ bool FFMpegVideoProvider::doInitDevice()
 		if (decodeCtx->pix_fmt == PIX_FMT_NONE) {
 			decodeCtx->pix_fmt = PIX_FMT_YUVJ420P;
 		}
-		decodeCtx->height = 320;
-		decodeCtx->width  = 240;
+		decodeCtx->height = 240;
+		decodeCtx->width  = 320;
 		decodeCtx->time_base = (AVRational) {1,30};
 
 		if ((rc = avcodec_open(decodeCtx,decodeCodec)) != 0) {

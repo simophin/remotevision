@@ -27,7 +27,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="ipEdit"/>
+      <widget class="QLineEdit" name="ipEdit">
+       <property name="text">
+        <string>127.0.0.1</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_2">
@@ -37,7 +41,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="portEdit"/>
+      <widget class="QLineEdit" name="portEdit">
+       <property name="text">
+        <string>10001</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnConnect">
