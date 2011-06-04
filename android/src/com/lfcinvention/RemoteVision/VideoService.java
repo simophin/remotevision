@@ -1,5 +1,8 @@
 package com.lfcinvention.RemoteVision;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,12 +23,14 @@ public class VideoService extends Service {
 	private State       mState      = State.STATE_ERROR;
 	private String     mErrorString = "";
 	private WifiManager mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
+	private NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	private NetworkConfiguration mNetworkConfig = null;
+	private final int NOTIFY_ID = 1;
 
 	
 	@Override
 	public void onCreate() {
-		super.onCreate();
+		
 		
 		int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
 		
@@ -67,6 +72,8 @@ public class VideoService extends Service {
 		}catch (Exception e) {
 			updateState(State.STATE_ERROR,e.getMessage());
 		}
+		
+		super.onCreate();
 	}
 
 
@@ -130,6 +137,10 @@ public class VideoService extends Service {
 			nativeStartServer(mNativeServer, false);
 		}
 		
+		public VideoService getService() {
+			return VideoService.this;
+		}
+		
 		public String getErrorString() {
 			return mErrorString;
 		}
@@ -153,8 +164,21 @@ public class VideoService extends Service {
 	}
 	
 	private void updateState(State s, String str) {
+		int icon = R.drawable.icon;
+		CharSequence tickerText = str;
+		long when = System.currentTimeMillis();
 		mState = s;
 		mErrorString = str;
+		
+		Notification notification = new Notification(icon, tickerText, when);
+		CharSequence title = getResources().getText(R.string.app_name);
+		CharSequence content = str;
+		Intent notificationIntent = new Intent(this,InfoActivity.class);
+		PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, 
+				notificationIntent, 0);
+		notification.setLatestEventInfo(getApplicationContext(), title, content, contentIntent);
+		
+		mNotificationManager.notify(NOTIFY_ID, notification);
 	}
 	
 	private String intToIp(int i)
