@@ -45,7 +45,7 @@ public class InfoActivity extends Activity {
 			VideoService.ServiceChannel s = (VideoService.ServiceChannel)service;
 			
 			if (s.getServiceState() == VideoService.State.STATE_ERROR) {
-				mTextView.setText("错误：" + mBoundService.getErrorString());
+				mTextView.setText("错误：" + s.getErrorString());
 				mBtnStart.setEnabled(false);
 				return;
 			}
@@ -59,14 +59,11 @@ public class InfoActivity extends Activity {
 		try{
 			Intent i = new Intent();
 			i.setClass(getApplicationContext(), VideoService.class);
-			startService(i);
-			/*
 			if (bindService(i, mServiceConnection,Context.BIND_AUTO_CREATE)) {
 				mIsBound = true;
 			}else{
 				Toast.makeText(this, "Bind service failed", 2).show();
 			}
-			*/
 		}catch(Exception e) {
 			Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
 		}

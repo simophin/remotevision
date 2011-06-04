@@ -1,11 +1,18 @@
 package com.lfcinvention.RemoteVision;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+import java.util.List;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
@@ -19,12 +26,12 @@ public class VideoService extends Service {
 		STATE_ERROR,
 	}
 	
-	private SharedPreferences mPref = getSharedPreferences(Preference.name, 0);
+	private SharedPreferences mPref;
 	private ServiceChannel mChannel = new ServiceChannel();
 	private State       mState      = State.STATE_ERROR;
 	private String     mErrorString = "";
-	private WifiManager mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
-	private NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+	private WifiManager mWifiManger = null;
+	private NotificationManager mNotificationManager = null;
 	private NetworkConfiguration mNetworkConfig = null;
 	private final int NOTIFY_ID = 1;
 
@@ -32,6 +39,9 @@ public class VideoService extends Service {
 	@Override
 	public void onCreate() {
 		
+		mPref  = getSharedPreferences(Preference.name, 0);
+		mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
+		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		
 		int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
 		
@@ -115,6 +125,16 @@ public class VideoService extends Service {
 		private static final long serialVersionUID = 6397572426195074232L;
 	}
 	
+	public class NoGSMNetworkException extends Exception {
+		@Override
+		public String getMessage() {
+			return "No GSM Network available";
+		}
+
+		private static final long serialVersionUID = -4437622063918416580L;
+		
+	}
+	
 	public class ServiceChannel extends Binder {
 		public String getBoundAddress() {
 			return nativeGetBoundAddress(mNativeServer);
@@ -149,8 +169,7 @@ public class VideoService extends Service {
 
 	
 	public void setUseWifi () throws CreateServerException {
-		WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
-		WifiInfo info = wm.getConnectionInfo();
+		WifiInfo info = mWifiManger.getConnectionInfo();
 		
 		String address = intToIp(info.getIpAddress());
 		int ptr = nativeCreateServer(address, this.mNetworkConfig.port);
@@ -160,8 +179,43 @@ public class VideoService extends Service {
 		mNativeServer = ptr;
 	}
 	
-	public void setUseGSM () {
+	public void setUseGSM () throws SocketException, NoGSMNetworkException, CreateServerException {
+		// Find a network interface that is GSM
+		String exception_ip = null;
+		WifiInfo info = mWifiManger.getConnectionInfo();
+		if (info != null) {
+			exception_ip = intToIp(info.getIpAddress());
+		}
 		
+		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+		InetAddress foundAddr = null;
+		while(interfaces.hasMoreElements()) {
+			NetworkInterface iface = interfaces.nextElement();
+			Enumeration<InetAddress> addresses = iface.getInetAddresses();
+			while (addresses.hasMoreElements()) {
+				InetAddress addr = addresses.nextElement();
+				if (addr.getHostAddress() != exception_ip && 
+						!addr.isLoopbackAddress() && !addr.isAnyLocalAddress() && 
+						!addr.isMulticastAddress()) {
+					foundAddr = addr;
+					break;
+				}
+			}
+			if (foundAddr != null) {
+				break;
+			}
+		}
+		
+		if (foundAddr == null) {
+			throw new NoGSMNetworkException();
+		}
+		
+		String address = foundAddr.toString();
+		int ptr = nativeCreateServer(address, this.mNetworkConfig.port);
+		if (ptr == 0) {
+			throw new CreateServerException();
+		}
+		mNativeServer = ptr;
 	}
 	
 	private void updateState(State s, String str) {
