@@ -22,7 +22,6 @@ public:
 
 	Impl(const std::string &name)
 	:videoProvider(0) {
-		FFMpeg::init();
 		videoProvider = new FFMpegVideoProvider(name);
 		if (!videoProvider->initDevice()) {
 			assert (false);

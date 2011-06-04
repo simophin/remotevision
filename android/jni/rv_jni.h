@@ -7,6 +7,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define LOG_TAG "RemoteVision"
+
 /*
  * Class:     com_lfcinvention_RemoteVision_VideoService
  * Method:    nativeCreateServer
@@ -38,6 +41,8 @@ JNIEXPORT void JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeSta
  */
 JNIEXPORT jstring JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeGetBoundAddress
   (JNIEnv *, jobject, jint);
+
+jint JNI_OnLoad(JavaVM *, void *);
 
 #ifdef __cplusplus
 }

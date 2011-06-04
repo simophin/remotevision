@@ -8,9 +8,10 @@
 #ifndef SERVERSOCKET_H_
 #define SERVERSOCKET_H_
 
+#include "Socket.h"
+
 class SocketAddress;
-class Socket;
-class ServerSocket {
+class ServerSocket: public Socket {
 public:
 	ServerSocket();
 	virtual ~ServerSocket();

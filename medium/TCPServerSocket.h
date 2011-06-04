@@ -19,8 +19,6 @@ public:
 public:
 	virtual PosixSocketAddress *createAddressInstance(const sockaddr *, size_t addr_len) const;
 	virtual PosixSocket * createInstance(int) const;
-
-
 };
 
 #endif /* TCPSERVERSOCKET_H_ */
