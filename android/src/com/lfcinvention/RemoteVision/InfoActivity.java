@@ -23,7 +23,7 @@ public class InfoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        bindService();
+        
         
         mBtnStart = (Button)findViewById(R.id.btnStart);
         mTextView = (TextView)findViewById(R.id.boundAddressText);
@@ -57,10 +57,18 @@ public class InfoActivity extends Activity {
 	
 	private void bindService() {
 		try{
-			bindService(new Intent(InfoActivity.this,VideoService.class),
-				mServiceConnection,Context.BIND_AUTO_CREATE);
+			Intent i = new Intent();
+			i.setClass(getApplicationContext(), VideoService.class);
+			startService(i);
+			/*
+			if (bindService(i, mServiceConnection,Context.BIND_AUTO_CREATE)) {
+				mIsBound = true;
+			}else{
+				Toast.makeText(this, "Bind service failed", 2).show();
+			}
+			*/
 		}catch(Exception e) {
-			Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);
+			Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
 		}
 	}
     
@@ -68,6 +76,9 @@ public class InfoActivity extends Activity {
     private View.OnClickListener onBtnStartClicked = new View.OnClickListener() {
 		public void onClick(View arg0) {
 			try{
+				if (!mIsBound) {
+					bindService();
+				}
 				mBoundService.startService();
 			}catch(Exception e) {
 				Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);

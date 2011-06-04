@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Binder;
 import android.os.IBinder;
 
 public class VideoService extends Service {
@@ -114,7 +115,7 @@ public class VideoService extends Service {
 		private static final long serialVersionUID = 6397572426195074232L;
 	}
 	
-	public class ServiceChannel {
+	public class ServiceChannel extends Binder {
 		public String getBoundAddress() {
 			return nativeGetBoundAddress(mNativeServer);
 		}
@@ -191,4 +192,8 @@ public class VideoService extends Service {
 	private native void   nativeDestroyServer(int server);
 	private native void   nativeStartServer(int server,boolean start);
 	private native String nativeGetBoundAddress(int nativeServer);
+	
+	static {
+		System.loadLibrary("RemoteVisionJni");
+	}
 }
