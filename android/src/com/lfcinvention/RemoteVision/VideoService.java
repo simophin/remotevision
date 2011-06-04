@@ -1,11 +1,10 @@
 package com.lfcinvention.RemoteVision;
 
-import java.io.ObjectInputStream;
-import java.io.StringBufferInputStream;
-
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.IBinder;
 
 public class VideoService extends Service {
@@ -20,9 +19,10 @@ public class VideoService extends Service {
 	private ServiceChannel mChannel = new ServiceChannel();
 	private State       mState      = State.STATE_ERROR;
 	private String     mErrorString = "";
+	private WifiManager mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
+	private NetworkConfiguration mNetworkConfig = null;
 
 	
-	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -33,17 +33,39 @@ public class VideoService extends Service {
 			switch (connType) {
 			case Preference.CONNTYPE_NETWORK:
 				String networkConfigStr = mPref.getString(Preference.networkConfigKey, "");
-				NetworkConfiguration networkConfig;
 				if (networkConfigStr.trim().length() < 1) {
-					networkConfig = new NetworkConfiguration();
+					mNetworkConfig = new NetworkConfiguration();
 				}else{
-					ObjectInputStream os = new ObjectInputStream(new StringBufferInputStream(networkConfigStr));
-					networkConfig =  (com.lfcinvention.RemoteVision.NetworkConfiguration) os.readObject();
-
+					mNetworkConfig =  (com.lfcinvention.RemoteVision.NetworkConfiguration)Preference.unserialize(networkConfigStr);
 				}
+				
+				switch(mNetworkConfig.networkType) {
+				case NetworkConfiguration.NT_WIFI: {
+					if (!mWifiManger.isWifiEnabled() || 
+							mWifiManger.getConnectionInfo() == null) {
+						updateState (State.STATE_ERROR, "Wifi is not enabled");
+						break;
+					}
+					setUseWifi();
+					updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
+					break;
+				}
+				
+				case NetworkConfiguration.NT_GSM: {
+					setUseGSM();
+					updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
+					break;
+				}
+				}
+			
+				break;
+				
+			default:
+				updateState(State.STATE_ERROR,"Unimplement connection type");
+				break;
 			}
 		}catch (Exception e) {
-			// TODO: handle exception
+			updateState(State.STATE_ERROR,e.getMessage());
 		}
 	}
 
@@ -98,12 +120,14 @@ public class VideoService extends Service {
 			if (mState != State.STATE_READY) {
 				throw new StateErrorException("State should be ready");
 			}
+			nativeStartServer(mNativeServer, true);
 		}
 		
 		public void stopService() throws StateErrorException{
 			if (mState != State.STATE_IN_SERVICE) {
 				throw new StateErrorException("State should be running");
 			}
+			nativeStartServer(mNativeServer, false);
 		}
 		
 		public String getErrorString() {
@@ -112,7 +136,35 @@ public class VideoService extends Service {
 	}
 
 	
+	public void setUseWifi () throws CreateServerException {
+		WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+		WifiInfo info = wm.getConnectionInfo();
+		
+		String address = intToIp(info.getIpAddress());
+		int ptr = nativeCreateServer(address, this.mNetworkConfig.port);
+		if (ptr == 0) {
+			throw new CreateServerException();
+		}
+		mNativeServer = ptr;
+	}
+	
+	public void setUseGSM () {
+		
+	}
+	
+	private void updateState(State s, String str) {
+		mState = s;
+		mErrorString = str;
+	}
+	
+	private String intToIp(int i)
+	{ 
+		return ( i & 0xFF)+ "." + ((i >> 8 ) & 0xFF)  + "." + ((i >> 16 ) & 0xFF) +"."+((i >> 24 ) & 0xFF ) ; 
+	}
+
 	private int mNativeServer = 0;
 	private native int    nativeCreateServer(String addr, int port);
+	private native void   nativeDestroyServer(int server);
+	private native void   nativeStartServer(int server,boolean start);
 	private native String nativeGetBoundAddress(int nativeServer);
 }
