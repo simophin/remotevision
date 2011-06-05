@@ -44,7 +44,6 @@ public class VideoService extends Service {
 		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		
 		int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
-		
 		try{
 			switch (connType) {
 			case Preference.CONNTYPE_NETWORK:
@@ -210,7 +209,8 @@ public class VideoService extends Service {
 			throw new NoGSMNetworkException();
 		}
 		
-		String address = foundAddr.toString();
+		
+		String address = foundAddr.toString().substring(1);
 		int ptr = nativeCreateServer(address, this.mNetworkConfig.port);
 		if (ptr == 0) {
 			throw new CreateServerException();
@@ -247,7 +247,5 @@ public class VideoService extends Service {
 	private native void   nativeStartServer(int server,boolean start);
 	private native String nativeGetBoundAddress(int nativeServer);
 	
-	static {
-		System.loadLibrary("RemoteVisionJni");
-	}
+	
 }

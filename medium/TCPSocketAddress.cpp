@@ -15,7 +15,6 @@
 #include <iosfwd>
 #include <streambuf>
 #include <string>
-#include <boost/cast.hpp>
 #include <boost/lexical_cast.hpp>
 #include "platform/posix/PosixCompactHeader.h"
 

@@ -82,4 +82,8 @@ public class InfoActivity extends Activity {
 			}
 		}
 	};
+	static {
+		System.loadLibrary("RemoteVision");
+		System.loadLibrary("RemoteVisionJni");
+	}
 }

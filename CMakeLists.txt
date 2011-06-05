@@ -8,6 +8,12 @@ SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CmakeModules)
 option(BUILD_ANDROID "Building for ANDROID (library for ndk)" FALSE)
 option(BUILD_SYMBIAN "Building for Symbian (library)" FALSE)
 
+if(BUILD_ANDROID)
+add_definitions(-DANDROID)
+add_definitions(-DBOOST_NO_EXCEPTIONS -DBOOST_EXCEPTION_DISABLE -DBOOST_NO_RTTI)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -fno-rtti")
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 set(Linux TRUE)
 add_definitions(-DOS_LINUX)
@@ -63,7 +69,7 @@ TARGET_LINK_LIBRARIES(RemoteVision ${DEPEND_LIBS})
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/  DESTINATION include
     FILES_MATCHING PATTERN "*.h"
-    REGEX "android|CmakeModules|build" EXCLUDE)
+    REGEX "android|CmakeModules|build|.git" EXCLUDE)
 INSTALL(TARGETS RemoteVision
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

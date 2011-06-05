@@ -9,4 +9,4 @@ LOCAL_LDLIBS := -llog
 
 include $(BUILD_SHARED_LIBRARY)
 
-include remotevision/Android.mk
+include $(LOCAL_PATH)/remotevision/Android.mk

@@ -150,12 +150,30 @@ bool Mutex::lock(int ms, bool *timeout)
 {
 	int rc;
 	if (ms > 0) {
+#ifndef ANDROID
 		struct timespec to;
 		getPthreadDelay(&to,ms);
 		rc = pthread_mutex_timedlock(&d->mInternalMutex, &to);
 		if (timeout) {
 			*timeout = (rc == ETIMEDOUT) ? true : false;
 		}
+#else
+
+		int pms = ms / 5;
+		if (pms < 1) pms = 1;
+		bool locked = false;
+		for (int i=0; i<ms; i+= pms) {
+			if (pthread_mutex_trylock(&d->mInternalMutex) == 0){
+				locked = true;
+				break;
+			}
+			usleep(pms*1000);
+		}
+		if (!locked) {
+			return false;
+		}else return true;
+#endif
+
 	}else{
 		rc = pthread_mutex_lock(&d->mInternalMutex);
 	}

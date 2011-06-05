@@ -11,7 +11,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/cast.hpp>
 #include <vector>
 #include <string>
 
@@ -24,12 +23,8 @@ fromString (const std::string & str) {
 
 	if (gargs.size() != 2) return ret;
 
-	try {
-		ret.width = boost::lexical_cast<int>(gargs.at(0));
-		ret.height = boost::lexical_cast<int>(gargs.at(1));
-	}catch(boost::bad_lexical_cast &e) {
-		return Geometry ();
-	}
+	ret.width = boost::lexical_cast<int>(gargs.at(0));
+	ret.height = boost::lexical_cast<int>(gargs.at(1));
 
 	return ret;
 }

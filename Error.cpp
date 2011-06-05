@@ -10,9 +10,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/format.hpp>
 #include <sstream>
 
 #include "Log.h"
@@ -110,7 +107,7 @@ std::ostream& operator <<(std::ostream &os,const Error &obj) {
 
 std::string Error::toString() const {
 	std::stringstream stream;
-	stream << boost::format("$ERRNO:%1;$ERRSTR:%2") % d->errorNumber % std::string(d->errorString.begin(), d->errorString.end());
+	stream << "$ERRNO:" << d->errorNumber << ";$ERRSTR:" << d->errorString;
 	return stream.str();
 
 }
