@@ -44,6 +44,7 @@ void ConnectDialog::init()
 
     ui->ipEdit->setValidator(&d->validator);
     ui->portEdit->setValidator(&d->portValidator);
+    ui->portEdit->setFocus();
 }
 
 void ConnectDialog::on_btnConnect_clicked()

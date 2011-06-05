@@ -41,7 +41,7 @@ void VideoPreviewer::start()
 		reportError(tr("开始捕捉：%1").arg(d->mVideoSource->getLastError().getErrorString().c_str()));
 		return;
 	}
-	d->mTimer.start( 100, this );
+	d->mTimer.start( 10, this );
 }
 
 void VideoPreviewer::stop()
@@ -75,6 +75,8 @@ void VideoPreviewer::timerEvent(QTimerEvent *evt)
 		ui->labelContent->setPixmap(d->mPixmap);
 
 		d->mVideoSource->putBuffer(buf);
+	}else{
+		d->mTimer.stop();
 	}
 
 	QWidget::timerEvent(evt);

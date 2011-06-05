@@ -245,13 +245,13 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 void DataThread::entry() {
 	unsigned char *vbuf = (unsigned char *)::malloc(MAX_VIDEO_DATA_BUFFER_SIZE);
 
+	ssize_t written = 0;
 	while (!shouldStop()) {
 		size_t size = mCtx.videoProvider->getData(vbuf,MAX_VIDEO_DATA_BUFFER_SIZE);
-		if (size > 0) {
-			if (mCtx.dataDevice->write((char *)vbuf, size) < 0) {
-				Log::logError("Can't write to data device: %s", mCtx.dataDevice->getLastError().getErrorString().c_str());
-				break;
-			}
+
+		if ( (written = mCtx.dataDevice->write((char *)vbuf, size)) < 0) {
+			Log::logError("Can't write to data device: %s", mCtx.dataDevice->getLastError().getErrorString().c_str());
+			break;
 		}
 	}
 	mCtx.videoProvider->stopCapture();

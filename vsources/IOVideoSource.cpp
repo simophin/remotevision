@@ -73,7 +73,7 @@ public:
 	 decodeCtx(0),
 	 swsCtx(0){
 		::memset(&config,0,sizeof(config));
-		config.bufferCount = 3;
+		config.bufferCount = 30;
 		config.bufferSize = 102400;
 	}
 
@@ -329,8 +329,8 @@ doInit(const IOVideoSource::Option & options, int ms)
 	if (info.info.isValid() && info.providerInfo.isValid()) {
 		d->info = info;
 
-		d->param.fps.den = 1;
-		d->param.fps.num = 15;
+		d->param.fps.den = info.info.currentFrameRate.den;
+		d->param.fps.num = info.info.currentFrameRate.num;
 		d->param.geo.height = info.info.currentGeometry.height;
 		d->param.geo.width  = info.info.currentGeometry.width;
 		d->param.pixFmt = IF_RGB565;
@@ -376,10 +376,16 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 
 
 		decodeCtx = avcodec_alloc_context();
+
 		decodeCtx->width = info.info.currentGeometry.width;
 		decodeCtx->height = info.info.currentGeometry.height;
-		decodeCtx->pix_fmt = finfo.supportedPixelFormat.front();
-		decodeCtx->time_base = (AVRational){info.info.currentFrameRate.num, info.info.currentFrameRate.den};
+		decodeCtx->time_base = (AVRational) {info.info.currentFrameRate.num, info.info.currentFrameRate.den};
+		decodeCtx->pix_fmt = finfo.pixelFormat;
+
+		if (decodeCodec->capabilities & CODEC_CAP_TRUNCATED) {
+			decodeCtx->flags |= CODEC_FLAG_TRUNCATED;
+		}
+		//decodeCtx->time_base = (AVRational){info.info.currentFrameRate.num, info.info.currentFrameRate.den};
 
 		if (avcodec_open(decodeCtx,decodeCodec) != 0) {
 			Log::logError("Can't open decoder");
@@ -459,22 +465,25 @@ void IOVideoSource::Impl::entry() {
 	int got_frame = 0;
 	ssize_t readSize = 0;
 	while (!shouldStop()){
+		readSize = 0;
 
-		{
-			readSize = dataDev->read( buf,config.bufferSize );
-			if (readSize < 0) {
-				goto read_error;
-			}else if (readSize == 0) {
-				continue;
-			}
+		int rc = dataDev->read( buf + readSize,config.bufferSize - readSize );
+		if (rc < 0) {
+			goto read_error;
+		}else if (rc == 0) {
+			continue;
 		}
 
+		readSize = rc;
+
+		Log::logDebug("Get %u bytes data",readSize);
 
 		{
 			int usedSize = 0;
 			do {
-				usedSize += avcodec_decode_video(decodeCtx, frame, &got_frame, (uint8_t *)(buf + usedSize), readSize - usedSize);
-				if (usedSize < 0) goto decode_error;
+				int rc = avcodec_decode_video(decodeCtx, frame, &got_frame, (uint8_t *)(buf + usedSize), readSize - usedSize);
+				if (rc < 0) break;
+				usedSize += rc;
 				if (got_frame) {
 					// Get a buffer to do swscale
 					int index = -1;

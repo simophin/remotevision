@@ -91,6 +91,7 @@ jint JNI_OnLoad(JavaVM *env, void*)
 	FFMpeg::init();
 
 	av_log_set_callback(ffmpeg_log_android);
+	av_log_set_level(AV_LOG_INFO);
 
 	return JNI_VERSION_1_4;
 }

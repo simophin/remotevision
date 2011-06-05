@@ -35,6 +35,7 @@ protected:
 	virtual const SocketAddress * doGetPeerAddress() const;
 	virtual int doConnect(const SocketAddress *);
 	virtual Error doGetLastError();
+	virtual void doFlush();
 
 private:
 	void init();

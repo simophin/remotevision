@@ -11,6 +11,7 @@
 
 #include <sys/types.h>
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -56,6 +57,10 @@ Socket *PosixSocket::doAccept(SocketAddress **addr)
 int PosixSocket::doBind(const SocketAddress *addr)
 {
 	return -EINVAL;
+}
+
+void PosixSocket::doFlush()
+{
 }
 
 void PosixSocket::

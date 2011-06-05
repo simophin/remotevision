@@ -30,6 +30,7 @@ static ID_CONV_TABLE_T ID_CONV_TABLE[] = {
 		{ VCODEC_MJPEG, CODEC_ID_MJPEG },
 		{ VCODEC_MPEG4, CODEC_ID_MPEG4 },
 		{ VCODEC_RAW,	CODEC_ID_RAWVIDEO },
+		{ VCODEC_HUFFYUV, CODEC_ID_HUFFYUV },
 };
 
 static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
@@ -37,6 +38,7 @@ static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
 		{ IF_YUV420P, PIX_FMT_YUV420P },
 		{ IF_RGB565,  PIX_FMT_RGB565},
 		{ IF_RGB888,	PIX_FMT_RGB24 },
+		{ IF_YUV422P, PIX_FMT_YUV422P },
 };
 
 VideoCodecId FFMpegInfo::
@@ -111,11 +113,11 @@ void FFMpegInfo::init()
 	defaultRationals.push_back((AVRational){1,25});
 	defaultRationals.push_back((AVRational){1,30});
 
-	// For flv
+	// For huffyuv
 	{
 		FFMpegCodecInfo info;
-		info.codecId = CODEC_ID_FLV1;
-		info.pixelFormat = PIX_FMT_YUV420P;
+		info.codecId = CODEC_ID_HUFFYUV;
+		info.pixelFormat = PIX_FMT_YUV422P;
 		info.supportedGeometries = defaultGeometries;
 		info.supportedPixelFormat.push_back(info.pixelFormat);
 		info.supportedRationals = defaultRationals;

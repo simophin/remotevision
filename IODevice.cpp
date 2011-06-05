@@ -38,6 +38,17 @@ Error IODevice::getLastError() {
 	return doGetLastError();
 }
 
+void IODevice::flush()
+{
+	doFlush();
+}
+
 Error IODevice::doGetLastError() {
 	return Error();
 }
+
+void IODevice::doFlush()
+{
+}
+
+

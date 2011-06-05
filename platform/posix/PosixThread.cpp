@@ -75,6 +75,7 @@ void Thread::run() {
 bool Thread::wait(int ms){
 	int rc;
 
+	if (!isRunning()) return true;
 
 	if (ms > 0) {
 		bool to;

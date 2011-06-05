@@ -9,6 +9,7 @@ typedef enum  {
 	VCODEC_FLV,
 	VCODEC_MJPEG,
 	VCODEC_MPEG4,
+	VCODEC_HUFFYUV,
 } VideoCodecId;
 
 

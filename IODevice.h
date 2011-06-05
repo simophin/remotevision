@@ -23,6 +23,7 @@ public:
 
 	ssize_t read(char *, size_t);
 	ssize_t write(const char *,size_t);
+	void flush();
 	void close();
 	int poll(PollType, int timeout);
 	Error getLastError();
@@ -33,6 +34,7 @@ protected:
 	virtual int doPoll(PollType, int);
 	virtual void doClose();
 	virtual Error doGetLastError();
+	virtual void doFlush();
 };
 
 #endif /* IODEVICE_H_ */

@@ -36,8 +36,8 @@ public:
 };
 
 static VideoCodecId SUPPORTED_CODECS[] = {
+		VCODEC_HUFFYUV,
 		VCODEC_MPEG4,
-		VCODEC_FLV,
 		VCODEC_MJPEG,
 		VCODEC_RAW
 };
@@ -125,9 +125,15 @@ bool FFMpegVideoProvider::doInitDevice()
 	// Setup decoder
 	{
 		AVInputFormat *fmt = av_find_input_format("video4linux2");
+		AVFormatParameters ap;
+		memset(&ap,0,sizeof(ap));
 		assert (fmt != NULL);
 
-		if ( (rc=av_open_input_file(&inputFmtCtx, d->mFileName.c_str(),fmt,0,NULL)) != 0){
+		ap.width = 320;
+		ap.height = 240;
+		ap.time_base = (AVRational){1,25};
+		ap.pix_fmt = info.supportedPixelFormat.front();
+		if ( (rc=av_open_input_file(&inputFmtCtx, d->mFileName.c_str(),fmt,0,&ap)) != 0){
 			av_strerror(rc,errbuf,sizeof(errbuf));
 			goto open_input_file_error;
 		}
@@ -155,9 +161,15 @@ bool FFMpegVideoProvider::doInitDevice()
 		if (decodeCtx->pix_fmt == PIX_FMT_NONE) {
 			decodeCtx->pix_fmt = PIX_FMT_YUVJ420P;
 		}
+		/*
 		decodeCtx->height = 240;
 		decodeCtx->width  = 320;
+
 		decodeCtx->time_base = (AVRational) {1,30};
+		*/
+		if (decodeCodec->capabilities & CODEC_CAP_TRUNCATED) {
+			decodeCtx->flags |= CODEC_FLAG_TRUNCATED;
+		}
 
 		if ((rc = avcodec_open(decodeCtx,decodeCodec)) != 0) {
 			av_strerror(rc,errbuf,sizeof(errbuf));
@@ -170,7 +182,7 @@ bool FFMpegVideoProvider::doInitDevice()
 	}
 
 	{
-		AVRational ral = (AVRational){d->mCurrentParam.currentFrameRate.den,d->mCurrentParam.currentFrameRate.num};
+		AVRational ral = (AVRational){d->mCurrentParam.currentFrameRate.num,d->mCurrentParam.currentFrameRate.den};
 		if(!d->setOutputCodec(info.codecId, d->mCurrentParam.currentGeometry.width,
 				d->mCurrentParam.currentGeometry.height, ral,errbuf,sizeof(errbuf))) {
 			assert(false);
@@ -247,15 +259,19 @@ size_t FFMpegVideoProvider::doGetData(unsigned char *data, size_t size)
 {
 	VBuffer buf;
 	buf.buf.setData(data,size);
-	buf.mutex.lock();
 
-	if (!d->mBufferMutex.lock(2000)) return 0;
+
+	if (!d->mBufferMutex.lock(2000)) {
+		return 0;
+	}
 	d->mBuffers.push_back(&buf);
 	d->mBufferMutex.unlock();
 
+	buf.mutex.lock();
 	if (!buf.cond.wait(buf.mutex,2000)) {
 		return 0;
 	}
+	buf.mutex.unlock();
 
 	return buf.size;
 }
@@ -291,12 +307,12 @@ bool FFMpegVideoProvider::doSetParam(const Param & param)
 }
 
 void FFMpegVideoProvider::init() {
-	d->mCurrentParam.currentCodec = SUPPORTED_CODECS[0];
+	d->mCurrentParam.currentCodec = VCODEC_MPEG4;
 	FFMpegCodecInfo cf = FFMpegInfo::findCodecInfo(d->mCurrentParam.currentCodec);
 	assert (cf.codecId != CODEC_ID_NONE);
 	d->mCurrentParam.currentGeometry = cf.supportedGeometries[0];
-	d->mCurrentParam.currentFrameRate.num = cf.supportedRationals[0].num;
-	d->mCurrentParam.currentFrameRate.den = cf.supportedRationals[0].den;
+	d->mCurrentParam.currentFrameRate.num = cf.supportedRationals[2].num;
+	d->mCurrentParam.currentFrameRate.den = cf.supportedRationals[2].den;
 }
 
 
@@ -317,13 +333,28 @@ setOutputCodec(CodecID c, int w, int h, const AVRational & r, char *errstr , siz
 		codecCtx = avcodec_alloc_context();
 		codecCtx->width = w;
 		codecCtx->height = h;
+
+
 		codecCtx->pix_fmt = info.supportedPixelFormat.front();
 		codecCtx->time_base = r;
+
+
+
+		codecCtx->bit_rate = 240000;
+		codecCtx->max_b_frames = 1;
+		codecCtx->gop_size = 10;
+
+
+		//codecCtx->bit_rate = 64000;
+		//codecCtx->sample_rate = 44100;
 
 		if ((rc = avcodec_open(codecCtx,codec)) != 0) {
 			if (errstr && errsize) av_strerror(rc,errstr,errsize);
 			goto open_codec_error;
 		}
+
+		mCurrentParam.currentGeometry.height = codecCtx->height;
+		mCurrentParam.currentGeometry.width = codecCtx->width;
 	}
 
 	// Update the internal config
@@ -348,11 +379,13 @@ inline bool FFMpegVideoProvider::Impl::updateSws()
 {
 	assert ( (mCtx.outputCodecCtx != NULL) && (mCtx.inputCodecCtx != NULL));
 
+
 	SwsContext *swsCtx = sws_getCachedContext(NULL,
 			mCtx.inputCodecCtx->width,mCtx.inputCodecCtx->height,mCtx.inputCodecCtx->pix_fmt,
 			mCtx.outputCodecCtx->width,mCtx.outputCodecCtx->height,mCtx.outputCodecCtx->pix_fmt,
 			SWS_FAST_BILINEAR,NULL,NULL,NULL
 	);
+
 
 	if (swsCtx == NULL) {
 		return false;
