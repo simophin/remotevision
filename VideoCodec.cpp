@@ -7,10 +7,6 @@
 
 #include "VideoCodec.h"
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <vector>
 #include <string>
 

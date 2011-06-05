@@ -7,24 +7,22 @@
 
 #include "Geometry.h"
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <vector>
+
 #include <string>
+#include <vector>
+#include "Utils.h"
 
 Geometry Geometry::
 fromString (const std::string & str) {
 	Geometry ret;
 
 	std::vector<std::string> gargs;
-	boost::algorithm::split(gargs,str,boost::is_any_of(","));
+	gargs = Utils::split< std::vector<std::string> >(str,',');
 
 	if (gargs.size() != 2) return ret;
 
-	ret.width = boost::lexical_cast<int>(gargs.at(0));
-	ret.height = boost::lexical_cast<int>(gargs.at(1));
+	ret.width = Utils::stringToInteger(gargs.at(0));
+	ret.height = Utils::stringToInteger(gargs.at(1));
 
 	return ret;
 }

@@ -8,15 +8,15 @@
 #ifndef COMMANDER_H_
 #define COMMANDER_H_
 
-#include <boost/noncopyable.hpp>
 #include <memory>
 #include <string>
 
 #include "Error.h"
+#include "Utils.h"
 
 class IODevice;
 class Command;
-class Commander: public boost::noncopyable {
+class Commander: public Utils::NonCopyable {
 public:
 	Commander(IODevice *device = 0);
 	virtual ~Commander();

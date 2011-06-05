@@ -93,7 +93,7 @@ VideoProvider::Info VideoProvider::Info::
 fromString(const std::string & str)
 {
 	std::vector<std::string> args;
-	boost::split(args,str,boost::is_any_of("|"));
+	args = Utils::split< std::vector<std::string>  >(str,'|');
 	if (args.size() != 3) return VideoProvider::Info();
 
 	VideoProvider::Info ret;

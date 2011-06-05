@@ -12,10 +12,10 @@
 
 #include <list>
 #include <utility>
-#include <boost/unordered_map.hpp>
+#include <map>
 
 typedef std::list<CommandHandler *> CommandHandlerList;
-typedef boost::unordered_map<std::string, CommandHandlerList> CommandMap;
+typedef std::map<std::string, CommandHandlerList> CommandMap;
 
 class CommandMgr::Impl {
 public:

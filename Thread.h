@@ -9,11 +9,11 @@
 #define THREAD_H_
 
 #include <memory>
-#include <boost/noncopyable.hpp>
+#include "Utils.h"
 
 class ThreadImpl;
 
-class Thread: public boost::noncopyable {
+class Thread: public Utils::NonCopyable {
 	friend class ThreadImpl;
 public:
 	Thread();
@@ -35,7 +35,7 @@ private:
 
 class MutexImpl;
 class Condition;
-class Mutex: public boost::noncopyable {
+class Mutex: public Utils::NonCopyable {
 	friend class MutexImpl;
 	friend class Condition;
 public:
@@ -58,7 +58,7 @@ private:
 
 class ConditionImpl;
 
-class Condition: public boost::noncopyable {
+class Condition: public Utils::NonCopyable {
 	friend class ConditionImpl;
 public:
 	Condition();

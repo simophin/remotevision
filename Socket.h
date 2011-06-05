@@ -8,12 +8,12 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
-#include <boost/noncopyable.hpp>
 #include <string>
 #include "IODevice.h"
+#include "Utils.h"
 
 class SocketAddress;
-class Socket: public boost::noncopyable, public  IODevice{
+class Socket: public Utils::NonCopyable, public  IODevice{
 public:
 	Socket();
 	virtual ~Socket();

@@ -44,7 +44,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR} 
     ${FFMPEG_INCLUDE_DIR} 
-    ${Boost_INCLUDE_DIR}
+#    ${Boost_INCLUDE_DIR}
 )
 
 # Setup flags

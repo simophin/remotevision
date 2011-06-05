@@ -9,13 +9,10 @@
 
 #include <string>
 #include <vector>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/lexical_cast.hpp>
 #include <assert.h>
 #include <algorithm>
 #include <sstream>
+#include "Utils.h"
 
 std::string FrameRate::toString() const
 {
@@ -29,11 +26,11 @@ std::string FrameRate::toString() const
 FrameRate FrameRate::fromString(const std::string & str)
 {
 	std::vector<std::string> args;
-	boost::split(args,str,boost::is_any_of("/"));
+	args = Utils::split< std::vector<std::string>  >(str,'/');
 	if (args.size() != 2) return FrameRate();
 	FrameRate ret;
-	ret.num = boost::lexical_cast<int>(args.at(0));
-	ret.den = boost::lexical_cast<int>(args.at(1));
+	ret.num = Utils::stringToInteger(args.at(0));
+	ret.den = Utils::stringToInteger(args.at(1));
 	return ret;
 }
 
