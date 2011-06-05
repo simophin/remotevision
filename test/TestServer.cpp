@@ -9,7 +9,7 @@
 #include "medium/TCPSocket.h"
 #include "medium/TCPServerSocket.h"
 #include "medium/TCPSocketAddress.h"
-#include "RemoteVision.h"
+
 
 #include "platform/posix/PosixCompactHeader.h"
 #include "3rdparty/ffmpeg/FFMpeg.h"
@@ -26,8 +26,6 @@ int main () {
 	int nCode;
 	assert( WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
 #endif
-
-	RemoteVisionApp rv ("/dev/video0");
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 
 	TCPServerSocket server (sock);

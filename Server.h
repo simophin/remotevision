@@ -15,13 +15,15 @@
 
 class IODevice;
 class VideoProvider;
+class CommandMgr;
 class Server: public boost::noncopyable {
 public:
-	Server(IODevice *ctrl_device = 0, IODevice *data_device = 0, VideoProvider *p = 0);
+	Server(CommandMgr *,IODevice *ctrl_device = 0, IODevice *data_device = 0, VideoProvider *p = 0);
 	virtual ~Server();
 
 	int start();
 	void stop(int ms = -1);
+	void wait(int ms = -1);
 
 	const IODevice * getControlDevice() const;
 	const IODevice * getDataDevice() const;

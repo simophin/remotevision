@@ -8,6 +8,7 @@
 #include "CommandMgr.h"
 #include "Command.h"
 #include "CommandHandler.h"
+#include "commands/VideoCommand.h"
 
 #include <list>
 #include <utility>
@@ -16,19 +17,29 @@
 typedef std::list<CommandHandler *> CommandHandlerList;
 typedef boost::unordered_map<std::string, CommandHandlerList> CommandMap;
 
-static CommandMgr * INSTANCE = NULL;
-
 class CommandMgr::Impl {
 public:
 	CommandMap commandMap;
+	bool hasRegistered;
+
+	Impl()
+	:hasRegistered(false) {
+
+	}
 };
 
 CommandMgr::CommandMgr()
 :d(new CommandMgr::Impl) {
-	INSTANCE = this;
 }
 
 CommandMgr::~CommandMgr() {
+	for (CommandMap::const_iterator iter = d->commandMap.begin();
+			iter != d->commandMap.end(); ++ iter) {
+		for (CommandHandlerList::const_iterator i = iter->second.begin();
+				i != iter->second.end(); ++ i) {
+			delete *i;
+		}
+	}
 	delete d;
 }
 
@@ -53,7 +64,15 @@ registerCommandHandler(CommandHandler *handler)
 	d->commandMap[handler->getCommandName()].push_back(handler);
 }
 
-CommandMgr * CommandMgr::
-getInstance() {
-	return INSTANCE;
+void CommandMgr::registerAllCommands()
+{
+	if (d->hasRegistered) return;
+	registerCommandHandler(new VideoCommand::QueryInfoCommandHandler);
+	registerCommandHandler(new VideoCommand::SetParameterCommandHandler);
+	registerCommandHandler(new VideoCommand::GetParameterCommandHandler);
+	registerCommandHandler(new VideoCommand::StartCaptureCommandHandler);
+	registerCommandHandler(new VideoCommand::StopCaptureCommandHandler);
+	d->hasRegistered = true;
 }
+
+

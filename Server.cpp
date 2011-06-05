@@ -25,12 +25,13 @@ public:
 	IODevice *controlDevice, *dataDevice;
 	Commander cmdExe;
 	CommandContext cmdCtx;
+	CommandMgr *cmdMgr;
 
 	void entry();
 };
 
 Server::
-Server(IODevice *ctrl_device, IODevice *data_device, VideoProvider *p)
+Server(CommandMgr *cmdMgr,IODevice *ctrl_device, IODevice *data_device, VideoProvider *p)
 :d(new Server::ServerImpl)
 {
 	setDataDevice(data_device);
@@ -38,6 +39,7 @@ Server(IODevice *ctrl_device, IODevice *data_device, VideoProvider *p)
 	d->cmdCtx.server = this;
 	d->cmdCtx.client = 0;
 	d->cmdCtx.videoProvider = p;
+	d->cmdMgr = cmdMgr;
 }
 
 Server::~Server() {
@@ -46,6 +48,12 @@ Server::~Server() {
 VideoProvider *Server::getProvider() const
 {
 	return d->cmdCtx.videoProvider;
+}
+
+void Server::wait(int ms)
+{
+	if (d->isRunning())
+		d->wait(ms);
 }
 
 void Server::
@@ -111,7 +119,7 @@ void Server::ServerImpl::entry() {
 			break;
 		}
 
-		CommandMgr::getInstance()->handleCommand(raw_cmd,&cmdCtx);
+		cmdMgr->handleCommand(raw_cmd,&cmdCtx);
 	}
 }
 

@@ -21,7 +21,7 @@ public:
 	void handleCommand (const Command &, const CommandContext *);
 	void registerCommandHandler ( CommandHandler *);
 
-	static CommandMgr * getInstance();
+	void registerAllCommands ();
 
 private:
 	class Impl;
