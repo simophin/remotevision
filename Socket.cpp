@@ -29,3 +29,24 @@ int Socket::
 connect(const SocketAddress * addr) {
 	return doConnect(addr);
 }
+
+int Socket::bind(const SocketAddress *addr)
+{
+	return doBind(addr);
+}
+
+
+
+int Socket::listen(int backlog)
+{
+	return doListen(backlog);
+}
+
+
+
+Socket *Socket::accept(SocketAddress **addr)
+{
+	return doAccept(addr);
+}
+
+

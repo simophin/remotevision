@@ -42,6 +42,22 @@ PosixSocket::PosixSocket(int fd)
 PosixSocket::~PosixSocket() {
 }
 
+int PosixSocket::doListen(int backlog)
+{
+	return -EINVAL;
+}
+
+Socket *PosixSocket::doAccept(SocketAddress **addr)
+{
+	if (addr) *addr = NULL;
+	return NULL;
+}
+
+int PosixSocket::doBind(const SocketAddress *addr)
+{
+	return -EINVAL;
+}
+
 void PosixSocket::
 init() {
 

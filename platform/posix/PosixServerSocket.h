@@ -8,10 +8,9 @@
 #ifndef POSIXSERVERSOCKET_H_
 #define POSIXSERVERSOCKET_H_
 
-#include "ServerSocket.h"
 #include "PosixSocket.h"
 
-class PosixServerSocket: public ServerSocket, public PosixSocket {
+class PosixServerSocket: public PosixSocket {
 public:
 	PosixServerSocket(int fd);
 	virtual ~PosixServerSocket();

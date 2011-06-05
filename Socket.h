@@ -21,11 +21,17 @@ public:
 	const SocketAddress * getAddress() const;
 	const SocketAddress * getPeerAddress() const;
 	int connect(const SocketAddress *);
+	int bind (const SocketAddress *);
+	int listen(int);
+	Socket * accept(SocketAddress ** addr = 0);
 
 protected:
 	virtual const SocketAddress * doGetAddress() const = 0;
 	virtual const SocketAddress * doGetPeerAddress() const = 0;
 	virtual int doConnect(const SocketAddress *) = 0;
+	virtual Socket * doAccept(SocketAddress ** addr = 0) = 0;
+	virtual int doBind(const SocketAddress *) = 0;
+	virtual int doListen(int) = 0;
 };
 
 #endif /* SOCKET_H_ */
