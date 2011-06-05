@@ -15,8 +15,8 @@
 #include <iosfwd>
 #include <streambuf>
 #include <string>
-#include <boost/lexical_cast.hpp>
 #include "platform/posix/PosixCompactHeader.h"
+#include "Utils.h"
 
 
 class TCPSocketAddress::TCPSocketAddressImpl {
@@ -50,7 +50,7 @@ std::string TCPSocketAddress::doGetReadable() const
 {
 	std::string ret = getAddress();
 	ret += ":";
-	ret += boost::lexical_cast<std::string>(getPort());
+	ret += Utils::convertToString(getPort());
 	return ret;
 }
 

@@ -9,7 +9,6 @@
 #include "Utils.h"
 
 #include <vector>
-#include <boost/lambda/lambda.hpp>
 
 static std::vector<FFMpegCodecInfo> FFMPEG_CODEC_INFO;
 

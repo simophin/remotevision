@@ -8,12 +8,12 @@
 #include "PosixSocket.h"
 #include "PosixSocketAddress.h"
 #include <unistd.h>
-#include <boost/scoped_ptr.hpp>
 
 #include <sys/types.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "PosixCompactHeader.h"
 
 const int MAX_ADDRESS_LENGTH = 1024;

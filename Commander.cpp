@@ -19,7 +19,6 @@
 #include <string>
 #include <list>
 
-#include <boost/algorithm/string.hpp>
 
 
 class Commander::Impl {

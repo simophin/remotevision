@@ -49,7 +49,9 @@ public:
 		int lastIndex = 0;
 		for (int i=0; i<str.size(); i++) {
 			if (buf[i] == glue || buf[i] == 0) {
-				ret.push_back(std::string (buf+lastIndex, i-lastIndex));
+				int length = i - lastIndex;
+				std::string ps(buf+lastIndex, length);
+				ret.push_back(ps);
 				lastIndex = i+1;
 			}
 		}
