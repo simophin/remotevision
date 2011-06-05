@@ -75,19 +75,20 @@ void Thread::run() {
 bool Thread::wait(int ms){
 	int rc;
 
-	/*
+
 	if (ms > 0) {
 		bool to;
 
 		d->threadMutex.lock();
 		if (!d->threadCond.wait(d->threadMutex,ms,&to)) {
+			d->threadMutex.unlock();
 			return false;
 		}
 		d->threadMutex.unlock();
 	}
 
 	pthread_join(d->thread,NULL);
-	*/
+	/*
 	if (ms > 0){
 		struct timespec to;
 		getPthreadDelay(&to,ms);
@@ -98,6 +99,7 @@ bool Thread::wait(int ms){
 		pthread_join(d->thread,NULL);
 		return true;
 	}
+	*/
 	return true;
 }
 bool Thread::stop(int ms){

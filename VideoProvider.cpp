@@ -74,6 +74,7 @@ bool VideoProvider::setParam(const Param & param)
 
 bool VideoProvider::doInitDevice()
 {
+	return false;
 }
 
 std::string VideoProvider::Info::
