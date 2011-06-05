@@ -13,6 +13,10 @@
 #include <stdarg.h>
 #include <iostream>
 
+#ifdef ANDROID
+#include <android/log.h>
+#endif
+
 void Log::logWarning(const char *fmt, ...)
 {
 	va_list va;
@@ -77,7 +81,11 @@ void Log::vLog(Level level, const char *fmt, va_list va)
 	vsnprintf (buf, sizeof(buf), fmt, va);
 	buf[sizeof(buf)-1] = '\0';
 
+#ifndef ANDROID
 	std::cerr << levelFmt << buf << std::endl;
+#else
+	__android_log_vprint (ANDROID_LOG_DEBUG,"RemoteVision", fmt,va);
+#endif
 }
 
 void Log::log(Level level, const std::string &str) {

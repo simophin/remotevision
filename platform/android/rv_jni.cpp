@@ -6,7 +6,9 @@
 #include "medium/TCPSocketAddress.h"
 #include "medium/TCPFFMpegServer.h"
 
-
+extern "C" {
+#include <libavutil/avutil.h>
+}
 
 #include <string>
 
@@ -80,10 +82,15 @@ void Java_com_lfcinvention_RemoteVision_VideoService_nativeStartServer
 }
 
 
+void ffmpeg_log_android (void *ptr , int level,const char * fmt, va_list va) {
+	__android_log_vprint(ANDROID_LOG_DEBUG,"RemoteVision", fmt,va);
+}
 
 jint JNI_OnLoad(JavaVM *env, void*)
 {
 	FFMpeg::init();
+
+	av_log_set_callback(ffmpeg_log_android);
 
 	return JNI_VERSION_1_4;
 }

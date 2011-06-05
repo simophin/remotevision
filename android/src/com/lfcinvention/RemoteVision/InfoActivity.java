@@ -23,17 +23,20 @@ public class InfoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        
-        
         mBtnStart = (Button)findViewById(R.id.btnStart);
+        mBtnStop  = (Button)findViewById(R.id.btnStop);
         mTextView = (TextView)findViewById(R.id.boundAddressText);
         mBtnStart.setOnClickListener(onBtnStartClicked);
+        mBtnStop.setOnClickListener(onBtnStopClicked);
+
+		bindService();
     }
     
     private VideoService.ServiceChannel mBoundService = null;
     private boolean mIsBound = false; 
     private TextView mTextView = null;
     private Button  mBtnStart = null;
+    private Button mBtnStop;
     
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 		public void onServiceDisconnected(ComponentName name) {
@@ -44,14 +47,10 @@ public class InfoActivity extends Activity {
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			VideoService.ServiceChannel s = (VideoService.ServiceChannel)service;
 			
-			if (s.getServiceState() == VideoService.State.STATE_ERROR) {
-				mTextView.setText("错误：" + s.getErrorString());
-				mBtnStart.setEnabled(false);
-				return;
-			}
-			
 			InfoActivity.this.mBoundService = s;
 			InfoActivity.this.mIsBound = true;
+			
+			updateServiceStatus();
 		}
 	};
 	
@@ -73,15 +72,46 @@ public class InfoActivity extends Activity {
     private View.OnClickListener onBtnStartClicked = new View.OnClickListener() {
 		public void onClick(View arg0) {
 			try{
-				if (!mIsBound) {
-					bindService();
-				}
 				mBoundService.startService();
+				updateServiceStatus();
 			}catch(Exception e) {
 				Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);
 			}
 		}
 	};
+	
+	private View.OnClickListener onBtnStopClicked = new View.OnClickListener() {
+		
+		public void onClick(View v) {
+			try{
+				mBoundService.stopService();
+				updateServiceStatus();
+			}catch(Exception e) {
+				Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);
+			}
+		}
+	};
+	
+	private void updateServiceStatus () {
+		if (!mIsBound) return;
+		VideoService.State state = mBoundService.getServiceState() ;
+		if (state == VideoService.State.STATE_ERROR) {
+			mTextView.setText("错误：" + mBoundService.getErrorString());
+			mBtnStart.setEnabled(false);
+			mBtnStop.setEnabled(true);
+			return;
+		}else if (state ==  VideoService.State.STATE_IN_SERVICE) {
+			mBtnStart.setEnabled(false);
+			mBtnStop.setEnabled(true);
+			mTextView.setText(mBoundService.getBoundAddress());
+		}else if (state == VideoService.State.STATE_READY) {
+			mBtnStart.setEnabled(true);
+			mBtnStop.setEnabled(false);
+			mTextView.setText("Ready to start");
+		}
+	}
+	
+	
 	static {
 		System.loadLibrary("RemoteVision");
 	}

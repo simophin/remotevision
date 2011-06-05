@@ -28,7 +28,7 @@ public class VideoService extends Service {
 	
 	private SharedPreferences mPref;
 	private ServiceChannel mChannel = new ServiceChannel();
-	private State       mState      = State.STATE_ERROR;
+	private State       mState      = State.STATE_READY;
 	private String     mErrorString = "";
 	private WifiManager mWifiManger = null;
 	private NotificationManager mNotificationManager = null;
@@ -38,51 +38,6 @@ public class VideoService extends Service {
 	
 	@Override
 	public void onCreate() {
-		
-		mPref  = getSharedPreferences(Preference.name, 0);
-		mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
-		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		
-		int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
-		try{
-			switch (connType) {
-			case Preference.CONNTYPE_NETWORK:
-				String networkConfigStr = mPref.getString(Preference.networkConfigKey, "");
-				if (networkConfigStr.trim().length() < 1) {
-					mNetworkConfig = new NetworkConfiguration();
-				}else{
-					mNetworkConfig =  (com.lfcinvention.RemoteVision.NetworkConfiguration)Preference.unserialize(networkConfigStr);
-				}
-				
-				switch(mNetworkConfig.networkType) {
-				case NetworkConfiguration.NT_WIFI: {
-					if (!mWifiManger.isWifiEnabled() || 
-							mWifiManger.getConnectionInfo() == null) {
-						updateState (State.STATE_ERROR, "Wifi is not enabled");
-						break;
-					}
-					setUseWifi();
-					updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
-					break;
-				}
-				
-				case NetworkConfiguration.NT_GSM: {
-					setUseGSM();
-					updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
-					break;
-				}
-				}
-			
-				break;
-				
-			default:
-				updateState(State.STATE_ERROR,"Unimplement connection type");
-				break;
-			}
-		}catch (Exception e) {
-			updateState(State.STATE_ERROR,e.getMessage());
-		}
-		
 		super.onCreate();
 	}
 
@@ -147,6 +102,58 @@ public class VideoService extends Service {
 			if (mState != State.STATE_READY) {
 				throw new StateErrorException("State should be ready");
 			}
+			
+			
+			if (mNativeServer != 0) return;
+			
+			mPref  = getSharedPreferences(Preference.name, 0);
+			mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
+			mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			
+			int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
+			try{
+				switch (connType) {
+				case Preference.CONNTYPE_NETWORK:
+					String networkConfigStr = mPref.getString(Preference.networkConfigKey, "");
+					if (networkConfigStr.trim().length() < 1) {
+						mNetworkConfig = new NetworkConfiguration();
+					}else{
+						mNetworkConfig =  (com.lfcinvention.RemoteVision.NetworkConfiguration)Preference.unserialize(networkConfigStr);
+					}
+					
+					switch(mNetworkConfig.networkType) {
+					case NetworkConfiguration.NT_WIFI: {
+						if (!mWifiManger.isWifiEnabled() || 
+								mWifiManger.getConnectionInfo() == null) {
+							updateState (State.STATE_ERROR, "Wifi is not enabled");
+							break;
+						}
+						setUseWifi();
+						updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
+						break;
+					}
+					
+					case NetworkConfiguration.NT_GSM: {
+						setUseGSM();
+						updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
+						break;
+					}
+					}
+				
+					break;
+					
+				default:
+					updateState(State.STATE_ERROR,"Unimplement connection type");
+					break;
+				}
+			}catch (Exception e) {
+				updateState(State.STATE_ERROR,e.getMessage());
+			}
+			
+			
+			if (mState != State.STATE_READY) return;
+			
+			mState = State.STATE_IN_SERVICE;
 			nativeStartServer(mNativeServer, true);
 		}
 		
@@ -154,6 +161,7 @@ public class VideoService extends Service {
 			if (mState != State.STATE_IN_SERVICE) {
 				throw new StateErrorException("State should be running");
 			}
+			mState = State.STATE_READY;
 			nativeStartServer(mNativeServer, false);
 		}
 		

@@ -15,6 +15,10 @@
 #include "TCPSocketAddress.h"
 #include "Log.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 enum State {
 	STATE_UNINTIALIZED,
 	STATE_READY,
@@ -129,7 +133,7 @@ bool TCPFFMpegServer::init(const char *filename)
 	bind_socket_failed:
 	delete d->mServerSocket;
 	d->mServerSocket = 0;
-	close(fd);
+	::close(fd);
 	create_fd_failed:
 
 	d->mState = STATE_UNINTIALIZED;
@@ -168,6 +172,7 @@ void TCPFFMpegServer::Impl::entry()
 		}
 		break;
 	}
+	if (shouldStop()) return;
 
 	controlSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
 	if (controlSocket == 0) {
