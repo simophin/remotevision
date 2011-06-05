@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <cstdlib>
+#include <string.h>
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
@@ -45,10 +46,12 @@ public:
 	static T split (const std::string & str, char glue) {
 		T ret;
 		const char *buf = str.c_str();
-
+		int total_length = str.size() + 1;
 		int lastIndex = 0;
-		for (int i=0; i<str.size(); i++) {
-			if (buf[i] == glue || buf[i] == 0) {
+
+
+		for (int i=0; i< total_length; i++) {
+			if ( (buf[i] == glue) || (buf[i] == 0) ) {
 				int length = i - lastIndex;
 				std::string ps(buf+lastIndex, length);
 				ret.push_back(ps);

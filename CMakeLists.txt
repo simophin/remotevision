@@ -10,7 +10,6 @@ option(BUILD_SYMBIAN "Building for Symbian (library)" FALSE)
 
 if(BUILD_ANDROID)
 add_definitions(-DANDROID)
-add_definitions(-DBOOST_NO_EXCEPTIONS -DBOOST_EXCEPTION_DISABLE -DBOOST_NO_RTTI)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -fno-rtti")
 endif()
 
@@ -34,17 +33,12 @@ endif()
 
 # Find some necessary packages
 find_package(FFMPEG REQUIRED)
-#find_package(Protobuf REQUIRED)
-find_package(Boost REQUIRED)
-
-message(${Boost_INCLUDE_DIR})
 
 # Setup includes
 include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR} 
     ${FFMPEG_INCLUDE_DIR} 
-#    ${Boost_INCLUDE_DIR}
 )
 
 # Setup flags

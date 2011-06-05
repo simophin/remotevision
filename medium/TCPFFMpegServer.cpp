@@ -150,7 +150,7 @@ bool TCPFFMpegServer::wait()
 }
 
 TCPFFMpegServer::~TCPFFMpegServer() {
-	// TODO Auto-generated destructor stub
+	delete d;
 }
 
 void TCPFFMpegServer::Impl::entry()
@@ -174,11 +174,14 @@ void TCPFFMpegServer::Impl::entry()
 		goto accept_failed;
 	}
 	Log::logDebug("Control interface accepted from %s", addr->getReadable().c_str());
+	delete addr;
 	dataSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
 	if (controlSocket == 0) {
 		goto accept_failed;
 	}
+
 	Log::logDebug("Data interface accepted from %s", addr->getReadable().c_str());
+	delete addr;
 
 	{
 		// Now create the server

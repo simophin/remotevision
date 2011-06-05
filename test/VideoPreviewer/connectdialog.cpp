@@ -35,6 +35,7 @@ ConnectDialog::ConnectDialog(QWidget *parent) :
 ConnectDialog::~ConnectDialog()
 {
     delete ui;
+    delete d;
 }
 
 void ConnectDialog::init()

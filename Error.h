@@ -34,9 +34,9 @@ public:
 
 	friend std::ostream& operator <<(std::ostream &os,const Error &obj);
 
-	class Impl;
 private:
-	Impl *d;
+	syserrno_t errorNumber;
+	errorstring_t errorString;
 };
 
 
