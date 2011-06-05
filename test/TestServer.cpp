@@ -9,8 +9,7 @@
 #include "medium/TCPSocket.h"
 #include "medium/TCPServerSocket.h"
 #include "medium/TCPSocketAddress.h"
-
-
+#include "medium/TCPFFMpegServer.h"
 #include "platform/posix/PosixCompactHeader.h"
 #include "3rdparty/ffmpeg/FFMpeg.h"
 #include <iostream>
@@ -26,6 +25,7 @@ int main () {
 	int nCode;
 	assert( WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
 #endif
+	/*
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 
 	TCPServerSocket server (sock);
@@ -60,4 +60,24 @@ int main () {
 
 	socket = (TCPSocket *)(server.accept(0));
 	return 0;
+	*/
+
+	FFMpeg::init();
+	TCPFFMpegServer *server = new TCPFFMpegServer("0.0.0.0",10001);
+	if (!server->init("/dev/video0")) {
+		std::cerr << server->getLastError() << std::endl;
+		delete server;
+		return 1;
+	}
+	std::cout << "Server bound on "<<server->getBoundInfo() << std::endl;
+
+	if (!server->start()) {
+		std::cerr << server->getLastError() << std::endl;
+		delete server;
+		return 2;
+	}
+
+	server->wait();
+	delete server;
+	return 3;
 }

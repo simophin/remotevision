@@ -27,14 +27,12 @@ class ThreadImpl {
 
 	volatile bool shouldStop;
 	pthread_t thread;
-	pthread_cond_t threadCond;
-	pthread_mutex_t threadMutex;
+	Condition threadCond;
+	Mutex threadMutex;
 	RunningStatus threadStatus;
 
 	ThreadImpl()
 	:shouldStop(false), threadStatus(StatusStopped){
-		pthread_cond_init(&threadCond,NULL);
-		pthread_mutex_init(&threadMutex,NULL);
 	}
 
 	static void *entry(void *);
@@ -63,8 +61,8 @@ void *ThreadImpl::
 entry(void *arg) {
 	Thread *t = static_cast<Thread *>(arg);
 	t->entry();
-	t->d->threadStatus = StatusRunning;
-	pthread_cond_broadcast(&t->d->threadCond);
+	t->d->threadStatus = StatusStopped;
+	t->d->threadCond.broadcast();
 	return NULL;
 }
 
@@ -77,16 +75,29 @@ void Thread::run() {
 bool Thread::wait(int ms){
 	int rc;
 
+	/*
 	if (ms > 0) {
-		struct timespec to;
-		getPthreadDelay(&to,ms);
+		bool to;
 
-		pthread_mutex_lock(&d->threadMutex);
-		rc = pthread_cond_timedwait(&d->threadCond, &d->threadMutex,&to);
-		if (rc != 0) return false;
+		d->threadMutex.lock();
+		if (!d->threadCond.wait(d->threadMutex,ms,&to)) {
+			return false;
+		}
+		d->threadMutex.unlock();
 	}
 
 	pthread_join(d->thread,NULL);
+	*/
+	if (ms > 0){
+		struct timespec to;
+		getPthreadDelay(&to,ms);
+		rc = pthread_timedjoin_np(d->thread,NULL,&to);
+		if (rc == 0) return true;
+		else return false;
+	}else{
+		pthread_join(d->thread,NULL);
+		return true;
+	}
 	return true;
 }
 bool Thread::stop(int ms){
@@ -102,7 +113,10 @@ bool Thread::isRunning() const {
 }
 
 void Thread::sleep(int ms) {
+	ThreadImpl::RunningStatus prevStatus = d->threadStatus;
+	d->threadStatus = ThreadImpl::StatusSleeping;
 	::usleep(ms*1000);
+	d->threadStatus = prevStatus;
 }
 
 class MutexImpl {

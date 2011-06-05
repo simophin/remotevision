@@ -258,7 +258,7 @@ void DataThread::entry() {
 			}
 		}
 	}
-
+	mCtx.videoProvider->stopCapture();
 	::free(vbuf);
 }
 

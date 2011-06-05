@@ -23,7 +23,7 @@ public:
 
 	int start();
 	void stop(int ms = -1);
-	void wait(int ms = -1);
+	bool wait(int ms = -1);
 
 	const IODevice * getControlDevice() const;
 	const IODevice * getDataDevice() const;

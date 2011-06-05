@@ -75,7 +75,7 @@ void TCPFFMpegServer::stop()
 	d->mState = STATE_READY;
 }
 
-bool TCPFFMpegServer::init()
+bool TCPFFMpegServer::init(const char *filename)
 {
 	if (d->mState != STATE_UNINTIALIZED) {
 		d->mLastError = Error("State error");
@@ -105,7 +105,7 @@ bool TCPFFMpegServer::init()
 
 	// Create provider
 	{
-		d->mVideoProvider = new FFMpegVideoProvider("/dev/video0");
+		d->mVideoProvider = new FFMpegVideoProvider(filename);
 		if (!d->mVideoProvider->initDevice()) {
 			d->mLastError = d->mVideoProvider->getLastError();
 			goto init_provider_failed;
@@ -141,6 +141,14 @@ Error TCPFFMpegServer::getLastError() const
 	return d->mLastError;
 }
 
+bool TCPFFMpegServer::wait()
+{
+	if (d->isRunning()) {
+		return d->wait();
+	}
+	return true;
+}
+
 TCPFFMpegServer::~TCPFFMpegServer() {
 	// TODO Auto-generated destructor stub
 }
@@ -152,35 +160,35 @@ void TCPFFMpegServer::Impl::entry()
 	int rc;
 	TCPSocketAddress *addr = NULL;
 	TCPSocket *controlSocket, *dataSocket;
+
 	while (!shouldStop()) {
 		if ((rc = mServerSocket->poll(IODevice::POLL_READ,2000)) <= 0) {
 			if (rc == 0) continue;
 			else goto timeout;
 		}
+		break;
+	}
 
-		controlSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
-		if (controlSocket == 0) {
-			goto accept_failed;
-		}
-		Log::logDebug("Control interface accepted from %s", addr->getReadable().c_str());
-		dataSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
-		if (controlSocket == 0) {
-			goto accept_failed;
-		}
-		Log::logDebug("Data interface accepted from %s", addr->getReadable().c_str());
+	controlSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
+	if (controlSocket == 0) {
+		goto accept_failed;
+	}
+	Log::logDebug("Control interface accepted from %s", addr->getReadable().c_str());
+	dataSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
+	if (controlSocket == 0) {
+		goto accept_failed;
+	}
+	Log::logDebug("Data interface accepted from %s", addr->getReadable().c_str());
 
-		{
-			// Now create the server
-			mServer = new Server(mCmdMgr,controlSocket,dataSocket,mVideoProvider);
-			mServer->start();
+	{
+		// Now create the server
+		mServer = new Server(mCmdMgr,controlSocket,dataSocket,mVideoProvider);
+		mServer->start();
 
-			while (!shouldStop()) {
-				mServer->wait(1000);
-			}
+		while (!shouldStop() && !mServer->wait(1000)) {}
 
-			delete mServer;
-			mServer = 0;
-		}
+		delete mServer;
+		mServer = 0;
 	}
 
 	delete controlSocket;

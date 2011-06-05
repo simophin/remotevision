@@ -16,9 +16,10 @@ public:
 	TCPFFMpegServer(const std::string &addr, int port = 0);
 
 	std::string getBoundInfo () const;
-	bool init();
+	bool init(const char *deviceFile = "/dev/video0");
 	bool start ();
 	void stop();
+	bool wait();
 
 	Error getLastError() const;
 

@@ -50,10 +50,12 @@ VideoProvider *Server::getProvider() const
 	return d->cmdCtx.videoProvider;
 }
 
-void Server::wait(int ms)
+bool Server::wait(int ms)
 {
 	if (d->isRunning())
-		d->wait(ms);
+		return d->wait(ms);
+	else return true;
+
 }
 
 void Server::
@@ -121,5 +123,6 @@ void Server::ServerImpl::entry() {
 
 		cmdMgr->handleCommand(raw_cmd,&cmdCtx);
 	}
+	rc = 0;
 }
 
