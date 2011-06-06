@@ -53,14 +53,15 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 	if (fetchFromSystem) {
 #ifdef OS_WIN32
 		LPSTR buf = NULL;
-		::FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		size_t size = ::FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 				NULL,
 				e,
-				0,
+				LANG_ENGLISH,
 				(LPSTR)&buf,
 				0,
 				NULL);
-		errorString = std::string(buf);
+		errorString = std::string(buf,size);
+		::free(buf);
 #endif
 
 #ifdef OS_UNIX

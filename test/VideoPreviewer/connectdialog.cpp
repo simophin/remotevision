@@ -7,6 +7,7 @@
 #include "vsources/IOVideoSource.h"
 #include "medium/TCPSocket.h"
 #include "medium/TCPSocketAddress.h"
+#include "platform/posix/PosixCompactHeader.h"
 
 
 #include <QtNetwork/QHostAddress>
@@ -15,7 +16,7 @@
 
 #include <errno.h>
 #include <string.h>
-#include <sys/socket.h>
+
 
 class ConnectDialog::Impl {
 public:
