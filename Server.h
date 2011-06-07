@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "Utils.h"
+#include "utils/NonCopyable.hpp"
 
 class IODevice;
 class VideoProvider;

@@ -8,7 +8,7 @@
 #include "VideoProvider.h"
 #include "Error.h"
 #include "VideoInfo.h"
-#include "Utils.h"
+#include "utils/String.hpp"
 
 #include <sstream>
 

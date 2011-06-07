@@ -19,8 +19,6 @@
 #include "RString.h"
 #include <list>
 
-#include "String.h"
-
 
 class Commander::Impl {
 public:

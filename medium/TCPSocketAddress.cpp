@@ -16,7 +16,7 @@
 #include <streambuf>
 #include "RString.h"
 #include "platform/posix/PosixCompactHeader.h"
-#include "Utils.h"
+#include "utils/String.hpp"
 
 
 class TCPSocketAddress::TCPSocketAddressImpl {

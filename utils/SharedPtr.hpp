@@ -2,6 +2,9 @@
 #define __SHARED_PTR_HPP_
 
 #include "Log.h"
+#include <assert.h>
+
+namespace Utils {
 
 template <class T>
 class SharedPtr {
@@ -13,31 +16,22 @@ public:
 		d->mDeleter = deleter;
 		d->mPtr = ptr;
 		d->mRefCount = ptr ? 1 : 0;
-		static int id = 0;
-		d->mId = id ++;
-		init();
 	}
 
 	~SharedPtr () {
 		detach();
-		Log::logDebug("Shared ptr %d detached and ref count remains %d",d->mId, d->mRefCount);
 	}
 
 	SharedPtr(const SharedPtr &rhs)
 	:d(rhs.d){
 		d->mRefCount ++;
-		init();
 	}
 
 	SharedPtr & operator = (const SharedPtr &rhs) {
 		this->detach();
 		d = rhs.d;
+		d->mRefCount ++;
 		return *this;
-	}
-
-	void init () {
-
-		Log::logDebug("Shared ptr %d is created with ref count = %d", d->mId, d->mRefCount);
 	}
 
 	const T * get() const {
@@ -70,10 +64,9 @@ private :
 		T * mPtr;
 		Deleter mDeleter;
 		int mRefCount;
-		int mId;
 	} *d;
 
 };
 
-
+}
 #endif

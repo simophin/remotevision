@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+using namespace Utils;
+
 class MyThread: public Thread {
 public:
 	virtual void entry () {
@@ -38,6 +40,9 @@ int main () {
 
 	thread1->wait();
 	thread2->wait();
+
+	delete thread1;
+	delete thread2;
 
 	return 0;
 }

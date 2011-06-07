@@ -10,7 +10,7 @@
 
 #include "RString.h"
 #include "IODevice.h"
-#include "Utils.h"
+#include "utils/NonCopyable.hpp"
 
 class SocketAddress;
 class Socket: public Utils::NonCopyable, public  IODevice{

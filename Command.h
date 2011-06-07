@@ -9,7 +9,7 @@
 #define COMMAND_H_
 
 #include <vector>
-#include "String.h"
+#include "RString.h"
 
 class Command {
 public:

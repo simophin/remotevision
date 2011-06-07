@@ -6,7 +6,7 @@
  */
 
 #include "VideoInfo.h"
-#include "Utils.h"
+#include "utils/String.hpp"
 
 #include "RString.h"
 #include <vector>

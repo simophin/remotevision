@@ -12,7 +12,7 @@
 #include "RString.h"
 
 #include "Error.h"
-#include "Utils.h"
+#include "utils/NonCopyable.hpp"
 
 class IODevice;
 class Command;

@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <sstream>
-#include "Utils.h"
+#include "utils/String.hpp"
 
 String FrameRate::toString() const
 {

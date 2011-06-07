@@ -10,7 +10,7 @@
 
 #include "RString.h"
 #include <vector>
-#include "Utils.h"
+#include "utils/String.hpp"
 
 Geometry Geometry::
 fromString (const String & str) {

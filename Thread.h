@@ -9,7 +9,7 @@
 #define THREAD_H_
 
 #include <memory>
-#include "Utils.h"
+#include "utils/NonCopyable.hpp"
 
 class ThreadImpl;
 

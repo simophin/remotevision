@@ -13,7 +13,8 @@
 #include "Thread.h"
 #include "ImageBuffer.h"
 #include "3rdparty/ffmpeg/FFMpegInfo.h"
-#include "Utils.h"
+#include "utils/String.hpp"
+#include "utils/Misc.hpp"
 
 #include <algorithm>
 #include <list>
