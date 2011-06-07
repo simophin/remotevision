@@ -8,7 +8,7 @@
 #ifndef COMMANDMGR_H_
 #define COMMANDMGR_H_
 
-#include <string>
+#include "RString.h"
 
 class Command;
 class CommandContext;

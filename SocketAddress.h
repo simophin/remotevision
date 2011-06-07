@@ -8,17 +8,17 @@
 #ifndef SOCKETADDRESS_H_
 #define SOCKETADDRESS_H_
 
-#include <string>
+#include "RString.h"
 
 class SocketAddress {
 public:
 	SocketAddress();
 	virtual ~SocketAddress();
 
-	std::string getReadable() const;
+	String getReadable() const;
 
 protected:
-	virtual std::string doGetReadable() const = 0;
+	virtual String doGetReadable() const = 0;
 };
 
 #endif /* SOCKETADDRESS_H_ */

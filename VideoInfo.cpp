@@ -8,18 +8,18 @@
 #include "VideoInfo.h"
 #include "Utils.h"
 
-#include <string>
+#include "RString.h"
 #include <vector>
 #include <assert.h>
 #include <algorithm>
 #include <sstream>
 
 
-VideoInfo VideoInfo::fromString(const std::string &str)
+VideoInfo VideoInfo::fromString(const String &str)
 {
 	VideoInfo ret;
-	std::vector<std::string> args;
-	args = Utils::split< std::vector<std::string> >(str,'|');
+	std::vector<String> args;
+	args = Utils::split< std::vector<String> >(str,'|');
 	if (args.size() != 3) { return ret; }
 	ret.currentCodec = VideoCodec::fromString(args.at(0));
 	ret.currentGeometry = Geometry::fromString(args.at(1));
@@ -30,9 +30,9 @@ VideoInfo VideoInfo::fromString(const std::string &str)
 
 
 
-std::string VideoInfo::toString() const
+String VideoInfo::toString() const
 {
-	std::vector<std::string> args;
+	std::vector<String> args;
 	args.push_back(currentCodec.toString());
 	args.push_back(currentGeometry.toString());
 	args.push_back(currentFrameRate.toString());

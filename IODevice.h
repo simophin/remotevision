@@ -9,7 +9,7 @@
 #define IODEVICE_H_
 
 #include <sys/types.h>
-#include <string>
+#include "RString.h"
 
 #include "Error.h"
 

@@ -10,7 +10,7 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
-#include <string>
+#include "RString.h"
 
 jint Java_com_lfcinvention_RemoteVision_VideoService_nativeCreateServer
 (JNIEnv *env, jobject obj, jstring addr, jint port)
@@ -24,7 +24,7 @@ jint Java_com_lfcinvention_RemoteVision_VideoService_nativeCreateServer
 	int aport = (int)port;
 
 
-	std::string actualAddr = aBuf;
+	String actualAddr = aBuf;
 	TCPFFMpegServer *server = new TCPFFMpegServer(actualAddr,aport);
 
 	if (!server->init("/dev/video0")) {
@@ -58,7 +58,7 @@ jstring Java_com_lfcinvention_RemoteVision_VideoService_nativeGetBoundAddress
 (JNIEnv *env, jobject obj, jint server)
 {
 	TCPFFMpegServer *s = (TCPFFMpegServer *)server;
-	std::string info = s->getBoundInfo();
+	String info = s->getBoundInfo();
 	jstring ret = env->NewStringUTF(info.c_str());
 	return ret;
 }

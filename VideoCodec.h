@@ -24,11 +24,11 @@ public:
 	}
 
 public:
-	static std::string getStringFromId (VideoCodecId);
-	static VideoCodecId getIdFromString(const std::string &);
+	static String getStringFromId (VideoCodecId);
+	static VideoCodecId getIdFromString(const String &);
 
-	static VideoCodec fromString (const std::string &);
-	virtual std::string toString() const;
+	static VideoCodec fromString (const String &);
+	virtual String toString() const;
 
 	bool operator==(const VideoCodec &rhs) {
 		return (rhs.codecId == codecId);

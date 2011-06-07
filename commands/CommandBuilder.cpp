@@ -13,8 +13,8 @@
 
 class CommandBuilder::Impl {
 public:
-	std::string cmd;
-	std::vector<std::string> argList;
+	String cmd;
+	std::vector<String> argList;
 };
 
 CommandBuilder::CommandBuilder()
@@ -27,11 +27,11 @@ CommandBuilder::~CommandBuilder() {
 }
 
 void CommandBuilder::
-setRequestCommand (const std::string & request){
+setRequestCommand (const String & request){
 	d->cmd = request;
 }
 void CommandBuilder::
-setResponseCommand (const std::string &cmd, const std::string &error){
+setResponseCommand (const String &cmd, const String &error){
 	d->cmd = cmd;
 	if (!error.empty()) {
 		d->cmd += (":" + error);
@@ -39,7 +39,7 @@ setResponseCommand (const std::string &cmd, const std::string &error){
 }
 
 void CommandBuilder::
-appendArgument (const std::string & arg){
+appendArgument (const String & arg){
 	d->argList.push_back(arg);
 }
 void CommandBuilder::

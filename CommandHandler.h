@@ -8,21 +8,21 @@
 #ifndef COMMANDHANDLER_H_
 #define COMMANDHANDLER_H_
 
-#include <string>
+#include "RString.h"
 
 class Command;
 class CommandContext;
 class CommandHandler {
 public:
-	CommandHandler(const std::string &cmdName);
+	CommandHandler(const String &cmdName);
 	virtual ~CommandHandler();
 
 	virtual void onHandle(const Command &, const CommandContext *) = 0;
 
-	std::string getCommandName() const { return mKey; }
+	String getCommandName() const { return mKey; }
 
 private:
-	std::string mKey;
+	String mKey;
 };
 
 #endif /* COMMANDHANDLER_H_ */

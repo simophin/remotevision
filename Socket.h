@@ -8,7 +8,7 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
-#include <string>
+#include "RString.h"
 #include "IODevice.h"
 #include "Utils.h"
 

@@ -9,7 +9,7 @@
 #define LOG_H_
 
 #include <stdarg.h>
-#include <string>
+#include "RString.h"
 
 class Log {
 public:
@@ -28,7 +28,7 @@ public:
 	static void vLogDebug (const char *, va_list);
 
 	static void log (Level, const char *, ...);
-	static void log (Level, const std::string &);
+	static void log (Level, const String &);
 	static void vLog (Level, const char *, va_list);
 };
 

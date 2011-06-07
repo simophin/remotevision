@@ -15,7 +15,7 @@
 #include <map>
 
 typedef std::list<CommandHandler *> CommandHandlerList;
-typedef std::map<std::string, CommandHandlerList> CommandMap;
+typedef std::map<String, CommandHandlerList> CommandMap;
 
 class CommandMgr::Impl {
 public:

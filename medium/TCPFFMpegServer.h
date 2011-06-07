@@ -8,14 +8,14 @@
 #ifndef TCPFFMPEGSERVER_H_
 #define TCPFFMPEGSERVER_H_
 
-#include <string>
+#include "RString.h"
 #include "Error.h"
 
 class TCPFFMpegServer{
 public:
-	TCPFFMpegServer(const std::string &addr, int port = 0);
+	TCPFFMpegServer(const String &addr, int port = 0);
 
-	std::string getBoundInfo () const;
+	String getBoundInfo () const;
 	bool init(const char *deviceFile = "/dev/video0");
 	bool start ();
 	void stop();

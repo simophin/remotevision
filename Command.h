@@ -8,38 +8,38 @@
 #ifndef COMMAND_H_
 #define COMMAND_H_
 
-#include <string>
 #include <vector>
+#include "String.h"
 
 class Command {
 public:
-	Command(const std::string &name = std::string(), const std::vector<std::string> &args =
-			std::vector<std::string> ());
+	Command(const String &name = String(), const std::vector<String> &args =
+			std::vector<String> ());
 	virtual ~Command();
 
-	inline std::string getName() const {
+	inline String getName() const {
 		return mName;
 	}
 
-	inline std::vector<std::string> getArguments() const {
+	inline std::vector<String> getArguments() const {
 		return mArguments;
 	}
 
-	inline std::string getArgument(int i) const {
+	inline String getArgument(int i) const {
 		return mArguments.at(i);
 	}
 
-	inline void setName(const std::string &n) {
+	inline void setName(const String &n) {
 		mName = n;
 	}
 
-	inline void setArguments(const std::vector<std::string> &arg) {
+	inline void setArguments(const std::vector<String> &arg) {
 		mArguments = arg;
 	}
 
 private:
-	std::string mName;
-	std::vector<std::string> mArguments;
+	String mName;
+	std::vector<String> mArguments;
 };
 
 #endif /* COMMAND_H_ */

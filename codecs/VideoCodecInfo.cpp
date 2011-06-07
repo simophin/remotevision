@@ -24,7 +24,7 @@ static struct IdStrMap ID_STR_MAPS[] = {
 
 const static size_t ID_STR_MAPS_SIZE = sizeof(ID_STR_MAPS)/sizeof(struct IdStrMap);
 
-std::string VideoCodec::
+String VideoCodec::
 getStringFromId (VideoCodecId id) {
 	int found_index = 0;
 	for (int i=0; i<ID_STR_MAPS_SIZE; i++) {
@@ -33,11 +33,11 @@ getStringFromId (VideoCodecId id) {
 			break;
 		}
 	}
-	return std::string(ID_STR_MAPS[found_index].str);
+	return String(ID_STR_MAPS[found_index].str);
 }
 
 VideoCodecId VideoCodec::
-getIdFromString(const std::string &str) {
+getIdFromString(const String &str) {
 	int found_index = 0;
 	for (int i=0; i<ID_STR_MAPS_SIZE; i++) {
 		if (str == ID_STR_MAPS[i].str) {

@@ -14,7 +14,7 @@
 
 #include <iosfwd>
 #include <streambuf>
-#include <string>
+#include "RString.h"
 #include "platform/posix/PosixCompactHeader.h"
 #include "Utils.h"
 
@@ -27,7 +27,7 @@ TCPSocketAddress::TCPSocketAddress()
 	init();
 }
 
-TCPSocketAddress::TCPSocketAddress(const std::string &saddr, unsigned int port)
+TCPSocketAddress::TCPSocketAddress(const String &saddr, unsigned int port)
 :d(new TCPSocketAddressImpl){
 	setAddress(saddr,port);
 	init();
@@ -46,9 +46,9 @@ TCPSocketAddress::~TCPSocketAddress() {
 	delete d;
 }
 
-std::string TCPSocketAddress::doGetReadable() const
+String TCPSocketAddress::doGetReadable() const
 {
-	std::string ret = getAddress();
+	String ret = getAddress();
 	ret += ":";
 	ret += Utils::convertToString(getPort());
 	return ret;
@@ -60,11 +60,11 @@ unsigned int TCPSocketAddress::getPort() const {
 	assert(addr != 0);
 	return ntohs(addr->sin_port);
 }
-std::string TCPSocketAddress::getAddress() const {
+String TCPSocketAddress::getAddress() const {
 	size_t addr_len;
 	const sockaddr_in * addr = (sockaddr_in *)getPosixAddress(&addr_len);
 	assert(addr != 0);
-	return std::string(inet_ntoa(addr->sin_addr));
+	return String(inet_ntoa(addr->sin_addr));
 }
 
 void TCPSocketAddress::init() {
@@ -72,7 +72,7 @@ void TCPSocketAddress::init() {
 }
 
 void TCPSocketAddress::
-setAddress(const std::string &saddr) {
+setAddress(const String &saddr) {
 	size_t len;
 	const sockaddr *raddr = getPosixAddress(&len);
 	sockaddr_in addr;
@@ -90,7 +90,7 @@ setAddress(const std::string &saddr) {
 
 
 void TCPSocketAddress::
-setAddress(const std::string &addr,unsigned int p) {
+setAddress(const String &addr,unsigned int p) {
 	setAddress(addr);
 	setPort(p);
 }

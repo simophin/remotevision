@@ -19,7 +19,7 @@
 #include "Log.h"
 #include "Thread.h"
 
-#include <string>
+#include "RString.h"
 #include <vector>
 #include <assert.h>
 #include <algorithm>

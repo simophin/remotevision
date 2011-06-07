@@ -8,17 +8,17 @@
 #include "VideoCodec.h"
 
 #include <vector>
-#include <string>
+#include "RString.h"
 
 
 VideoCodec VideoCodec::
-fromString (const std::string &str) {
+fromString (const String &str) {
 	VideoCodec ret;
 	ret.codecId = VideoCodec::getIdFromString(str);
 	return ret;
 }
 
-std::string VideoCodec::
+String VideoCodec::
 toString() const {
 	return VideoCodec::getStringFromId(codecId);
 }

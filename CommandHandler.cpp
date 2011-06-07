@@ -7,7 +7,7 @@
 
 #include "CommandHandler.h"
 
-CommandHandler::CommandHandler(const std::string &cmdName)
+CommandHandler::CommandHandler(const String &cmdName)
 :mKey(cmdName){
 
 }

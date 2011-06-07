@@ -1,7 +1,7 @@
 #ifndef VIDEOCODECID_H_
 #define VIDEOCODECID_H_
 
-#include <string>
+#include "RString.h"
 
 typedef enum  {
 	VCODEC_INVALID = -1,

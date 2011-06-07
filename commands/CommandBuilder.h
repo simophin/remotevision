@@ -8,7 +8,7 @@
 #ifndef COMMANDBUILDER_H_
 #define COMMANDBUILDER_H_
 
-#include <string>
+#include "RString.h"
 
 class Command;
 class CommandBuilder {
@@ -16,10 +16,10 @@ public:
 	CommandBuilder();
 	virtual ~CommandBuilder();
 
-	void setRequestCommand (const std::string &);
-	void setResponseCommand (const std::string &cmd, const std::string &error = std::string());
+	void setRequestCommand (const String &);
+	void setResponseCommand (const String &cmd, const String &error = String());
 
-	void appendArgument (const std::string &);
+	void appendArgument (const String &);
 	void clearArguments();
 
 	void build(Command &);

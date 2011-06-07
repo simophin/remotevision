@@ -8,7 +8,7 @@
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
 
-#include <string>
+#include "RString.h"
 #include "Serializable.hpp"
 
 class Geometry: public Serializable {
@@ -18,8 +18,8 @@ public:
 	Geometry(int w = -1, int h = -1)
 	:width(w), height(h) {}
 
-	static Geometry fromString (const std::string &);
-	virtual std::string toString () const;
+	static Geometry fromString (const String &);
+	virtual String toString () const;
 	bool isValid() const;
 	void invalid();
 

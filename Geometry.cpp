@@ -8,16 +8,16 @@
 #include "Geometry.h"
 
 
-#include <string>
+#include "RString.h"
 #include <vector>
 #include "Utils.h"
 
 Geometry Geometry::
-fromString (const std::string & str) {
+fromString (const String & str) {
 	Geometry ret;
 
-	std::vector<std::string> gargs;
-	gargs = Utils::split< std::vector<std::string> >(str,',');
+	std::vector<String> gargs;
+	gargs = Utils::split< std::vector<String> >(str,',');
 
 	if (gargs.size() != 2) return ret;
 
@@ -27,7 +27,7 @@ fromString (const std::string & str) {
 	return ret;
 }
 
-std::string Geometry::
+String Geometry::
 toString () const {
 	std::stringstream ret;
 

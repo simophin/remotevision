@@ -14,7 +14,7 @@ SocketAddress::~SocketAddress() {
 }
 
 
-std::string SocketAddress::
+String SocketAddress::
 getReadable() const {
 	return doGetReadable();
 }

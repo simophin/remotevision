@@ -7,14 +7,14 @@
 
 #include "FrameRate.h"
 
-#include <string>
+#include "RString.h"
 #include <vector>
 #include <assert.h>
 #include <algorithm>
 #include <sstream>
 #include "Utils.h"
 
-std::string FrameRate::toString() const
+String FrameRate::toString() const
 {
 	std::stringstream stream;
 	stream << num << "/" << den;
@@ -23,10 +23,10 @@ std::string FrameRate::toString() const
 
 
 
-FrameRate FrameRate::fromString(const std::string & str)
+FrameRate FrameRate::fromString(const String & str)
 {
-	std::vector<std::string> args;
-	args = Utils::split< std::vector<std::string>  >(str,'/');
+	std::vector<String> args;
+	args = Utils::split< std::vector<String>  >(str,'/');
 	if (args.size() != 2) return FrameRate();
 	FrameRate ret;
 	ret.num = Utils::stringToInteger(args.at(0));

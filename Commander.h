@@ -9,7 +9,7 @@
 #define COMMANDER_H_
 
 #include <memory>
-#include <string>
+#include "RString.h"
 
 #include "Error.h"
 #include "Utils.h"

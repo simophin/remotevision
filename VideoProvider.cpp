@@ -77,7 +77,7 @@ bool VideoProvider::doInitDevice()
 	return false;
 }
 
-std::string VideoProvider::Info::
+String VideoProvider::Info::
 toString() const
 {
 	std::stringstream stream;
@@ -90,10 +90,10 @@ toString() const
 
 
 VideoProvider::Info VideoProvider::Info::
-fromString(const std::string & str)
+fromString(const String & str)
 {
-	std::vector<std::string> args;
-	args = Utils::split< std::vector<std::string>  >(str,'|');
+	std::vector<String> args;
+	args = Utils::split< std::vector<String>  >(str,'|');
 	if (args.size() != 3) return VideoProvider::Info();
 
 	VideoProvider::Info ret;

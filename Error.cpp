@@ -32,11 +32,11 @@ Error::Error(const errorstring_t &str)
 
 Error::Error(const char *str ,size_t size)
 :errorNumber(syserrno_success) {
-	std::string r;
+	String r;
 	if (size > 0) {
-		r = std::string(str,size);
+		r = String(str,size);
 	}else{
-		r = std::string(str);
+		r = String(str);
 	}
 	errorString = r;
 }
@@ -60,7 +60,7 @@ void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
 				(LPSTR)&buf,
 				0,
 				NULL);
-		errorString = std::string(buf,size);
+		errorString = String(buf,size);
 		::free(buf);
 #endif
 
@@ -94,13 +94,13 @@ std::ostream& operator <<(std::ostream &os,const Error &obj) {
 	return os;
 }
 
-std::string Error::toString() const {
+String Error::toString() const {
 	std::stringstream stream;
 	stream << "$ERRNO:" << errorNumber << ";$ERRSTR:" << errorString;
 	return stream.str();
 
 }
-Error Error::fromString(const std::string &str,bool *ok) {
+Error Error::fromString(const String &str,bool *ok) {
 	syserrno_t e;
 	char buf[1024];
 	sscanf(str.c_str(),"$ERRNO:%d;$ERRSTR:%s", &e, buf);

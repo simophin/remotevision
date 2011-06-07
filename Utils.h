@@ -10,9 +10,10 @@
 
 #include <sstream>
 #include <vector>
-#include <string>
+#include "RString.h"
 #include <cstdlib>
 #include <string.h>
+#include <assert.h>
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
@@ -21,8 +22,8 @@
 class Utils {
 public:
 	template <class T>
-	static std::string arrayToString(const T &arr) {
-		std::vector<std::string> args;
+	static String arrayToString(const T &arr) {
+		std::vector<String> args;
 		typename T::const_iterator i;
 		for (i=arr.begin(); i!=arr.end(); ++i) {
 			args.push_back(i->toString());
@@ -31,10 +32,10 @@ public:
 	}
 
 	template <class T>
-	static T stringToArray (const std::string &str) {
+	static T stringToArray (const String &str) {
 		T ret;
-		std::vector<std::string> args;
-		args = split< std::vector<std::string> >(str,';');
+		std::vector<String> args;
+		args = split< std::vector<String> >(str,';');
 		for (int i=0;i<args.size();i++) {
 			typename T::value_type val = T::value_type::fromString(args.at(i));
 			if (val.isValid()) ret.push_back(val);
@@ -43,7 +44,7 @@ public:
 	}
 
 	template <class T>
-	static T split (const std::string & str, char glue) {
+	static T split (const String & str, char glue) {
 		T ret;
 		const char *buf = str.c_str();
 		int total_length = str.size() + 1;
@@ -53,7 +54,7 @@ public:
 		for (int i=0; i< total_length; i++) {
 			if ( (buf[i] == glue) || (buf[i] == 0) ) {
 				int length = i - lastIndex;
-				std::string ps(buf+lastIndex, length);
+				String ps(buf+lastIndex, length);
 				ret.push_back(ps);
 				lastIndex = i+1;
 			}
@@ -62,8 +63,8 @@ public:
 	}
 
 	template <class T>
-	static std::string join (const T &array, char glue) {
-		std::string ret;
+	static String join (const T &array, char glue) {
+		String ret;
 		typename T::const_iterator iter;
 		for (iter = array.begin() ; iter != array.end(); ++iter) {
 			ret += *iter;
@@ -75,13 +76,13 @@ public:
 	}
 
 	template <class T>
-	static std::string convertToString (T num) {
+	static String convertToString (T num) {
 		std::stringstream stream;
 		stream << num;
 		return stream.str();
 	}
 
-	static int stringToInteger (const std::string &str) {
+	static int stringToInteger (const String &str) {
 		return ::atoi(str.c_str());
 	}
 
@@ -93,6 +94,37 @@ public:
 		NonCopyable( const NonCopyable& );
 		const NonCopyable& operator=( const NonCopyable& );
 
+	};
+
+	template <class T>
+	class SharedPtr {
+	public:
+		SharedPtr (T * ptr = 0)
+		:mRefCount(0){
+		}
+
+		~SharedPtr () {
+			if (! --mRefCount) {
+				delete mPtr;
+			}
+		}
+
+		SharedPtr(const SharedPtr &rhs)
+		:mPtr(rhs.mPtr), mRefCount(++rhs.mRefCount) {
+		}
+
+		const T * get() const {
+			return mPtr;
+		}
+
+		void detach() {
+			mPtr = 0;
+			mRefCount = 0;
+		}
+
+	private :
+		volatile int mRefCount;
+		T * mPtr;
 	};
 };
 

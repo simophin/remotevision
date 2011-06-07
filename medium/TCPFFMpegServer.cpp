@@ -35,7 +35,7 @@ public:
 	Server *mServer;
 	State mState;
 
-	Impl(const std::string &addr, int port)
+	Impl(const String &addr, int port)
 	:mBindAddress(addr,port),
 	 mServerSocket(0),
 	 mState(STATE_UNINTIALIZED){
@@ -45,13 +45,13 @@ public:
 	virtual void entry();
 };
 
-TCPFFMpegServer::TCPFFMpegServer(const std::string & addr, int port)
+TCPFFMpegServer::TCPFFMpegServer(const String & addr, int port)
 :d(new Impl(addr,port))
 {
 
 }
 
-std::string TCPFFMpegServer::getBoundInfo() const
+String TCPFFMpegServer::getBoundInfo() const
 {
 	return d->mServerSocket->getAddress()->getReadable();
 }

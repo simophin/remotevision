@@ -9,7 +9,7 @@
 #define TCPSOCKETADDRESS_H_
 
 #include "platform/posix/PosixSocketAddress.h"
-#include <string>
+#include "RString.h"
 
 
 struct sockaddr ;
@@ -17,20 +17,20 @@ struct sockaddr ;
 class TCPSocketAddress: public PosixSocketAddress {
 public:
 	TCPSocketAddress();
-	TCPSocketAddress(const std::string &, unsigned int port);
+	TCPSocketAddress(const String &, unsigned int port);
 	TCPSocketAddress(const sockaddr *, size_t addr_len);
 	TCPSocketAddress(const TCPSocketAddress &);
 	virtual ~TCPSocketAddress();
 
-	void setAddress(const std::string &);
-	void setAddress(const std::string &,unsigned int);
+	void setAddress(const String &);
+	void setAddress(const String &,unsigned int);
 	void setPort(unsigned int);
 
 	unsigned int getPort() const;
-	std::string getAddress() const;
+	String getAddress() const;
 
 protected:
-	virtual std::string doGetReadable() const;
+	virtual String doGetReadable() const;
 
 private:
 	void init();

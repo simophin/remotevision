@@ -48,7 +48,7 @@ public:
 	State state;
 	Error lastError;
 
-	std::string mFileName;
+	String mFileName;
 
 	// Related to ffmpeg decoding/encoding
 	Param mCurrentParam;
@@ -92,14 +92,14 @@ public:
 		}
 	}
 
-	Impl(const std::string &f)
+	Impl(const String &f)
 	:videoInfo(0),state(STATE_UNINTIALIZED),
 	 mFileName(f){
 		::memset(&mCtx,0,sizeof(mCtx));
 	}
 };
 
-FFMpegVideoProvider::FFMpegVideoProvider(const std::string &filename)
+FFMpegVideoProvider::FFMpegVideoProvider(const String &filename)
 :d(new FFMpegVideoProvider::Impl(filename)){
 	init();
 }

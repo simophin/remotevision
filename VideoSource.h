@@ -9,7 +9,7 @@
 #define VIDEOSOURCE_H_
 
 #include <map>
-#include <string>
+#include "RString.h"
 
 #include "IODevice.h"
 #include "VideoInfo.h"
@@ -55,7 +55,7 @@ public:
 		}
 	};
 
-	typedef std::map<std::string,std::string> Option;
+	typedef std::map<String,String> Option;
 
 	bool init (const Option &options = Option(), int ms = -1);
 	Info getInformation(int ms = -1) const;

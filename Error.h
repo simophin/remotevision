@@ -8,11 +8,11 @@
 #ifndef ERROR_H_
 #define ERROR_H_
 
-#include <string>
 #include <ostream>
+#include "RString.h"
 
 typedef int syserrno_t;
-typedef std::string errorstring_t;
+typedef String errorstring_t;
 extern syserrno_t syserrno_success;
 
 class Error {
@@ -22,6 +22,20 @@ public:
 	explicit Error(const char *, size_t size = 0);
 	virtual ~Error();
 
+
+	enum Type {
+		ERR_UNKNOWN,
+		ERR_SYS_UNKNOWN,
+		ERR_STATE,
+	};
+
+
+	void setSystemErrno (syserrno_t, bool fetchFromSystem = true, const String & errMsg = String());
+	syserrno_t getSystemErrno () const;
+
+
+
+
 	syserrno_t getErrno() const;
 	void setErrno(syserrno_t,bool fetchFromSystem = true);
 
@@ -29,8 +43,8 @@ public:
 	void setErrorString (const errorstring_t &);
 	void setErrorString (const char *, size_t size = 0);
 
-	std::string toString() const;
-	static Error fromString(const std::string &,bool *ok = NULL);
+	String toString() const;
+	static Error fromString(const String &,bool *ok = NULL);
 
 	friend std::ostream& operator <<(std::ostream &os,const Error &obj);
 

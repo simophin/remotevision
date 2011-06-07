@@ -17,7 +17,7 @@ extern "C" {
 
 class FFMpegVideoProvider: public VideoProvider {
 public:
-	FFMpegVideoProvider(const std::string &filename);
+	FFMpegVideoProvider(const String &filename);
 	virtual ~FFMpegVideoProvider();
 
 	/*

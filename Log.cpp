@@ -88,7 +88,7 @@ void Log::vLog(Level level, const char *fmt, va_list va)
 #endif
 }
 
-void Log::log(Level level, const std::string &str) {
+void Log::log(Level level, const String &str) {
 	log(level, str.c_str());
 }
 

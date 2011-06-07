@@ -14,7 +14,7 @@
 #include "Serializable.hpp"
 
 #include <vector>
-#include <string>
+#include "RString.h"
 
 class VideoInfo: public Serializable {
 public:
@@ -26,8 +26,8 @@ public:
 		return (currentCodec.isValid() && currentGeometry.isValid());
 	}
 
-	static VideoInfo fromString(const std::string &);
-	virtual std::string toString() const;
+	static VideoInfo fromString(const String &);
+	virtual String toString() const;
 };
 
 #endif /* VIDEOINFO_H_ */

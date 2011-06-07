@@ -16,9 +16,10 @@
 #include <stdlib.h>
 
 #include <sstream>
-#include <string>
+#include "RString.h"
 #include <list>
 
+#include "String.h"
 
 
 class Commander::Impl {
@@ -73,8 +74,8 @@ readCommand(Command &cmd) {
 		}while(tried_times++ < 20 && offset < hdr.length);
 	}
 	{
-		std::string name;
-		std::vector<std::string> args;
+		String name;
+		std::vector<String> args;
 		size_t offset = 0;
 
 		name = buf;
@@ -107,12 +108,12 @@ writeCommand (const Command & cmd) {
 	std::stringstream buf;
 	buf << cmd.getName() << '\0';
 
-	std::vector<std::string> args = cmd.getArguments();
+	std::vector<String> args = cmd.getArguments();
 	for (int i=0;i<args.size();i++) {
 		buf << args[i] << '\0';
 	}
 
-	std::string data = buf.str();
+	String data = buf.str();
 	CommandHeader hdr;
 	// Write header
 	{

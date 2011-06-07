@@ -24,7 +24,7 @@ public:
 	void setPosixAddress(const sockaddr *addr, size_t addr_len);
 
 protected:
-	virtual std::string doGetReadable() const = 0;
+	virtual String doGetReadable() const = 0;
 
 private:
 	class PosixSocketAddressImpl;

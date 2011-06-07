@@ -15,7 +15,7 @@
 #include "Serializable.hpp"
 
 #include <vector>
-#include <string>
+#include "RString.h"
 
 class Error;
 class VideoInfo;
@@ -34,9 +34,9 @@ public:
 		std::vector<Geometry>   supportedGeometries;
 		std::vector<FrameRate>  supportedFrameRates;
 
-		virtual std::string toString() const;
+		virtual String toString() const;
 		virtual bool isValid() const { return true; }
-		static Info fromString(const std::string &);
+		static Info fromString(const String &);
 	};
 
 

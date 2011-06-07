@@ -8,7 +8,7 @@
 #ifndef FRAMERATE_H_
 #define FRAMERATE_H_
 
-#include <string>
+#include "RString.h"
 #include "Serializable.hpp"
 
 class FrameRate: public Serializable {
@@ -23,8 +23,8 @@ public:
 		return (num == rhs.num && den == rhs.den);
 	}
 
-	virtual std::string toString () const;
-	static FrameRate fromString(const std::string &);
+	virtual String toString () const;
+	static FrameRate fromString(const String &);
 };
 
 
