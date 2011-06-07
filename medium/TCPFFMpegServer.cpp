@@ -22,7 +22,7 @@
 enum State {
 	STATE_UNINTIALIZED,
 	STATE_READY,
-	STATE_INSERVICE,
+	STATE_INSERVICE
 };
 
 class TCPFFMpegServer::Impl: public Thread {
@@ -200,7 +200,7 @@ Error TCPFFMpegServer::Impl::entry()
 		mServer = new Server(mCmdMgr,controlSocket,dataSocket,mVideoProvider);
 		mServer->start();
 
-		while (!shouldStop() && (mServer->wait(1000).getErrorType() != Error::ERR_TIMEOUT)) {}
+		while (!shouldStop() && (mServer->wait(1000).getErrorType() == Error::ERR_TIMEOUT)) {}
 
 		delete mServer;
 		mServer = 0;

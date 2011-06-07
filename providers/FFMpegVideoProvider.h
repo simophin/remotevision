@@ -37,7 +37,7 @@ private:
 	typedef enum {
 		STATE_UNINTIALIZED,
 		STATE_READY,
-		STATE_CAPTURING,
+		STATE_CAPTURING
 	} State;
 
 

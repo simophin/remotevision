@@ -51,6 +51,7 @@ void ConnectDialog::init()
 void ConnectDialog::on_btnConnect_clicked()
 {
 	QHostAddress qtAddr;
+	Error rc;
 	if (!qtAddr.setAddress(ui->ipEdit->text()) ||
 			qtAddr.isNull()) {
 		QMessageBox::critical(this,tr("错误"),tr("输入的IP地址不正确，请重新输入"));
@@ -71,24 +72,27 @@ void ConnectDialog::on_btnConnect_clicked()
 			dsock = ::socket(AF_INET, SOCK_STREAM, 0);
 	TCPSocketAddress remoteAddr (ui->ipEdit->text().toStdString(),ui->portEdit->text().toInt());
 	TCPSocket *ctrl = new TCPSocket(csock), *data = new TCPSocket(dsock);
-	int rc;
 
-	if ( (rc = ctrl->connect((SocketAddress *)&remoteAddr)) != 0) {
-		QMessageBox::critical(this,tr("连接失败"),tr("连接控制接口失败，原因为：%1").arg(ctrl->getLastError().getErrorString().c_str()));
+	rc = ctrl->connect((SocketAddress *)&remoteAddr);
+
+	if ( rc.isError() ) {
+		QMessageBox::critical(this,tr("连接失败"),tr("连接控制接口失败，原因为：%1").arg(rc.getErrorString().c_str()));
 		resetUI();
 		return;
 	}
 
-	if ( (rc = data->connect((SocketAddress *)&remoteAddr)) != 0) {
-		QMessageBox::critical(this,tr("连接失败"),tr("连接数据失败，原因为：%1").arg(data->getLastError().getErrorString().c_str()));
+	rc = data->connect((SocketAddress *)&remoteAddr);
+	if ( rc.isError()) {
+		QMessageBox::critical(this,tr("连接失败"),tr("连接数据失败，原因为：%1").arg(rc.getErrorString().c_str()));
 		resetUI();
 		return;
 	}
 
 	IOVideoSource *src = new IOVideoSource(ctrl,data);
 
-	if (!src->init()) {
-		QMessageBox::critical(this,tr("连接失败"),tr("初始化视频源失败，原因为：%1").arg(src->getLastError().getErrorString().c_str()));
+	rc = src->init();
+	if (rc.isError()) {
+		QMessageBox::critical(this,tr("连接失败"),tr("初始化视频源失败，原因为：%1").arg(rc.getErrorString().c_str()));
 		delete src;
 		resetUI();
 		return;

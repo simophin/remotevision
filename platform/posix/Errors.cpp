@@ -28,31 +28,23 @@ static struct _map MAPS[] = {
 		{ Error::ERR_SYS_UNKNOWN, -1, "Unknown error"},
 		{ Error::ERR_STATE, ERESTART, 0},
 		{ Error::ERR_TIMEOUT, ETIMEDOUT,0},
-		{ Error::ERR_INVALID, EINVAL, 0}
+		{ Error::ERR_INVALID, EINVAL, 0},
+		{ Error::ERR_ADDRINUSE,EADDRINUSE, 0},
 };
 
-class PosixErrorInitializer {
-public:
-	PosixErrorInitializer() {
-		init();
-	}
 
-	void init () {
-		Error::SystemMap map;
-		for (int i=0; i<ARRAY_SIZE(MAPS); i++) {
-			map.system = MAPS[i].system;
-			map.type = MAPS[i].type;
-			if (MAPS[i].msg == 0) {
-				map.message = ::strerror(map.system);
-			}else{
-				map.message = MAPS[i].msg;
-			}
-			ERROR_MAPS.push_back(map);
+void initErrors () {
+	Error::SystemMap map;
+	for (unsigned i=0; i<ARRAY_SIZE(MAPS); i++) {
+		map.system = MAPS[i].system;
+		map.type = MAPS[i].type;
+		if (MAPS[i].msg == 0) {
+			map.message = ::strerror(map.system);
+		}else{
+			map.message = MAPS[i].msg;
 		}
+		ERROR_MAPS.push_back(map);
 	}
-};
+}
 
-#ifdef STATIC_INITIALIZER
-static PosixErrorInitializer initializer();
-#endif
 

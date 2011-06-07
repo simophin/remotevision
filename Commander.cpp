@@ -116,7 +116,7 @@ writeCommand (const Command & cmd) {
 	buf << cmd.getName() << '\0';
 
 	std::vector<String> args = cmd.getArguments();
-	for (int i=0;i<args.size();i++) {
+	for (unsigned i=0;i<args.size();i++) {
 		buf << args[i] << '\0';
 	}
 

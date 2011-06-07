@@ -16,7 +16,7 @@ public:
 	typedef enum {
 		LOG_ERROR = 0,
 		LOG_WARNING,
-		LOG_DEBUG,
+		LOG_DEBUG
 	} Level;
 
 

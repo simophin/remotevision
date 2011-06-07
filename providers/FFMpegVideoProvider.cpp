@@ -140,7 +140,7 @@ Error FFMpegVideoProvider::doInitDevice()
 			goto open_input_file_error;
 		}
 
-		for (int i=0;i<inputFmtCtx->nb_streams; i++) {
+		for (unsigned i=0;i<inputFmtCtx->nb_streams; i++) {
 			if (inputFmtCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
 				decodeCtx = inputFmtCtx->streams[i]->codec;
 				decodeCodec = decodeCtx->codec;
@@ -223,8 +223,9 @@ Error FFMpegVideoProvider::doQueryInfo(Info &info) const
 	}
 
 
-	for (int i=0;i<ARRAY_SIZE(SUPPORTED_CODECS);i++) {
-		info.supportedCodecs.push_back(VideoCodec(SUPPORTED_CODECS[i]));
+	for (unsigned i=0;i<ARRAY_SIZE(SUPPORTED_CODECS);i++) {
+		VideoCodec c(SUPPORTED_CODECS[i]);
+		info.supportedCodecs.push_back(c);
 	}
 	info.supportedGeometries = cf.supportedGeometries;
 
@@ -438,8 +439,10 @@ Error FFMpegVideoProvider::Impl::entry() {
 		// try to get a buffer
 		{
 			rc = mBufferMutex.lock(500);
-			if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
-			else break;
+			if (rc.isError()){
+				if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
+				else break;
+			}
 
 			if (mBuffers.size() < 1) {
 				mBufferMutex.unlock();

@@ -25,11 +25,24 @@ extern std::vector<Error::SystemMap> ERROR_MAPS;
 extern syserrno_t SYS_ERR_SUCCESS;
 extern syserrno_t SYS_ERR_UNKNOWN;
 
+static bool hasInit = false;
+extern void initErrors();
+
 class Error::Impl {
 public:
 	String mErrorString;
 	syserrno_t mSystemErrno;
 	Type   mErrorType;
+
+	Impl () {
+		init();
+	}
+	void init () {
+		if (!hasInit) {
+			initErrors();
+			hasInit = true;
+		}
+	}
 };
 
 static syserrno_t findSystemErrno (Error::Type t) {
@@ -165,7 +178,7 @@ Error Error::fromString(const String & str, bool *ok)
 {
 	Type e;
 	char buf[1024];
-	sscanf(str.c_str(),"$ERRNO:%d;$ERRSTR:%s", &e, buf);
+	sscanf(str.c_str(),"$ERRNO:%d;$ERRSTR:%s", (int)&e, buf);
 	buf[sizeof(buf)-1] = '\0';
 	Error ret;
 	ret.setErrorType(e,buf);
@@ -184,102 +197,3 @@ std::ostream & operator <<(std::ostream & os, const Error & obj)
 	os << obj.getErrorString();
 	return os;
 }
-
-
-
-
-/*
-syserrno_t syserrno_success = 0;
-
-Error::Error(syserrno_t e)
-:errorNumber(e){
-
-}
-
-Error::Error(const errorstring_t &str)
-:errorNumber(syserrno_success) {
-	errorString = str;
-}
-
-Error::Error(const char *str ,size_t size)
-:errorNumber(syserrno_success) {
-	String r;
-	if (size > 0) {
-		r = String(str,size);
-	}else{
-		r = String(str);
-	}
-	errorString = r;
-}
-
-
-Error::~Error() {
-}
-
-syserrno_t Error::getErrno() const {
-	return errorNumber;
-}
-void Error::setErrno(syserrno_t e,bool fetchFromSystem) {
-	errorNumber = e;
-	if (fetchFromSystem) {
-#ifdef OS_WIN32
-		LPSTR buf = NULL;
-		size_t size = ::FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-				NULL,
-				e,
-				LANG_ENGLISH,
-				(LPSTR)&buf,
-				0,
-				NULL);
-		errorString = String(buf,size);
-		::free(buf);
-#endif
-
-#ifdef OS_UNIX
-		errorString = ::strerror(e);
-#endif
-	}
-}
-
-errorstring_t Error::
-getErrorString () const {
-	return errorString;
-}
-
-void Error::setErrorString (const errorstring_t & str) {
-	errorString = str;
-}
-
-
-void Error::setErrorString(const char *buf, size_t size)
-{
-	if (size > 0) {
-		errorString = errorstring_t (buf,size);
-	}else{
-		errorString = buf;
-	}
-}
-
-std::ostream& operator <<(std::ostream &os,const Error &obj) {
-	os << "errno = " << obj.getErrno() << ", error string = " << obj.getErrorString() << std::endl;
-	return os;
-}
-
-String Error::toString() const {
-	std::stringstream stream;
-	stream << "$ERRNO:" << errorNumber << ";$ERRSTR:" << errorString;
-	return stream.str();
-
-}
-Error Error::fromString(const String &str,bool *ok) {
-	syserrno_t e;
-	char buf[1024];
-	sscanf(str.c_str(),"$ERRNO:%d;$ERRSTR:%s", &e, buf);
-	buf[sizeof(buf)-1] = '\0';
-	Error ret;
-	ret.setErrno(e,false);
-	ret.setErrorString(buf);
-	return ret;
-}
-
-*/

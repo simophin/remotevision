@@ -25,6 +25,7 @@ public:
 		ERR_STATE,
 		ERR_TIMEOUT,
 		ERR_INVALID,
+		ERR_ADDRINUSE
 	};
 
 	Error (Type t = ERR_SUCCESS);
@@ -46,6 +47,9 @@ public:
 	void setSystemError (syserrno_t, const String &);
 
 	bool isSuccess () const;
+	inline bool isError() const {
+		return !isSuccess();
+	}
 
 	String toString() const;
 	static Error fromString(const String &,bool *ok = NULL);

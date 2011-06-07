@@ -475,7 +475,9 @@ Error IOVideoSource::Impl::entry() {
 		size_t bytes_read;
 		rc = dataDev->read( buf + readSize,config.bufferSize - readSize ,&bytes_read);
 
-		if (!rc.isSuccess()) break;
+		if (!rc.isSuccess()) {
+			goto read_error;
+		}
 
 		readSize = bytes_read;
 
@@ -489,7 +491,7 @@ Error IOVideoSource::Impl::entry() {
 				pkt.size = readSize - usedSize;
 				if ( (decodedSize = avcodec_decode_video2(decodeCtx, frame,&got_frame, &pkt)) < 0) {
 					rc.setErrorString("Decode video failed");
-					break;
+					goto decode_error;
 				}
 
 				usedSize += decodedSize;
@@ -564,4 +566,5 @@ Error IOVideoSource::Impl::entry() {
 	::free(buf);
 
 	state = STATE_READY;
+	return rc;
 }

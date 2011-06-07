@@ -62,17 +62,20 @@ int main () {
 	return 0;
 	*/
 
+	Error rc;
 	FFMpeg::init();
-	TCPFFMpegServer *server = new TCPFFMpegServer("0.0.0.0",10001);
-	if (!server->init("/dev/video0")) {
-		std::cerr << server->getLastError() << std::endl;
+	TCPFFMpegServer *server = new TCPFFMpegServer("0.0.0.0",0);
+	rc = server->init("/dev/video0");
+	if (rc.isError()) {
+		std::cerr << rc << std::endl;
 		delete server;
 		return 1;
 	}
 	std::cout << "Server bound on "<<server->getBoundInfo() << std::endl;
 
-	if (!server->start()) {
-		std::cerr << server->getLastError() << std::endl;
+	rc = server->start();
+	if (rc.isError()) {
+		std::cerr << rc << std::endl;
 		delete server;
 		return 2;
 	}

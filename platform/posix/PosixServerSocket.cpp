@@ -29,7 +29,6 @@ doAccept(Socket **sock, SocketAddress **accepted_addr){
 
 	sockaddr *addr = (sockaddr *)::malloc(MAX_ADDRESS_LENGTH);
 	size_t addr_len = MAX_ADDRESS_LENGTH;
-	PosixSocket *ret = 0;
 
 	int fd = ::accept(getFileDescriptor(),addr,(socklen_t *)&addr_len);
 
@@ -45,10 +44,11 @@ doAccept(Socket **sock, SocketAddress **accepted_addr){
 #endif
 
 	{
-		*sock = createInstance(fd);
+		PosixSocket *p = (PosixSocket *) createInstance(fd);
 		if (accepted_addr) {
-			*accepted_addr = ret->createAddressInstance(addr,addr_len);
+			*accepted_addr = p->createAddressInstance(addr,addr_len);
 		}
+		*sock = p;
 	}
 
 	return rc;
@@ -73,7 +73,7 @@ doBind(const SocketAddress *bind_addr) {
 #endif
 
 #ifdef OS_UNIX
-	ret.setSystemError(errno);
+	if (rc < 0) ret.setSystemError(errno);
 #endif
 	return ret;
 }

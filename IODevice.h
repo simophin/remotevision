@@ -19,7 +19,7 @@ public:
 	typedef enum {
 		POLL_READ,
 		POLL_WRITE,
-		POLL_ERROR,
+		POLL_ERROR
 	} PollType;
 
 	Error read(char *, size_t, size_t * read_size = 0);

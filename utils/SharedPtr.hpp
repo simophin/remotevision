@@ -94,6 +94,7 @@ public:
 	T * operator->() {
 		detach(true);
 		assert (d->mPtr != 0);
+		return d->mPtr;
 	}
 
 protected:

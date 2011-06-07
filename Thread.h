@@ -42,7 +42,7 @@ class Mutex: public Utils::NonCopyable {
 public:
 	enum Type {
 		Normal,
-		Recursive,
+		Recursive
 	};
 
 	Mutex(Type t = Normal);

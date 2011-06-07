@@ -37,8 +37,10 @@ VideoPreviewer::~VideoPreviewer()
 }
 void VideoPreviewer::start()
 {
-	if (!d->mVideoSource->startCapture()) {
-		reportError(tr("开始捕捉：%1").arg(d->mVideoSource->getLastError().getErrorString().c_str()));
+	Error rc;
+	rc = d->mVideoSource->startCapture();
+	if (rc.isError()) {
+		reportError(tr("开始捕捉：%1").arg(rc.getErrorString().c_str()));
 		return;
 	}
 	d->mTimer.start( 10, this );
@@ -51,16 +53,18 @@ void VideoPreviewer::stop()
 }
 
 void VideoPreviewer::init() {
-	d->mParam = d->mVideoSource->getImageParam();
+	Error rc;
+	d->mVideoSource->getImageParam(d->mParam);
 	if (d->mParam.pixFmt == IF_INVALID) {
-		reportError(tr("无法获得远端图像参数: %1").arg(d->mVideoSource->getLastError().getErrorString().c_str()));
+		reportError(tr("无法获得远端图像参数"));
 		return;
 	}
 
 	if (d->mParam.pixFmt != IF_RGB888) {
 		d->mParam.pixFmt = IF_RGB888;
-		if (!d->mVideoSource->setImageParam(d->mParam)) {
-			reportError(tr("无法获得远端图像参数: %1").arg(d->mVideoSource->getLastError().getErrorString().c_str()));
+		rc = d->mVideoSource->setImageParam(d->mParam);
+		if (rc.isError()) {
+			reportError(tr("无法获得远端图像参数: %1").arg(rc.getErrorString().c_str()));
 			return;
 		}
 	}
@@ -68,8 +72,9 @@ void VideoPreviewer::init() {
 
 void VideoPreviewer::timerEvent(QTimerEvent *evt)
 {
-	VideoSource::Buffer buf = d->mVideoSource->getFilledBuffer();
-	if (buf.isValid()) {
+	VideoSource::Buffer buf;
+	Error rc = d->mVideoSource->getFilledBuffer(buf);
+	if (buf.isValid() && !rc.isError()) {
 		QImage img (buf.buf, d->mParam.geo.width, d->mParam.geo.height, QImage::Format_RGB888);
 		d->mPixmap = QPixmap::fromImage(img);
 		ui->labelContent->setPixmap(d->mPixmap);

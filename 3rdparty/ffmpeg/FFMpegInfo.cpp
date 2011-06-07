@@ -43,7 +43,7 @@ static PIX_CONV_TABLE_T PIX_CONV_TABLE[] = {
 
 VideoCodecId FFMpegInfo::
 getIdFromFFMpeg(CodecID id) {
-	for (int i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
+	for (unsigned i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
 		if (ID_CONV_TABLE[i].fid == id) {
 			return ID_CONV_TABLE[i].rid;
 		}
@@ -53,7 +53,7 @@ getIdFromFFMpeg(CodecID id) {
 
 CodecID FFMpegInfo::
 getIdFromRemoteVision(VideoCodecId id) {
-	for (int i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
+	for (unsigned i=0; i<ARRAY_SIZE(ID_CONV_TABLE); i++) {
 		if (ID_CONV_TABLE[i].rid == id) {
 			return ID_CONV_TABLE[i].fid;
 		}
@@ -63,7 +63,7 @@ getIdFromRemoteVision(VideoCodecId id) {
 
 PixelFormat FFMpegInfo::getPixFmtFromRemoteVision(ImageFormat fmt)
 {
-	for (int i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
+	for (unsigned i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
 		if (PIX_CONV_TABLE[i].rfmt == fmt) {
 			return PIX_CONV_TABLE[i].ffmt;
 		}
@@ -91,7 +91,7 @@ FFMpegCodecInfo FFMpegInfo::findCodecInfo(const VideoCodec & codec)
 ImageFormat FFMpegInfo::
 getPixFmtFromFFMpeg(PixelFormat fmt)
 {
-	for (int i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
+	for (unsigned i=0; i<ARRAY_SIZE(PIX_CONV_TABLE); i++) {
 		if (PIX_CONV_TABLE[i].ffmt == fmt) {
 			return PIX_CONV_TABLE[i].rfmt;
 		}

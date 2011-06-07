@@ -13,7 +13,7 @@ typedef enum {
 	IF_YUV420P,
 	IF_YUV422P,
 	IF_RGB565,
-	IF_RGB888,
+	IF_RGB888
 } ImageFormat;
 
 #endif /* IMAGEFORMAT_H_ */

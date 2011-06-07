@@ -187,9 +187,10 @@ Error Mutex::lock(int ms)
 
 	}else{
 		rc = pthread_mutex_lock(&d->mInternalMutex);
-		ret.setSystemError(rc);
+
 	}
 
+	ret.setSystemError(rc);
 	return ret;
 }
 
