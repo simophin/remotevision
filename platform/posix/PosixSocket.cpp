@@ -80,7 +80,7 @@ getFileDescriptor() const
 ssize_t PosixSocket::
 doRead(char *data, size_t size)
 {
-	return ::read(d->fd,data,size);
+	return getError(::read(d->fd,data,size));
 }
 
 
@@ -88,7 +88,7 @@ doRead(char *data, size_t size)
 void PosixSocket::
 doClose()
 {
-	::close(d->fd);
+	getError(::close(d->fd));
 }
 
 
@@ -136,14 +136,14 @@ doGetPeerAddress() const
 ssize_t PosixSocket::
 doWrite(const char *data, size_t size)
 {
-	return ::write(d->fd,data,size);
+	return getError(::write(d->fd,data,size));
 }
 
 int PosixSocket::doConnect(const SocketAddress *addr) {
 	const PosixSocketAddress *paddr = static_cast<const PosixSocketAddress *>(addr);
 	size_t addr_len = 0;
 	const sockaddr * saddr = paddr->getPosixAddress(&addr_len);
-	return ::connect(d->fd,saddr,addr_len);
+	return getError(::connect(d->fd,saddr,addr_len));
 }
 
 int PosixSocket::
@@ -176,7 +176,7 @@ doPoll(PosixSocket::PollType p, int timeout) {
 		to.tv_usec = timeout*1000;
 		tv = &to;
 	}
-	return select(d->fd+1, &readfds, &writefds, &exceptfds, tv);
+	return getError(select(d->fd+1, &readfds, &writefds, &exceptfds, tv));
 }
 
 Error PosixSocket::doGetLastError() {
@@ -190,4 +190,17 @@ Error PosixSocket::doGetLastError() {
 #endif
 
 	return ret;
+}
+
+int PosixSocket::getError(int rc) const{
+#ifdef OS_UNIX
+	return rc;
+#endif
+
+#ifdef OS_WIN32
+	if (rc == SOCKET_ERROR)
+	return WSAGetLastError();
+	else
+		return rc;
+#endif
 }

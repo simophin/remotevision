@@ -23,6 +23,8 @@ public:
 	virtual PosixSocketAddress * createAddressInstance (const sockaddr *, size_t addr_len) const= 0;
 	virtual PosixSocket * createInstance(int) const = 0;
 
+	int getError (int rc) const;
+
 protected:
 	virtual ssize_t doRead (char *, size_t);
 	virtual ssize_t doWrite (const char *, size_t);
