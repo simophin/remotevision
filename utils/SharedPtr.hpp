@@ -6,15 +6,57 @@
 
 namespace Utils {
 
+
+
+template <typename T>
+void DefaultDeleter (T * d) {
+	delete d;
+}
+
+template <typename T>
+T * DefaultCloner (const T *p) {
+	return new T(*p);
+}
+
+
 template <class T>
 class SharedPtr {
 public:
-	typedef void (* Deleter) (T *);
+	typedef void (*deleter_function) (T *);
+	typedef T* (*clone_function) (const T *);
 
-	SharedPtr (T * ptr = 0, Deleter deleter = 0)
-	:d(new struct impl){
+
+private :
+	class impl {
+	public:
+		T * mPtr;
+		deleter_function mDeleter;
+		clone_function mCloner;
+		int mRefCount;
+
+	public:
+		impl()
+		:mPtr(0),mDeleter(0),mRefCount(0) {
+
+		}
+
+		impl (const impl &rhs)
+		:mPtr(0),
+		 mDeleter(rhs.mDeleter),
+		 mRefCount(1) {
+			if (rhs.mPtr) mPtr = mCloner(rhs.mPtr);
+		}
+	} *d;
+
+public:
+
+	SharedPtr (T * ptr = 0,
+			deleter_function deleter = DefaultDeleter<T>,
+			clone_function cloner = DefaultCloner<T>)
+	:d(new impl){
 		d->mDeleter = deleter;
 		d->mPtr = ptr;
+		d->mCloner = cloner;
 		d->mRefCount = ptr ? 1 : 0;
 	}
 
@@ -38,33 +80,40 @@ public:
 		return d->mPtr;
 	}
 
+	T * get() {
+		detach(true);
+	}
 
-	T * operator -> () {
+	T * operator-> () const{
 		assert (d->mPtr != 0);
 		return d->mPtr;
 	}
 
+	T * operator->() {
+		detach(true);
+		assert (d->mPtr != 0);
+	}
+
 protected:
-	void detach() {
-		d->mRefCount--;
-		if ( d->mRefCount == 0 ) {
-			if (d->mPtr) {
-				if (d->mDeleter) d->mDeleter(d->mPtr);
-				else delete d->mPtr;
-				d->mPtr = 0;
-				delete d;
-				d = 0;
+	void detach(bool copy = false) {
+		impl *pd = d;
+
+		if (copy) {
+			if (pd->mRefCount == 1) return;
+			d = new impl(*pd);
+		}
+
+		pd->mRefCount--;
+		if ( pd->mRefCount == 0 ) {
+			if (pd->mPtr) {
+				pd->mDeleter(pd->mPtr);
+				pd->mPtr = 0;
 			}
 		}
 
 	}
 
-private :
-	struct impl {
-		T * mPtr;
-		Deleter mDeleter;
-		int mRefCount;
-	} *d;
+
 
 };
 

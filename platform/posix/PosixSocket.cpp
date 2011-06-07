@@ -43,20 +43,20 @@ PosixSocket::PosixSocket(int fd)
 PosixSocket::~PosixSocket() {
 }
 
-int PosixSocket::doListen(int backlog)
+Error PosixSocket::doListen(int backlog)
 {
-	return -EINVAL;
+	return Error::ERR_INVALID;
 }
 
-Socket *PosixSocket::doAccept(SocketAddress **addr)
+Error PosixSocket::doAccept(Socket **sock,SocketAddress **addr)
 {
 	if (addr) *addr = NULL;
 	return NULL;
 }
 
-int PosixSocket::doBind(const SocketAddress *addr)
+Error PosixSocket::doBind(const SocketAddress *addr)
 {
-	return -EINVAL;
+	return Error::ERR_INVALID;
 }
 
 void PosixSocket::doFlush()
@@ -77,10 +77,21 @@ getFileDescriptor() const
 
 
 
-ssize_t PosixSocket::
-doRead(char *data, size_t size)
+Error PosixSocket::
+doRead(char *data, size_t size, size_t *read_size)
 {
-	return getError(::read(d->fd,data,size));
+	Error err;
+	ssize_t rc = ::read(d->fd,data,size);
+#ifdef OS_WIN32
+	//TODO: Implement win32 support
+#endif
+
+#ifdef OS_UNIX
+	if (rc < 0) err.setSystemError(errno);
+	else if (read_size) *read_size = rc;
+#endif
+
+	return err;
 }
 
 
@@ -88,7 +99,8 @@ doRead(char *data, size_t size)
 void PosixSocket::
 doClose()
 {
-	getError(::close(d->fd));
+	::shutdown(d->fd,1);
+	::close(d->fd);
 }
 
 
@@ -133,21 +145,49 @@ doGetPeerAddress() const
 }
 
 
-ssize_t PosixSocket::
-doWrite(const char *data, size_t size)
+Error PosixSocket::
+doWrite(const char *data, size_t size, size_t *write_size)
 {
-	return getError(::write(d->fd,data,size));
+	Error ret;
+	ssize_t rc = ::write(d->fd,data,size);
+
+#ifdef OS_WIN32
+	//TODO: Implement win32 support
+#endif
+
+#ifdef OS_UNIX
+	if (rc < 0) {
+		ret.setSystemError(errno);
+	}else{
+		if (write_size) *write_size = rc;
+	}
+#endif
+
+	return ret;
 }
 
-int PosixSocket::doConnect(const SocketAddress *addr) {
+Error PosixSocket::doConnect(const SocketAddress *addr) {
+	Error ret;
 	const PosixSocketAddress *paddr = static_cast<const PosixSocketAddress *>(addr);
 	size_t addr_len = 0;
 	const sockaddr * saddr = paddr->getPosixAddress(&addr_len);
-	return getError(::connect(d->fd,saddr,addr_len));
+	int rc = ::connect(d->fd,saddr,addr_len);
+
+#ifdef OS_WIN32
+	//TODO: Implement win32 support
+#endif
+
+#ifdef OS_UNIX
+	if (rc < 0) {
+		ret.setSystemError(errno);
+	}
+#endif
+	return ret;
 }
 
-int PosixSocket::
+Error PosixSocket::
 doPoll(PosixSocket::PollType p, int timeout) {
+	Error ret;
 	fd_set readfds, writefds, exceptfds;
 	FD_ZERO(&readfds);
 	FD_ZERO(&writefds);
@@ -176,31 +216,23 @@ doPoll(PosixSocket::PollType p, int timeout) {
 		to.tv_usec = timeout*1000;
 		tv = &to;
 	}
-	return getError(select(d->fd+1, &readfds, &writefds, &exceptfds, tv));
-}
 
-Error PosixSocket::doGetLastError() {
-	Error ret;
-#ifdef OS_UNIX
-	ret.setErrno(errno);
-#endif
+	int rc = select(d->fd+1, &readfds, &writefds, &exceptfds, tv);
 
 #ifdef OS_WIN32
-	ret.setErrno(WSAGetLastError());
+	//TODO: Implement win32 support
 #endif
 
+#ifdef OS_UNIX
+	if (rc == 0) {
+		ret.setErrorType(Error::ERR_TIMEOUT);
+	}else if ( rc < 0) {
+		ret.setSystemError(errno);
+	}
 	return ret;
-}
-
-int PosixSocket::getError(int rc) const{
-#ifdef OS_UNIX
-	return rc;
-#endif
-
-#ifdef OS_WIN32
-	if (rc == SOCKET_ERROR)
-	return WSAGetLastError();
-	else
-		return rc;
 #endif
 }
+
+
+
+

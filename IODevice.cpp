@@ -6,15 +6,14 @@
  */
 
 #include "IODevice.h"
-#include "Error.h"
 
-ssize_t IODevice::
-read(char *data, size_t size) {
-	return doRead(data,size);
+Error IODevice::
+read(char *data, size_t size, size_t *read_size) {
+	return doRead(data,size, read_size);
 }
-ssize_t IODevice::
-write(const char *data, size_t size) {
-	return doWrite(data,size);
+Error IODevice::
+write(const char *data, size_t size, size_t *read_size) {
+	return doWrite(data,size, read_size);
 }
 
 void IODevice::close() {
@@ -34,17 +33,9 @@ int IODevice::doPoll(PollType, int) {
 	return 0;
 }
 
-Error IODevice::getLastError() {
-	return doGetLastError();
-}
-
 void IODevice::flush()
 {
 	doFlush();
-}
-
-Error IODevice::doGetLastError() {
-	return Error();
 }
 
 void IODevice::doFlush()

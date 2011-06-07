@@ -26,17 +26,16 @@ public:
 	int getError (int rc) const;
 
 protected:
-	virtual ssize_t doRead (char *, size_t);
-	virtual ssize_t doWrite (const char *, size_t);
-	virtual int doListen(int);
-	virtual Socket * doAccept(SocketAddress ** addr = 0);
-	virtual int doBind(const SocketAddress *);
-	virtual int doPoll(PollType,int);
+	virtual Error doRead (char *, size_t, size_t *);
+	virtual Error doWrite (const char *, size_t, size_t *);
+	virtual Error doListen(int);
+	virtual Error doAccept(Socket **sock,SocketAddress ** addr = 0);
+	virtual Error doBind(const SocketAddress *);
+	virtual Error doPoll(PollType,int);
 	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const;
 	virtual const SocketAddress * doGetPeerAddress() const;
-	virtual int doConnect(const SocketAddress *);
-	virtual Error doGetLastError();
+	virtual Error doConnect(const SocketAddress *);
 	virtual void doFlush();
 
 private:

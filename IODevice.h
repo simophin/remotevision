@@ -10,10 +10,11 @@
 
 #include <sys/types.h>
 #include "RString.h"
-
 #include "Error.h"
 
-class IODevice {
+#include "utils/NonCopyable.hpp"
+
+class IODevice : public Utils::NonCopyable {
 public:
 	typedef enum {
 		POLL_READ,
@@ -21,19 +22,17 @@ public:
 		POLL_ERROR,
 	} PollType;
 
-	ssize_t read(char *, size_t);
-	ssize_t write(const char *,size_t);
+	Error read(char *, size_t, size_t *);
+	Error write(const char *,size_t, size_t *);
 	void flush();
 	void close();
-	int poll(PollType, int timeout);
-	Error getLastError();
+	Error poll(PollType, int timeout);
 
 protected:
-	virtual ssize_t doRead (char *, size_t) = 0;
-	virtual ssize_t doWrite (const char *, size_t) = 0;
-	virtual int doPoll(PollType, int);
+	virtual Error doRead (char *, size_t, size_t *) = 0;
+	virtual Error doWrite (const char *, size_t, size_t *) = 0;
+	virtual Error doPoll(PollType, int);
 	virtual void doClose();
-	virtual Error doGetLastError();
 	virtual void doFlush();
 };
 

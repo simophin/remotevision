@@ -24,12 +24,15 @@ public:
 		ERR_SYS_UNKNOWN,
 		ERR_STATE,
 		ERR_TIMEOUT,
+		ERR_INVALID,
 	};
 
 	Error (Type t = ERR_SUCCESS);
 	explicit Error (Type t, const String &str);
 	explicit Error (syserrno_t sys);
 	explicit Error (syserrno_t sys, const String &str);
+
+	virtual ~Error ();
 
 	Type getErrorType() const;
 	void setErrorType (Type t);
@@ -48,8 +51,10 @@ public:
 	friend std::ostream& operator <<(std::ostream &os,const Error &obj);
 
 	class SystemMap {
+	public:
 		syserrno_t system;
 		Type type;
+		const char * message;
 	};
 
 private:

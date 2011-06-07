@@ -25,28 +25,27 @@ getPeerAddress() const {
 	return doGetPeerAddress();
 }
 
-int Socket::
+Error Socket::
 connect(const SocketAddress * addr) {
 	return doConnect(addr);
 }
 
-int Socket::bind(const SocketAddress *addr)
+Error Socket::bind(const SocketAddress *addr)
 {
 	return doBind(addr);
 }
 
 
 
-int Socket::listen(int backlog)
+Error Socket::listen(int backlog)
 {
 	return doListen(backlog);
 }
 
 
-
-Socket *Socket::accept(SocketAddress **addr)
+Error Socket::accept(Socket **sock, SocketAddress **addr)
 {
-	return doAccept(addr);
+	return doAccept(sock,addr);
 }
 
 
