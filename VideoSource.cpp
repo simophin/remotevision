@@ -22,24 +22,14 @@ VideoSource::~VideoSource() {
 	delete d;
 }
 
-ssize_t  VideoSource::
-doRead (char *, size_t){
-}
-ssize_t VideoSource::
-doWrite (const char *, size_t){
-}
-
-int VideoSource::
-doPoll(PollType, int){
-}
-
-void VideoSource::doClose(){
-}
-
-
 Error VideoSource::
 doGetLastError(){
 	return d->lastError;
+}
+
+Error VideoSource::getLastError()
+{
+	return doGetLastError();
 }
 
 void VideoSource::

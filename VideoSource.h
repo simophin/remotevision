@@ -19,7 +19,7 @@
 #include "FrameRate.h"
 
 class ImageBuffer;
-class VideoSource: public IODevice {
+class VideoSource{
 public:
 	VideoSource();
 	virtual ~VideoSource();
@@ -65,13 +65,11 @@ public:
 	bool stopCapture(int ms = -1);
 	void putBuffer(const Buffer &, int ms = -1);
 	Buffer getFilledBuffer (int ms = -1);
+	Error getLastError() ;
 
 	class Impl;
 protected:
-	virtual ssize_t doRead (char *, size_t);
-	virtual ssize_t doWrite (const char *, size_t);
-	virtual int doPoll(PollType, int);
-	virtual void doClose();
+
 	virtual Error doGetLastError();
 	void setLastError(const Error &);
 
