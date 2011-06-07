@@ -24,27 +24,32 @@ int main () {
 	TCPSocket socket (sock);
 	sock = ::socket(AF_INET, SOCK_STREAM,0);
 	TCPSocket dataSocket (sock);
+	Error rc;
 
 	TCPSocketAddress remoteAddr ("127.0.0.1", 10001);
 
-	if (socket.connect(&remoteAddr)) {
-		std::cerr << socket.getLastError() << std::endl;
+	rc = socket.connect(&remoteAddr);
+	if (!rc.isSuccess()) {
+		std::cerr << rc << std::endl;
 		return -1;
 	}
 
-	if (dataSocket.connect(&remoteAddr)) {
-		std::cerr << dataSocket.getLastError() << std::endl;
-		return -2;
+	rc = dataSocket.connect(&remoteAddr);
+	if (!rc.isSuccess()) {
+		std::cerr << rc << std::endl;
+		return -1;
 	}
 
 
 	FFMpeg::init();
 	IOVideoSource source (&socket,&dataSocket);
-	if (!source.init()) {
-		std::cerr << source.getLastError() << std::endl;
+	rc = source.init();
+	if (!rc.isSuccess()) {
+		std::cerr << rc << std::endl;
 		return 3;
 	}
-	IOVideoSource::Info info = source.getInformation();
+	IOVideoSource::Info info;
+	source.getInformation(info);
 
 	std::cout << "Supported geometry are: "<<std::endl;
 	for (int i=0;i<info.providerInfo.supportedGeometries.size();i++) {
@@ -63,15 +68,17 @@ int main () {
 	}
 	*/
 
-	if (!source.startCapture()) {
-		std::cerr << source.getLastError() << std::endl;
+	rc = source.startCapture();
+	if (!rc.isSuccess()) {
+		std::cerr << rc << std::endl;
 		return 3;
 	}
 
 	for (int i=0; i<20; i++) {
-		VideoSource::Buffer buf = source.getFilledBuffer();
-		if (!buf.isValid()) {
-			std::cerr << "Buffer is not valid" << std::endl;
+		VideoSource::Buffer buf;
+		rc = source.getFilledBuffer(buf);
+		if (!buf.isValid() || !rc.isSuccess()) {
+			std::cerr << "Buffer is not valid: " <<rc.getErrorString() <<std::endl;
 			return 4;
 		}
 

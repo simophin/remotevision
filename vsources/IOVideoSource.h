@@ -22,14 +22,14 @@ public:
 	IODevice * getDataDevice() const;
 
 protected:
-	virtual bool doInit (const Option &options, int ms);
-	virtual Info doGetInformation(int ms) const;
-	virtual ImageParam doGetImageParam(int ms) const;
-	virtual bool doSetImageParam(ImageParam &,int ms);
-	virtual bool doStartCapture(int ms);
-	virtual bool doStopCapture(int ms);
-	virtual void doPutBuffer(const Buffer &, int ms);
-	virtual Buffer doGetFilledBuffer (int ms);
+	virtual Error doInit (const Option &options, int ms);
+	virtual Error doGetInformation(Info &,int ms) const;
+	virtual Error doGetImageParam(ImageParam &,int ms) const;
+	virtual Error doSetImageParam(ImageParam &,int ms);
+	virtual Error doStartCapture(int ms);
+	virtual Error doStopCapture(int ms);
+	virtual Error doPutBuffer(const Buffer &, int ms);
+	virtual Error doGetFilledBuffer (Buffer &,int ms);
 
 private:
 	Impl *d;

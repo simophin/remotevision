@@ -78,8 +78,7 @@ protected:
 	virtual Error doStopCapture(int ms) = 0;
 	virtual Error doPutBuffer(const Buffer &, int ms) = 0;
 	virtual Error doGetFilledBuffer (Buffer &,int ms) = 0;
-private:
-	Impl *d;
+
 };
 
 #endif /* VIDEOSOURCE_H_ */

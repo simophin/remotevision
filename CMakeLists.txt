@@ -47,6 +47,8 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif()
 
+add_definitions(-DSTATIC_INITIALIZER)
+
 # Files
 FILE(GLOB SOURCES *.cpp)
 ADD_SUBDIRECTORY(medium)

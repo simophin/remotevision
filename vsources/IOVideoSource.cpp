@@ -11,6 +11,7 @@
 #include "Command.h"
 #include "Log.h"
 #include "Thread.h"
+#include "Error.h"
 
 #include "Commander.h"
 #include "commands/CommandBuilder.h"
@@ -91,20 +92,22 @@ IOVideoSource::~IOVideoSource() {
 	delete d;
 }
 
-IOVideoSource::Info IOVideoSource::
-doGetInformation(int ms) const
+Error IOVideoSource::
+doGetInformation(Info &info,int ms) const
 {
-	return d->info;
+	info = d->info;
+	return Error();
 }
 
 
 
-bool IOVideoSource::
+Error IOVideoSource::
 doSetImageParam(ImageParam & fmt, int ms)
 {
+	Error rc;
 	if (d->state != STATE_READY) {
-		setLastError(Error("STATE ERROR"));
-		return false;
+		rc.setErrorType(Error::ERR_STATE);
+		return rc;
 	}
 
 	// Do validate for geometry
@@ -120,10 +123,10 @@ doSetImageParam(ImageParam & fmt, int ms)
 	d->param = fmt;
 	d->updateFFmpeg();
 	if (d->decodeCtx == 0 || d->swsCtx == 0) {
-		setLastError(Error("Internal error"));
-		return false;
+		rc.setErrorString(("Internal error"));
+		return rc;
 	}
-	return true;
+	return rc;
 }
 
 
@@ -138,33 +141,26 @@ IODevice *IOVideoSource::getDataDevice() const
 	return d->dataDev;
 }
 
-IOVideoSource::Buffer IOVideoSource::
-doGetFilledBuffer(int ms)
+Error IOVideoSource::
+doGetFilledBuffer(IOVideoSource::Buffer &buf,int ms)
 {
-	Buffer ret;
+	Error ret;
 	bool timeout;
 
 	if (d->state != STATE_CAPTURING || !d->isRunning()) {
-		Log::logError("State error");
+		ret.setErrorType(Error::ERR_STATE);
 		return ret;
 	}
 
-	if (!d->filledBufferMutex.lock(ms,&timeout)) {
-		if (timeout) {
-			setLastError(Error(ETIMEDOUT));
-		}else{
-			setLastError(Error("Internal mutex error"));
-		}
+	ret = d->filledBufferMutex.lock(ms);
+	if (!ret.isSuccess()) {
 		return ret;
 	}
+
 
 	if (d->filledBuffers.size() < 1) {
-		if (!d->filledBufferCond.wait(d->filledBufferMutex,ms,&timeout)) {
-			if (timeout) {
-				setLastError(Error(ETIMEDOUT));
-			}else{
-				setLastError(Error("Internal mutex error"));
-			}
+		ret = d->filledBufferCond.wait(d->filledBufferMutex,ms);
+		if (!ret.isSuccess()) {
 			return ret;
 		}
 	}
@@ -174,44 +170,48 @@ doGetFilledBuffer(int ms)
 	d->filledBufferMutex.unlock();
 	Log::logDebug("Got buffer index = %d", index);
 	const AVFrame *frame = d->convertedBuffers.at(index);
-	ret.index = index;
-	ret.buf = frame->data[0];
-	ret.size = frame->linesize[0] + frame->linesize[1] + frame->linesize[2] + frame->linesize[3];
+	buf.index = index;
+	buf.buf = frame->data[0];
+	buf.size = frame->linesize[0] + frame->linesize[1] + frame->linesize[2] + frame->linesize[3];
 	return ret;
 }
 
 
 
-bool IOVideoSource::
+Error IOVideoSource::
 doStopCapture(int ms)
 {
+	Error rc;
 	if (d->state == STATE_CAPTURING || d->isRunning()) {
-		d->stop(ms);
+		return d->stop(ms);
 	}
 
-	return true;
+	return rc;
 }
 
 
 
-void IOVideoSource::
+Error IOVideoSource::
 doPutBuffer(const Buffer & buf, int ms)
 {
+	Error rc;
 	if (d->state != STATE_CAPTURING || !d->isRunning()) {
-		Log::logError("State error");
-		return;
+		rc.setErrorType(Error::ERR_STATE);
+		return rc;
 	}
 	if (buf.index < 0 || buf.index >= d->convertedBuffers.size()) {
-		Log::logError("Index %d is not existed", buf.index);
-		return;
+		rc.setErrorString( "Buffer index out of range");
+		return rc;
 	}
 
-	if (!d->emptyBufferMutex.lock(ms)){
-		return;
+	rc = d->emptyBufferMutex.lock(ms);
+	if (!rc.isSuccess()){
+		return rc;
 	}
-	if (!d->filledBufferMutex.lock(ms)) {
+	rc = d->filledBufferMutex.lock(ms);
+	if (!rc.isSuccess()) {
 		d->emptyBufferMutex.unlock();
-		return;
+		return rc;
 	}
 
 	Log::logDebug ("Trying to put buffer index = %d", buf.index);
@@ -225,27 +225,28 @@ doPutBuffer(const Buffer & buf, int ms)
 	}
 	d->filledBufferMutex.unlock();
 	d->emptyBufferMutex.unlock();
+	return rc;
 }
 
 
 
-IOVideoSource::ImageParam IOVideoSource::
-doGetImageParam(int ms) const
+Error IOVideoSource::
+doGetImageParam(ImageParam &p, int ms) const
 {
-	return d->param;
+	p = d->param;
+	return Error();
 }
 
 
 
-bool IOVideoSource::
+Error IOVideoSource::
 doStartCapture(int ms)
 {
+	Error rc;
 	if (d->state != STATE_READY) {
-		setLastError(Error("STATE ERROR"));
-		return false;
+		rc.setErrorType(Error::ERR_STATE);
+		return rc;
 	}
-
-
 
 	// Require remote to start
 	Command request,response;
@@ -255,32 +256,36 @@ doStartCapture(int ms)
 	builder.clearArguments();
 	builder.setRequestCommand(VideoCommand::StartCaptureCommandHandler::REQUEST_STRING);
 	builder.build(request);
-	if (!d->cmdParser.writeCommand(request)) {
-		setLastError(d->cmdParser.getLastError());
-		return false;
+	rc = d->cmdParser.writeCommand(request);
+	if (!rc.isSuccess()) {
+		return rc;
 	}
 
-	if (!d->cmdParser.readCommand(response)){
-		setLastError(d->cmdParser.getLastError());
-		return false;
+	rc = d->cmdParser.readCommand(response);
+	if (!rc.isSuccess()) {
+		return rc;
 	}
 
 	if (response.getName() != VideoCommand::StartCaptureCommandHandler::SUCCESS_STRING) {
-		setLastError(Error("Remote error"));
-		return false;
+		rc.setErrorString("Command returned from remote is not valid");
 	}
 
-	d->state = STATE_CAPTURING;
-	d->run();
-	return true;
+	rc = d->run();
+	if (rc.isSuccess()) d->state = STATE_CAPTURING;
+	return rc;
 }
 
 
 
-bool IOVideoSource::
+Error IOVideoSource::
 doInit(const IOVideoSource::Option & options, int ms)
 {
-	assert (d->state == STATE_UNINTIALIZED);
+	Error ret;
+	if (d->state != STATE_UNINTIALIZED) {
+		ret.setErrorType(Error::ERR_STATE);
+		return ret;
+	}
+
 	Info info;
 	CommandBuilder builder;
 	Command cmd;
@@ -289,13 +294,13 @@ doInit(const IOVideoSource::Option & options, int ms)
 	builder.setRequestCommand(VideoCommand::QueryInfoCommandHandler::REQUEST_STRING);
 	builder.build(cmd);
 
-	if (!d->cmdParser.writeCommand(cmd)) {
-		const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
+	ret = d->cmdParser.writeCommand(cmd);
+	if (!ret.isSuccess()) {
 		goto write_error;
 	}
 
-	if (!d->cmdParser.readCommand(cmd)) {
-		const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
+	ret = d->cmdParser.readCommand(cmd);
+	if (!ret.isSuccess()) {
 		goto read_error;
 	}
 
@@ -310,13 +315,13 @@ doInit(const IOVideoSource::Option & options, int ms)
 	builder.setRequestCommand(VideoCommand::GetParameterCommandHandler::REQUEST_STRING);
 	builder.build(cmd);
 
-	if (!d->cmdParser.writeCommand(cmd)) {
-		const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
+	ret = d->cmdParser.writeCommand(cmd);
+	if (!ret.isSuccess()) {
 		goto write_error;
 	}
 
-	if (!d->cmdParser.readCommand(cmd)) {
-		const_cast<IOVideoSource *>(this)->setLastError(d->cmdParser.getLastError());
+	ret = d->cmdParser.readCommand(cmd);
+	if (!ret.isSuccess()) {
 		goto read_error;
 	}
 
@@ -337,14 +342,11 @@ doInit(const IOVideoSource::Option & options, int ms)
 		d->updateFFmpeg();
 
 		d->state = STATE_READY;
-		return true;
-	}else{
-		return false;
 	}
 
 	write_error:
 	read_error:
-	return false;
+	return ret;
 }
 
 inline void IOVideoSource::Impl::updateFFmpeg()
@@ -457,45 +459,53 @@ inline void IOVideoSource::Impl::updateFFmpeg()
 	return;
 }
 
-void IOVideoSource::Impl::entry() {
+Error IOVideoSource::Impl::entry() {
+	Error rc;;
 	char *buf = (char *)::malloc(config.bufferSize);
 	assert (buf != NULL);
 
 	AVFrame *frame = avcodec_alloc_frame();
 	int got_frame = 0;
 	ssize_t readSize = 0;
+	AVPacket pkt;
+	av_init_packet(&pkt);
 	while (!shouldStop()){
 		readSize = 0;
 
-		int rc = dataDev->read( buf + readSize,config.bufferSize - readSize );
-		if (rc < 0) {
-			goto read_error;
-		}else if (rc == 0) {
-			continue;
-		}
+		size_t bytes_read;
+		rc = dataDev->read( buf + readSize,config.bufferSize - readSize ,&bytes_read);
 
-		readSize = rc;
+		if (!rc.isSuccess()) break;
+
+		readSize = bytes_read;
 
 		Log::logDebug("Get %u bytes data",readSize);
 
 		{
 			int usedSize = 0;
 			do {
-				int rc = avcodec_decode_video(decodeCtx, frame, &got_frame, (uint8_t *)(buf + usedSize), readSize - usedSize);
-				if (rc < 0) break;
-				usedSize += rc;
+				int decodedSize;
+				pkt.data = (uint8_t *)(buf+usedSize);
+				pkt.size = readSize - usedSize;
+				if ( (decodedSize = avcodec_decode_video2(decodeCtx, frame,&got_frame, &pkt)) < 0) {
+					rc.setErrorString("Decode video failed");
+					break;
+				}
+
+				usedSize += decodedSize;
 				if (got_frame) {
 					// Get a buffer to do swscale
 					int index = -1;
-					bool to;
 					do {
-						if (!emptyBufferMutex.lock(2000,&to)) {
+						rc = emptyBufferMutex.lock(2000);
+						if (!rc.isSuccess()) {
 							goto get_empty_buffer_error;
 						}
 						if (emptyBuffers.size() < 1) {
-							if (!emptyBufferCond.wait(emptyBufferMutex,500,&to)){
+							rc = emptyBufferCond.wait(emptyBufferMutex,500);
+							if (!rc.isSuccess()){
 								emptyBufferMutex.unlock();
-								if (to) continue;
+								if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
 								else goto get_empty_buffer_error;
 							}
 						}
@@ -507,9 +517,9 @@ void IOVideoSource::Impl::entry() {
 					}while(!shouldStop());
 
 					if (index < 0) {
+						rc.setErrorType(Error::ERR_TIMEOUT);
 						goto get_empty_buffer_error;
 					}
-
 
 
 					AVFrame *convertedBuf = convertedBuffers.at(index);
@@ -517,13 +527,15 @@ void IOVideoSource::Impl::entry() {
 
 					if (sws_scale(swsCtx,frame->data,frame->linesize,0,decodeCtx->height,
 							convertedBuf->data,convertedBuf->linesize) < 0) {
+						rc.setErrorString("sws scaling failed");
 						goto sws_error;
 					}
 
 
 					Log::logDebug("decode thread finish writing buffer %d", index);
 
-					if (!filledBufferMutex.lock(2000,&to)) {
+					rc = filledBufferMutex.lock(2000);
+					if (!rc.isSuccess()) {
 						goto lock_fill_buffer_error;
 					}
 					filledBuffers.push_back(index);

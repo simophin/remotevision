@@ -51,7 +51,7 @@ Error PosixSocket::doListen(int backlog)
 Error PosixSocket::doAccept(Socket **sock,SocketAddress **addr)
 {
 	if (addr) *addr = NULL;
-	return NULL;
+	return Error();
 }
 
 Error PosixSocket::doBind(const SocketAddress *addr)

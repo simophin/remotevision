@@ -48,7 +48,7 @@ public:
 	Mutex(Type t = Normal);
 	virtual ~Mutex();
 
-	virtual Error lock(int ms = -1, bool *timeout = 0);
+	virtual Error lock(int ms = -1);
 	virtual void unlock();
 	virtual bool trylock();
 

@@ -10,9 +10,12 @@ using namespace Utils;
 
 class MyThread: public Thread {
 public:
-	virtual void entry () {
+	virtual Error entry () {
 		SharedPtr<char> buf = buffer;
 		sleep(time);
+		char *b = buf.get();
+		b[10] = 5;
+		return Error();
 	}
 
 	MyThread(SharedPtr<char> buf, int t)
@@ -29,7 +32,7 @@ void freeFunction (char *buf) {
 }
 
 char * cloneFunction (const char *buf) {
-	char *ret = ::malloc(1024);
+	char *ret = (char *)::malloc(1024);
 	::memcpy(ret,buf,1024);
 	Log::logDebug("Clone buffer!");
 	return ret;

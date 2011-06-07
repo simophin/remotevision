@@ -43,6 +43,7 @@ private :
 		impl (const impl &rhs)
 		:mPtr(0),
 		 mDeleter(rhs.mDeleter),
+		 mCloner(rhs.mCloner),
 		 mRefCount(1) {
 			if (rhs.mPtr) mPtr = mCloner(rhs.mPtr);
 		}
@@ -82,6 +83,7 @@ public:
 
 	T * get() {
 		detach(true);
+		return d->mPtr;
 	}
 
 	T * operator-> () const{

@@ -8,33 +8,13 @@
 #include "VideoSource.h"
 #include "ImageBuffer.h"
 
-class VideoSource::Impl {
-public:
-	Error lastError;
-};
-
 VideoSource::VideoSource()
-:d(new VideoSource::Impl){
+{
 
 }
 
 VideoSource::~VideoSource() {
-	delete d;
-}
 
-Error VideoSource::
-doGetLastError(){
-	return d->lastError;
-}
-
-Error VideoSource::getLastError()
-{
-	return doGetLastError();
-}
-
-void VideoSource::
-setLastError(const Error &err) {
-	d->lastError = err;
 }
 
 Error  VideoSource::init (const Option &options, int ms){
@@ -44,7 +24,7 @@ Error VideoSource::getInformation(Info &info,int ms) const{
 	return doGetInformation(info,ms);
 }
 Error VideoSource::
-getImageParam(Param &p,int ms) const{
+getImageParam(ImageParam &p,int ms) const{
 	return doGetImageParam(p,ms);
 }
 Error VideoSource::setImageParam(ImageParam & fmt,int ms){
