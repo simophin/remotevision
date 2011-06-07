@@ -95,37 +95,6 @@ public:
 		const NonCopyable& operator=( const NonCopyable& );
 
 	};
-
-	template <class T>
-	class SharedPtr {
-	public:
-		SharedPtr (T * ptr = 0)
-		:mRefCount(0){
-		}
-
-		~SharedPtr () {
-			if (! --mRefCount) {
-				delete mPtr;
-			}
-		}
-
-		SharedPtr(const SharedPtr &rhs)
-		:mPtr(rhs.mPtr), mRefCount(++rhs.mRefCount) {
-		}
-
-		const T * get() const {
-			return mPtr;
-		}
-
-		void detach() {
-			mPtr = 0;
-			mRefCount = 0;
-		}
-
-	private :
-		volatile int mRefCount;
-		T * mPtr;
-	};
 };
 
 #endif /* UTILS_H_ */
