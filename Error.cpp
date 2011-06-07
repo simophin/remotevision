@@ -11,6 +11,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sstream>
+#include <ostream>
 
 #include "Log.h"
 
@@ -18,6 +19,113 @@
 #include <windows.h>
 #endif
 
+
+extern Error::SystemMap ERROR_MAPS;
+
+class Error::Impl {
+public:
+	String mErrorString;
+	syserrno_t mSystemErrno;
+	Type   mErrorType;
+};
+
+Error::Error(Type t)
+:d(new Impl)
+{
+}
+
+
+Error::Error(Type t, const String & str)
+:d(new Impl)
+{
+}
+
+
+
+Error::Error(syserrno_t sys)
+:d(new Impl)
+{
+}
+
+
+
+Error::Error(syserrno_t sys, const String & str)
+:d(new Impl)
+{
+}
+
+
+
+Error::Type Error::getErrorType() const
+{
+}
+
+
+
+void Error::setErrorType(Type t)
+{
+}
+
+
+
+void Error::setErrorType(Type t, const String & str)
+{
+}
+
+
+
+String Error::getErrorString() const
+{
+}
+
+
+
+syserrno_t Error::getSystemError() const
+{
+}
+
+
+
+void Error::setSystemError(syserrno_t e)
+{
+}
+
+
+
+void Error::setSystemError(syserrno_t int1, const String & allocator)
+{
+}
+
+
+
+bool Error::isSuccess() const
+{
+}
+
+
+
+String Error::toString() const
+{
+}
+
+
+
+Error Error::fromString(const String & allocator, bool *ok)
+{
+}
+
+
+
+std::ostream & Error::operator <<(std::ostream & os, const Error & obj)
+{
+	os << obj.getErrorString();
+	return os;
+}
+
+
+
+
+/*
 syserrno_t syserrno_success = 0;
 
 Error::Error(syserrno_t e)
@@ -110,3 +218,5 @@ Error Error::fromString(const String &str,bool *ok) {
 	ret.setErrorString(buf);
 	return ret;
 }
+
+*/

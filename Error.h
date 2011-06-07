@@ -8,49 +8,53 @@
 #ifndef ERROR_H_
 #define ERROR_H_
 
-#include <ostream>
+
 #include "RString.h"
+#include "utils/SharedPtr.hpp"
+
+#include <iostream>
 
 typedef int syserrno_t;
-typedef String errorstring_t;
-extern syserrno_t syserrno_success;
 
 class Error {
 public:
-	explicit Error(syserrno_t e = syserrno_success);
-	explicit Error(const errorstring_t &);
-	explicit Error(const char *, size_t size = 0);
-	virtual ~Error();
-
-
 	enum Type {
+		ERR_SUCCESS,
 		ERR_UNKNOWN,
 		ERR_SYS_UNKNOWN,
 		ERR_STATE,
+		ERR_TIMEOUT,
 	};
 
+	Error (Type t = ERR_SUCCESS);
+	explicit Error (Type t, const String &str);
+	explicit Error (syserrno_t sys);
+	explicit Error (syserrno_t sys, const String &str);
 
-	void setSystemErrno (syserrno_t, bool fetchFromSystem = true, const String & errMsg = String());
-	syserrno_t getSystemErrno () const;
+	Type getErrorType() const;
+	void setErrorType (Type t);
+	void setErrorType (Type t, const String &str);
+	String getErrorString() const;
 
+	syserrno_t getSystemError () const;
+	void setSystemError (syserrno_t);
+	void setSystemError (syserrno_t, const String &);
 
-
-
-	syserrno_t getErrno() const;
-	void setErrno(syserrno_t,bool fetchFromSystem = true);
-
-	errorstring_t getErrorString () const;
-	void setErrorString (const errorstring_t &);
-	void setErrorString (const char *, size_t size = 0);
+	bool isSuccess () const;
 
 	String toString() const;
 	static Error fromString(const String &,bool *ok = NULL);
 
 	friend std::ostream& operator <<(std::ostream &os,const Error &obj);
 
+	class SystemMap {
+		syserrno_t system;
+		Type type;
+	};
+
 private:
-	syserrno_t errorNumber;
-	errorstring_t errorString;
+	class Impl;
+	Utils::SharedPtr<Impl> d;
 };
 
 
