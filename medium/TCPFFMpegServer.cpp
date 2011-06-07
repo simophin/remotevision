@@ -31,7 +31,6 @@ public:
 	TCPServerSocket *mServerSocket;
 	TCPSocketAddress mBindAddress;
 	VideoProvider *mVideoProvider;
-	Error mLastError;
 	Server *mServer;
 	State mState;
 
@@ -42,7 +41,7 @@ public:
 
 	}
 
-	virtual void entry();
+	virtual Error entry();
 };
 
 TCPFFMpegServer::TCPFFMpegServer(const String & addr, int port)
@@ -56,34 +55,38 @@ String TCPFFMpegServer::getBoundInfo() const
 	return d->mServerSocket->getAddress()->getReadable();
 }
 
-bool TCPFFMpegServer::start()
+Error TCPFFMpegServer::start()
 {
+	Error ret;
 	if (d->mState != STATE_READY) {
-		d->mLastError = Error("State error");
-		return false;
+		ret.setErrorType(Error::ERR_STATE);
+		return ret;
 	}
 
 	d->mState = STATE_INSERVICE;
 	d->run();
-	return true;
+	return ret;
 }
 
-void TCPFFMpegServer::stop()
+Error TCPFFMpegServer::stop()
 {
+	Error ret;
 	if (d->mState != STATE_INSERVICE) {
-		d->mLastError = Error("State error");
-		return;
+		ret.setErrorType(Error::ERR_STATE);
+		return ret;
 	}
 
 	d->stop();
 	d->mState = STATE_READY;
+	return ret;
 }
 
-bool TCPFFMpegServer::init(const char *filename)
+Error TCPFFMpegServer::init(const char *filename)
 {
+	Error ret;
 	if (d->mState != STATE_UNINTIALIZED) {
-		d->mLastError = Error("State error");
-		return false;
+		ret.setErrorType(Error::ERR_STATE);
+		return ret;
 	}
 
 	int fd;
@@ -97,12 +100,12 @@ bool TCPFFMpegServer::init(const char *filename)
 	// Create server socket and init
 	{
 		d->mServerSocket = new TCPServerSocket(fd);
-		if (d->mServerSocket->bind(&d->mBindAddress) != 0) {
-			d->mLastError = d->mServerSocket->getLastError();
+		ret = d->mServerSocket->bind(&d->mBindAddress);
+		if ( !ret.isSuccess()) {
 			goto bind_socket_failed;
 		}
-		if (d->mServerSocket->listen(2) != 0) {
-			d->mLastError = d->mServerSocket->getLastError();
+		ret = d->mServerSocket->listen(2);
+		if ( !ret.isSuccess()) {
 			goto listen_failed;
 		}
 	}
@@ -110,8 +113,8 @@ bool TCPFFMpegServer::init(const char *filename)
 	// Create provider
 	{
 		d->mVideoProvider = new FFMpegVideoProvider(filename);
-		if (!d->mVideoProvider->initDevice()) {
-			d->mLastError = d->mVideoProvider->getLastError();
+		ret = d->mVideoProvider->initDevice();
+		if (!ret.isSuccess()) {
 			goto init_provider_failed;
 		}
 	}
@@ -124,7 +127,7 @@ bool TCPFFMpegServer::init(const char *filename)
 
 
 	d->mState = STATE_READY;
-	return true;
+	return ret;
 
 	init_provider_failed:
 	delete d->mVideoProvider;
@@ -137,51 +140,55 @@ bool TCPFFMpegServer::init(const char *filename)
 	create_fd_failed:
 
 	d->mState = STATE_UNINTIALIZED;
-	return false;
+	return ret;
 }
 
-Error TCPFFMpegServer::getLastError() const
-{
-	return d->mLastError;
-}
 
-bool TCPFFMpegServer::wait()
+Error TCPFFMpegServer::wait()
 {
-	if (d->isRunning()) {
-		return d->wait();
-	}
-	return true;
+	return d->wait();
 }
 
 TCPFFMpegServer::~TCPFFMpegServer() {
 	delete d;
 }
 
-void TCPFFMpegServer::Impl::entry()
+Error TCPFFMpegServer::Impl::entry()
 {
 	mState = STATE_INSERVICE;
 
-	int rc;
+	Error rc;
 	TCPSocketAddress *addr = NULL;
-	TCPSocket *controlSocket, *dataSocket;
+	TCPSocket *controlSocket = 0, *dataSocket = 0;
 
 	while (!shouldStop()) {
-		if ((rc = mServerSocket->poll(IODevice::POLL_READ,2000)) <= 0) {
-			if (rc == 0) continue;
+		rc = mServerSocket->poll(IODevice::POLL_READ,2000);
+		if ( !rc.isSuccess() ) {
+			if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
 			else goto timeout;
 		}
 		break;
 	}
-	if (shouldStop()) return;
+	if (shouldStop()) return rc;
 
-	controlSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
+
+	rc = mServerSocket->accept( (Socket **)&controlSocket,(SocketAddress **)&addr);
+	if (!rc.isSuccess()) {
+		goto accept_failed;
+	}
+
 	if (controlSocket == 0) {
 		goto accept_failed;
 	}
+
 	Log::logDebug("Control interface accepted from %s", addr->getReadable().c_str());
 	delete addr;
-	dataSocket = (TCPSocket *)mServerSocket->accept((SocketAddress **)&addr);
-	if (controlSocket == 0) {
+
+	rc = mServerSocket->accept( (Socket **)&dataSocket,(SocketAddress **)&addr);
+	if (!rc.isSuccess()) {
+		goto accept_failed;
+	}
+	if (dataSocket == 0) {
 		goto accept_failed;
 	}
 
@@ -193,16 +200,19 @@ void TCPFFMpegServer::Impl::entry()
 		mServer = new Server(mCmdMgr,controlSocket,dataSocket,mVideoProvider);
 		mServer->start();
 
-		while (!shouldStop() && !mServer->wait(1000)) {}
+		while (!shouldStop() && (mServer->wait(1000).getErrorType() != Error::ERR_TIMEOUT)) {}
 
 		delete mServer;
 		mServer = 0;
 	}
 
-	delete controlSocket;
-	delete dataSocket;
+
 	accept_failed:
+	if (controlSocket) delete controlSocket;
+	if (dataSocket) delete dataSocket;
 	timeout:
 	mState = STATE_READY;
+
+	return rc;
 }
 

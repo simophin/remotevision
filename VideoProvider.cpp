@@ -18,63 +18,57 @@ VideoProvider::VideoProvider(){
 VideoProvider::~VideoProvider() {
 }
 
-bool VideoProvider::
+Error VideoProvider::
 initDevice() {
 	return doInitDevice();
 }
 
 
-VideoProvider::Info VideoProvider::
-queryInfo() const
+Error VideoProvider::
+queryInfo(VideoProvider::Info &info) const
 {
-	return doQueryInfo();
+	return doQueryInfo(info);
 }
 
 
 Error VideoProvider::
-getLastError() const
-{
-	return doGetLastError();
-}
-
-bool VideoProvider::
 startCapture()
 {
 	return doStartCapture();
 }
 
-bool VideoProvider::
+Error VideoProvider::
 stopCapture()
 {
 	return doStopCapture();
 }
 
-size_t VideoProvider::getData(ImageBuffer &buf) {
-	return getData(buf.getData(),buf.getSize());
+Error VideoProvider::getData(ImageBuffer &buf, size_t *returned, int ms) {
+	return getData(buf.getData(),buf.getSize(), returned, ms);
 }
 
-size_t VideoProvider::
-getData(unsigned char *data, size_t size)
+Error VideoProvider::
+getData(unsigned char * data, size_t size, size_t *returned, int ms )
 {
-	return doGetData(data,size);
+	return doGetData(data,size, returned,ms);
 }
 
 
 
-VideoProvider::Param VideoProvider::
-getParam() const
+Error VideoProvider::
+getParam(Param &p) const
 {
-	return doGetParam();
+	return doGetParam(p);
 }
 
-bool VideoProvider::setParam(const Param & param)
+Error VideoProvider::setParam(const Param & param)
 {
 	return doSetParam(param);
 }
 
-bool VideoProvider::doInitDevice()
+Error VideoProvider::doInitDevice()
 {
-	return false;
+	return Error();
 }
 
 String VideoProvider::Info::

@@ -24,13 +24,13 @@ void IODevice::doClose(){
 
 }
 
-int IODevice::
+Error IODevice::
 poll(IODevice::PollType type, int timeout) {
 	return doPoll(type,timeout);
 }
 
-int IODevice::doPoll(PollType, int) {
-	return 0;
+Error IODevice::doPoll(PollType, int) {
+	return Error();
 }
 
 void IODevice::flush()

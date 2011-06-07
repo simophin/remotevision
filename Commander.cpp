@@ -44,8 +44,9 @@ getDevice() const {
 	return d->device;
 }
 
-bool Commander::
+Error Commander::
 readCommand(Command &cmd) {
+	Error rc;
 	IODevice *dd = d->device;
 	assert(dd != 0);
 
@@ -53,8 +54,14 @@ readCommand(Command &cmd) {
 	char *buf = 0;
 	// Read header
 	{
-		if (dd->read((char *)&hdr,sizeof(hdr)) != sizeof(hdr)) {
-			return NULL;
+		size_t read_size;
+		rc = dd->read((char *)&hdr,sizeof(hdr), &read_size);
+		if (!rc.isSuccess()) {
+			return rc;
+		}
+		if( read_size != sizeof(hdr)) {
+			rc.setErrorType(Error::ERR_INVALID, "header corrupted");
+			return rc;
 		}
 	}
 
@@ -63,12 +70,13 @@ readCommand(Command &cmd) {
 		buf = (char *)::malloc(hdr.length);
 		int tried_times = 0;
 		size_t offset = 0;
+		size_t read_size;
 		do {
-			int rc = dd->read( (char *)(buf + offset), hdr.length-offset );
-			if (rc < 0) {
+			rc = dd->read( (char *)(buf + offset), hdr.length-offset, &read_size);
+			if (!rc.isSuccess()) {
 				goto out;
 			}
-			offset += rc;
+			offset += read_size;
 		}while(tried_times++ < 20 && offset < hdr.length);
 	}
 	{
@@ -90,16 +98,17 @@ readCommand(Command &cmd) {
 	}
 
 	if (buf) ::free(buf);
-	return true;
+	return rc;
 
 	out:
 	if (buf) ::free(buf);
-	return false;
+	return rc;
 }
 
-bool Commander::
+Error Commander::
 writeCommand (const Command & cmd) {
 	IODevice *dd = d->device;
+	Error rc;
 	assert(dd != 0);
 
 
@@ -120,20 +129,15 @@ writeCommand (const Command & cmd) {
 
 	// Write data
 	{
-		if (dd->write((char *)&hdr, sizeof(hdr)) < 0 ) {
-			d->lastError = dd->getLastError();
-			return false;
+		rc = dd->write((char *)&hdr, sizeof(hdr));
+		if ( !rc.isSuccess()) {
+			return rc;
 		}
-		if (dd->write(data.c_str(), data.size()) < 0 ) {
-			d->lastError = dd->getLastError();
-			return false;
+		rc = dd->write(data.c_str(), data.size());
+		if ( !rc.isSuccess() ) {
+			return rc;
 		}
 	}
 
-	return true;
-}
-
-Error Commander::
-getLastError() const {
-	return d->lastError;
+	return rc;
 }

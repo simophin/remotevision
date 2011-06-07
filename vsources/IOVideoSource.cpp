@@ -77,7 +77,7 @@ public:
 		config.bufferSize = 102400;
 	}
 
-	virtual void entry();
+	virtual Error entry();
 
 
 

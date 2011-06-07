@@ -34,6 +34,7 @@ public:
 	Condition   cond;
 	Mutex       mutex;
 	size_t      size;
+	Error       returned;
 };
 
 static VideoCodecId SUPPORTED_CODECS[] = {
@@ -62,8 +63,8 @@ public:
 		AVFrame * convertedFrame;
 	} mCtx;
 
-	bool setOutputCodec (CodecID c, int w,int h, const AVRational &, char *errstr = 0, size_t errsize = 0);
-	bool updateSws ();
+	Error setOutputCodec (CodecID c, int w,int h, const AVRational &);
+	Error updateSws ();
 
 	// Buffer related
 	std::list<VBuffer *> mBuffers;
@@ -71,7 +72,7 @@ public:
 	Mutex mBufferMutex;
 
 	// Thread entry
-	virtual void entry();
+	virtual Error entry();
 
 	virtual ~Impl () {
 		if (videoInfo) delete videoInfo;
@@ -109,10 +110,10 @@ FFMpegVideoProvider::~FFMpegVideoProvider() {
 	delete d;
 }
 
-bool FFMpegVideoProvider::doInitDevice()
+Error FFMpegVideoProvider::doInitDevice()
 {
+	Error rc;
 	assert (d->state == STATE_UNINTIALIZED);
-	int rc = 0;
 	char errbuf[1024];
 
 	AVFormatContext * inputFmtCtx = 0;
@@ -134,8 +135,8 @@ bool FFMpegVideoProvider::doInitDevice()
 		ap.height = 240;
 		ap.time_base = (AVRational){1,25};
 		ap.pix_fmt = info.supportedPixelFormat.front();
-		if ( (rc=av_open_input_file(&inputFmtCtx, d->mFileName.c_str(),fmt,0,&ap)) != 0){
-			av_strerror(rc,errbuf,sizeof(errbuf));
+		if ( (av_open_input_file(&inputFmtCtx, d->mFileName.c_str(),fmt,0,&ap)) != 0){
+			rc.setErrorType(Error::ERR_UNKNOWN, "Open camera device error");
 			goto open_input_file_error;
 		}
 
@@ -162,18 +163,13 @@ bool FFMpegVideoProvider::doInitDevice()
 		if (decodeCtx->pix_fmt == PIX_FMT_NONE) {
 			decodeCtx->pix_fmt = PIX_FMT_YUVJ420P;
 		}
-		/*
-		decodeCtx->height = 240;
-		decodeCtx->width  = 320;
 
-		decodeCtx->time_base = (AVRational) {1,30};
-		*/
 		if (decodeCodec->capabilities & CODEC_CAP_TRUNCATED) {
 			decodeCtx->flags |= CODEC_FLAG_TRUNCATED;
 		}
 
-		if ((rc = avcodec_open(decodeCtx,decodeCodec)) != 0) {
-			av_strerror(rc,errbuf,sizeof(errbuf));
+		if ((avcodec_open(decodeCtx,decodeCodec)) != 0) {
+			rc.setErrorType(Error::ERR_UNKNOWN, "Open camera decoder failed");
 			goto open_decoder_error;
 		}
 
@@ -184,60 +180,64 @@ bool FFMpegVideoProvider::doInitDevice()
 
 	{
 		AVRational ral = (AVRational){d->mCurrentParam.currentFrameRate.num,d->mCurrentParam.currentFrameRate.den};
-		if(!d->setOutputCodec(info.codecId, d->mCurrentParam.currentGeometry.width,
-				d->mCurrentParam.currentGeometry.height, ral,errbuf,sizeof(errbuf))) {
-			assert(false);
+		rc = d->setOutputCodec(info.codecId, d->mCurrentParam.currentGeometry.width,
+				d->mCurrentParam.currentGeometry.height, ral);
+		if(!rc.isSuccess()) {
+			goto set_output_codec_failed;
 		}
 	}
 
 	{
-		if (!d->updateSws()) {
-			assert(false);
+		rc = d->updateSws();
+		if (!rc.isSuccess()) {
+			goto update_sws_failed;
 		}
 	}
 
 	d->state = STATE_READY;
-	return true;
+	return rc;
 
+	update_sws_failed:
+	avcodec_close(d->mCtx.outputCodecCtx);
+	d->mCtx.outputCodecCtx = 0;
+	set_output_codec_failed:
+	avcodec_close(d->mCtx.inputCodecCtx);
+	d->mCtx.inputCodecCtx = 0;
 	open_decoder_error:
 	find_decoder_error:
 	av_close_input_file(inputFmtCtx);
 	open_input_file_error:
 	errbuf[sizeof(errbuf)-1] = 0;
-	d->lastError.setErrorString(errbuf);
 	d->state = STATE_UNINTIALIZED;
-	return false;
+	return rc;
 }
 
-VideoProvider::Info FFMpegVideoProvider::doQueryInfo() const
+Error FFMpegVideoProvider::doQueryInfo(Info &info) const
 {
-	Info ret;
+	Error rc;
+
 	FFMpegCodecInfo cf = FFMpegInfo::findCodecInfo(d->mCurrentParam.currentCodec);
 	if (cf.codecId == CODEC_ID_NONE) {
-		d->lastError = Error("No such codec");
-		return ret;
+		rc.setErrorString("Can't find current encoder");
+		return rc;
 	}
 
 
 	for (int i=0;i<ARRAY_SIZE(SUPPORTED_CODECS);i++) {
-		ret.supportedCodecs.push_back(VideoCodec(SUPPORTED_CODECS[i]));
+		info.supportedCodecs.push_back(VideoCodec(SUPPORTED_CODECS[i]));
 	}
-	ret.supportedGeometries = cf.supportedGeometries;
-	//ret.supportedFrameRates = cf.supportedRationals;
-	return ret;
+	info.supportedGeometries = cf.supportedGeometries;
+
+	return rc;
 }
 
 
-Error FFMpegVideoProvider::doGetLastError() const
+Error FFMpegVideoProvider::doStartCapture()
 {
-	return d->lastError;
-}
-
-bool FFMpegVideoProvider::doStartCapture()
-{
+	Error rc;
 	if (d->state != STATE_READY || d->isRunning()) {
-		d->lastError.setErrorString("State error");
-		return false;
+		rc.setErrorType(Error::ERR_STATE);
+		return rc;
 	}
 
 	// Some init work
@@ -247,64 +247,75 @@ bool FFMpegVideoProvider::doStartCapture()
 	}
 
 	d->run();
-	return true;
+	return rc;
 }
 
-bool FFMpegVideoProvider::doStopCapture()
+Error FFMpegVideoProvider::doStopCapture()
 {
 	d->stop(2000);
-	return true;
+	return Error();
 }
 
-size_t FFMpegVideoProvider::doGetData(unsigned char *data, size_t size)
+Error FFMpegVideoProvider::doGetData(unsigned char *data, size_t size, size_t *returned, int ms)
 {
+	Error rc;
+
+	if (!d->isRunning()) {
+		rc.setErrorType(Error::ERR_STATE);
+		return rc;
+	}
+
 	VBuffer buf;
 	buf.buf.setData(data,size);
 
+	rc = d->mBufferMutex.lock(ms);
+	if (!rc.isSuccess()) return rc;
 
-	if (!d->mBufferMutex.lock(2000)) {
-		return 0;
-	}
 	d->mBuffers.push_back(&buf);
 	d->mBufferMutex.unlock();
 
 	buf.mutex.lock();
-	if (!buf.cond.wait(buf.mutex,2000)) {
-		return 0;
+
+	rc = buf.cond.wait(buf.mutex, ms);
+
+	if (!rc.isSuccess()) {
+		return rc;
 	}
 	buf.mutex.unlock();
 
-	return buf.size;
+	*returned = buf.size;
+
+	return buf.returned;
 }
 
-FFMpegVideoProvider::Param FFMpegVideoProvider::doGetParam() const
+Error FFMpegVideoProvider::doGetParam(Param &p) const
 {
-	return d->mCurrentParam;
+	p = d->mCurrentParam;
+	return Error();
 }
 
-bool FFMpegVideoProvider::doSetParam(const Param & param)
+Error FFMpegVideoProvider::doSetParam(const Param & param)
 {
-	char errbuf[1024];
+	Error ret;
 	if (d->state == STATE_CAPTURING) {
-		d->lastError = Error("STATE ERROR");
-		return false;
+		ret.setErrorType(Error::ERR_STATE);
+		return ret;
 	}
 
 	CodecID c = FFMpegInfo::getIdFromRemoteVision(param.currentCodec.codecId);
-	if (!d->setOutputCodec(c,param.currentGeometry.width,
-			param.currentGeometry.height, (AVRational){param.currentFrameRate.den,param.currentFrameRate.num},
-			errbuf,sizeof(errbuf))) {
-		errbuf[sizeof(errbuf)-1] = 0;
-		d->lastError.setErrorString(errbuf);
-		return false;
+	ret = d->setOutputCodec(c,param.currentGeometry.width,
+			param.currentGeometry.height, (AVRational){param.currentFrameRate.den,param.currentFrameRate.num});
+
+	if (!ret.isSuccess()) {
+		return ret;
 	}
 
-	if (!d->updateSws()) {
-		d->lastError.setErrorString("Failed to update sws info");
-		return false;
+	ret = d->updateSws();
+	if (!ret.isSuccess()) {
+		return ret;
 	}
 
-	return true;
+	return ret;
 }
 
 void FFMpegVideoProvider::init() {
@@ -318,12 +329,12 @@ void FFMpegVideoProvider::init() {
 
 
 
-inline bool FFMpegVideoProvider::Impl::
-setOutputCodec(CodecID c, int w, int h, const AVRational & r, char *errstr , size_t errsize )
+inline Error FFMpegVideoProvider::Impl::
+setOutputCodec(CodecID c, int w, int h, const AVRational & r )
 {
 	AVCodec * codec = 0;
 	AVCodecContext *codecCtx = 0;
-	int rc = 0;
+	Error rc;
 
 	FFMpegCodecInfo info = FFMpegInfo::findCodecInfo(c);
 
@@ -349,8 +360,8 @@ setOutputCodec(CodecID c, int w, int h, const AVRational & r, char *errstr , siz
 		//codecCtx->bit_rate = 64000;
 		//codecCtx->sample_rate = 44100;
 
-		if ((rc = avcodec_open(codecCtx,codec)) != 0) {
-			if (errstr && errsize) av_strerror(rc,errstr,errsize);
+		if ((avcodec_open(codecCtx,codec)) != 0) {
+			rc.setErrorString("Can't open encoder codec");
 			goto open_codec_error;
 		}
 
@@ -367,17 +378,16 @@ setOutputCodec(CodecID c, int w, int h, const AVRational & r, char *errstr , siz
 		mCtx.outputCodecCtx = codecCtx;
 	}
 
-	return true;
+	return rc;
 	open_codec_error:
 	av_free(codecCtx);
 	find_encoder_error:
-	if (errstr && errsize) snprintf (errstr,errsize, "can't find encoder");
-
-	return false;
+	return rc;
 }
 
-inline bool FFMpegVideoProvider::Impl::updateSws()
+inline Error FFMpegVideoProvider::Impl::updateSws()
 {
+	Error rc;
 	assert ( (mCtx.outputCodecCtx != NULL) && (mCtx.inputCodecCtx != NULL));
 
 
@@ -389,7 +399,8 @@ inline bool FFMpegVideoProvider::Impl::updateSws()
 
 
 	if (swsCtx == NULL) {
-		return false;
+		rc.setErrorString("Can't create swscontext!");
+		return rc;
 	}
 
 	if (mCtx.swsCtx) sws_freeContext(mCtx.swsCtx);
@@ -406,25 +417,30 @@ inline bool FFMpegVideoProvider::Impl::updateSws()
 		mCtx.swsCtx = NULL;
 		av_free(mCtx.convertedFrame);
 		mCtx.convertedFrame = NULL;
-		return false;
+		rc.setErrorString("Can't allocate space for conversion");
+		return rc;
 	}
 
-	return true;
+	return rc;
 }
 
 
-void FFMpegVideoProvider::Impl::entry() {
+Error FFMpegVideoProvider::Impl::entry() {
 	state = STATE_CAPTURING;
 
 	AVPacket pkt;
 
-	int got_frame = 0, rc = 0 ;
+	int got_frame = 0;
+	Error rc;
 
 	while (!shouldStop()) {
 		VBuffer *vbuf;
 		// try to get a buffer
 		{
-			if (!mBufferMutex.lock(500)) continue;
+			rc = mBufferMutex.lock(500);
+			if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
+			else break;
+
 			if (mBuffers.size() < 1) {
 				mBufferMutex.unlock();
 				continue;
@@ -442,7 +458,8 @@ void FFMpegVideoProvider::Impl::entry() {
 			av_init_packet(&pkt);
 
 			// Read packet
-			if ((rc = av_read_frame(mCtx.inputFmtCtx,&pkt)) != 0) {
+			if ((av_read_frame(mCtx.inputFmtCtx,&pkt)) != 0) {
+				rc.setErrorString("read frame from camera failed");
 				av_free_packet(&pkt);
 				goto read_packet_error;
 			}
@@ -454,9 +471,10 @@ void FFMpegVideoProvider::Impl::entry() {
 			}
 
 			// Decode video
-			if ((rc = avcodec_decode_video2(mCtx.inputCodecCtx,decodedFrame,&got_frame,&pkt)) < 0){
+			if ((avcodec_decode_video2(mCtx.inputCodecCtx,decodedFrame,&got_frame,&pkt)) < 0){
 				av_free_packet(&pkt);
 				av_free(decodedFrame);
+				rc.setErrorString("decode video from camera failed");
 				goto decode_error;
 			}
 
@@ -464,6 +482,7 @@ void FFMpegVideoProvider::Impl::entry() {
 		}
 
 		if (!got_frame) {
+			rc.setErrorType(Error::ERR_TIMEOUT);
 			av_free(decodedFrame);
 			break;
 		}
@@ -473,6 +492,7 @@ void FFMpegVideoProvider::Impl::entry() {
 			if (sws_scale(mCtx.swsCtx,decodedFrame->data,decodedFrame->linesize,0,mCtx.inputCodecCtx->height,
 					mCtx.convertedFrame->data,mCtx.convertedFrame->linesize) < 0) {
 				av_free(decodedFrame);
+				rc.setErrorString("Do sws scaling failed");
 				goto sws_scale_error;
 			}
 			av_free(decodedFrame);
@@ -480,10 +500,12 @@ void FFMpegVideoProvider::Impl::entry() {
 
 		// Do encode
 		{
-			if ((rc = avcodec_encode_video(mCtx.outputCodecCtx,vbuf->buf.getData(), vbuf->buf.getSize(),mCtx.convertedFrame)) < 0) {
+			int encoded_size;
+			if ((encoded_size = avcodec_encode_video(mCtx.outputCodecCtx,vbuf->buf.getData(), vbuf->buf.getSize(),mCtx.convertedFrame)) < 0) {
+				rc.setErrorString("Encode video failed");
 				goto encode_error;
 			}
-			vbuf->size = rc;
+			vbuf->size = encoded_size;
 			vbuf->cond.signal();
 		}
 	}
@@ -494,5 +516,5 @@ void FFMpegVideoProvider::Impl::entry() {
 	read_packet_error:
 
 	state = STATE_READY;
-	return;
+	return rc;
 }

@@ -16,12 +16,10 @@ public:
 	TCPFFMpegServer(const String &addr, int port = 0);
 
 	String getBoundInfo () const;
-	bool init(const char *deviceFile = "/dev/video0");
-	bool start ();
-	void stop();
-	bool wait();
-
-	Error getLastError() const;
+	Error init(const char *deviceFile = "/dev/video0");
+	Error start ();
+	Error stop();
+	Error wait();
 
 	virtual ~TCPFFMpegServer();
 

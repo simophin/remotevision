@@ -13,12 +13,10 @@
 #include "ImageBuffer.h"
 #include "FrameRate.h"
 #include "Serializable.hpp"
-
+#include "Error.h"
 #include <vector>
 #include "RString.h"
-
-class Error;
-class VideoInfo;
+#include "VideoInfo.h"
 
 
 class VideoProvider {
@@ -40,30 +38,28 @@ public:
 	};
 
 
-	bool initDevice();
-	Info queryInfo() const;
+	Error initDevice();
+	Error queryInfo(Info &) const;
 
-	Param getParam() const;
-	bool setParam(const Param &);
+	Error getParam(Param &) const;
+	Error setParam(const Param &);
 
-	Error getLastError() const;
-	bool startCapture();
-	bool stopCapture();
+	Error startCapture();
+	Error stopCapture();
 
-	size_t getData(ImageBuffer &);
-	size_t getData(unsigned char *, size_t);
+	Error getData(ImageBuffer &, size_t *size, int ms = -1);
+	Error getData(unsigned char *, size_t , size_t *returned, int ms = -1);
 
 protected:
-	virtual bool doInitDevice() = 0;
-	virtual Info doQueryInfo() const = 0;
+	virtual Error doInitDevice() = 0;
+	virtual Error doQueryInfo(Info &) const = 0;
 
-	virtual Param doGetParam() const = 0;
-	virtual bool doSetParam(const Param &) = 0;
+	virtual Error doGetParam(Param &) const = 0;
+	virtual Error doSetParam(const Param &) = 0;
 
-	virtual Error doGetLastError() const = 0;
-	virtual bool doStartCapture() = 0;
-	virtual bool doStopCapture() = 0;
-	virtual size_t doGetData(unsigned char *, size_t) = 0;
+	virtual Error doStartCapture() = 0;
+	virtual Error doStopCapture() = 0;
+	virtual Error doGetData(unsigned char *, size_t, size_t *returned, int ms) = 0;
 };
 
 

@@ -14,6 +14,7 @@
 #include "Command.h"
 #include "VideoProvider.h"
 #include "Log.h"
+#include "Error.h"
 
 #include <assert.h>
 #include <memory>
@@ -27,7 +28,7 @@ public:
 	CommandContext cmdCtx;
 	CommandMgr *cmdMgr;
 
-	void entry();
+	virtual Error entry();
 };
 
 Server::
@@ -50,11 +51,9 @@ VideoProvider *Server::getProvider() const
 	return d->cmdCtx.videoProvider;
 }
 
-bool Server::wait(int ms)
+Error Server::wait(int ms)
 {
-	if (d->isRunning())
-		return d->wait(ms);
-	else return true;
+	return d->wait(NULL,ms);
 
 }
 
@@ -83,10 +82,10 @@ getControlDevice() const
 
 
 
-void Server::
+Error Server::
 stop(int ms)
 {
-	d->stop(ms);
+	return d->stop(ms);
 }
 
 
@@ -101,28 +100,30 @@ setControlDevice(IODevice *device)
 
 
 
-int Server::
+Error Server::
 start()
 {
 	assert(d->controlDevice != 0 && d->dataDevice != 0);
-	d->run();
-	return 0;
+	return d->run();
 }
 
 
-void Server::ServerImpl::entry() {
-	int rc;
+Error Server::ServerImpl::entry() {
+	Error rc;
 	Command raw_cmd;
 	while(!shouldStop()) {
 		rc = controlDevice->poll(IODevice::POLL_READ, 500);
-		if (rc < 0) break;
-		else if (rc == 0) continue;
-		if (!cmdExe.readCommand(raw_cmd)) {
+		if (rc.getErrorType() ==  Error::ERR_TIMEOUT) continue;
+		else if (!rc.isSuccess()) break;
+
+		rc = cmdExe.readCommand(raw_cmd);
+		if (!rc.isSuccess()) {
 			break;
 		}
 
 		cmdMgr->handleCommand(raw_cmd,&cmdCtx);
 	}
-	rc = 0;
+
+	return rc;
 }
 

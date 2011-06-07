@@ -57,7 +57,8 @@ VideoCommand::QueryInfoCommandHandler::~QueryInfoCommandHandler() {
 
 void VideoCommand::QueryInfoCommandHandler::
 onHandle(const Command &cmd, const CommandContext * ctx) {
-	VideoProvider::Info info = ctx->videoProvider->queryInfo();
+	VideoProvider::Info info;
+	ctx->videoProvider->queryInfo(info);
 	CommandBuilder builder;
 	builder.setResponseCommand(SUCCESS_STRING);
 	builder.appendArgument(info.toString());
@@ -92,6 +93,7 @@ SetParameterCommandHandler()
 void VideoCommand::SetParameterCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
+	Error rc;
 	CommandBuilder builder;
 	if (cmd.getArguments().size() != 2) {
 		builder.setResponseCommand(ERROR_STRING, "invalid argument count");
@@ -117,7 +119,8 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 				goto error_out;
 			}
 
-			VideoProvider::Info info = ctx->videoProvider->queryInfo();
+			VideoProvider::Info info;
+			ctx->videoProvider->queryInfo(info);
 			if (std::find(info.supportedCodecs.begin(), info.supportedCodecs.end(),
 					requestCodec) == info.supportedCodecs.end()) {
 				err = "Invalid/Unsupported video codec";
@@ -126,11 +129,14 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 		}
 
 		{
-			VideoProvider::Param p = ctx->videoProvider->getParam();
+
+			VideoProvider::Param p ;
+			ctx->videoProvider->getParam(p);
 			p.currentGeometry = requestGeo;
 			p.currentCodec = requestCodec;
-			if (!ctx->videoProvider->setParam(p)) {
-
+			rc = ctx->videoProvider->setParam(p);
+			if (!rc.isSuccess()) {
+				//TODO: Implement set param error
 			}
 		}
 
@@ -145,10 +151,11 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 	Command response;
 	Commander parser(ctx->controlDevice);
 	builder.build(response);
-	if (!parser.writeCommand(response)) {
+	rc = parser.writeCommand(response);
+	if (!rc.isSuccess()) {
 		Log::logError("Write response to %s failed: %s",
 				REQUEST_STRING,
-				parser.getLastError().getErrorString().c_str());
+				rc.getErrorString().c_str());
 	}
 }
 
@@ -168,7 +175,8 @@ buildRequestCommand (Command &result, const Geometry &geo, const VideoCodec &cod
 void VideoCommand::GetParameterCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
-	VideoProvider::Param param = ctx->videoProvider->getParam();
+	VideoProvider::Param param;
+	ctx->videoProvider->getParam(param);
 	CommandBuilder builder;
 	Command response;
 	builder.setResponseCommand(SUCCESS_STRING);
@@ -198,7 +206,7 @@ public:
 	DataThread(const CommandContext &ctx)
 	:mCtx(ctx) {}
 
-	virtual void entry();
+	virtual Error entry();
 
 	const CommandContext &mCtx;
 };
@@ -219,9 +227,11 @@ VideoCommand::StartCaptureCommandHandler::~StartCaptureCommandHandler()
 void VideoCommand::StartCaptureCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
+	Error rc;
 	CommandBuilder response;
-	if (!ctx->videoProvider->startCapture()) {
-		response.setResponseCommand(ERROR_STRING,ctx->videoProvider->getLastError().getErrorString());
+	rc = ctx->videoProvider->startCapture();
+	if (!rc.isSuccess()) {
+		response.setResponseCommand(ERROR_STRING,rc.getErrorString());
 	}else{
 		if (ctx->dataThread == NULL) {
 			const_cast<CommandContext *>(ctx)->dataThread = new DataThread(*ctx);
@@ -237,25 +247,34 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 	response.build(rcmd);
 
 	Commander writer (ctx->controlDevice);
-	if (!writer.writeCommand(rcmd)){
-		Log::logError("While writing to control device: %s", writer.getLastError().getErrorString().c_str());
+	rc = writer.writeCommand(rcmd);
+	if (!rc.isSuccess()){
+		Log::logError("While writing to control device: %s", rc.getErrorString().c_str());
 	}
 }
 
-void DataThread::entry() {
+Error DataThread::entry() {
+	Error rc;
 	unsigned char *vbuf = (unsigned char *)::malloc(MAX_VIDEO_DATA_BUFFER_SIZE);
 
 	ssize_t written = 0;
 	while (!shouldStop()) {
-		size_t size = mCtx.videoProvider->getData(vbuf,MAX_VIDEO_DATA_BUFFER_SIZE);
+		size_t size;
 
-		if ( (written = mCtx.dataDevice->write((char *)vbuf, size)) < 0) {
-			Log::logError("Can't write to data device: %s", mCtx.dataDevice->getLastError().getErrorString().c_str());
+		rc = mCtx.videoProvider->getData(vbuf,MAX_VIDEO_DATA_BUFFER_SIZE,&size,1000);
+
+		if ( !rc.isSuccess()) break;
+
+		rc = mCtx.dataDevice->write((char *)vbuf, size);
+		if ( !rc.isSuccess()) {
+			Log::logError("Can't write to data device: %s",
+					rc.getErrorString().c_str());
 			break;
 		}
 	}
 	mCtx.videoProvider->stopCapture();
 	::free(vbuf);
+	return rc;
 }
 
 VideoCommand::StopCaptureCommandHandler::StopCaptureCommandHandler()
@@ -275,6 +294,7 @@ void VideoCommand::StopCaptureCommandHandler::
 onHandle(const Command & cmd, const CommandContext *ctx)
 {
 	Thread * t = ctx->dataThread;
+	Error rc;
 	if (t){
 		const_cast<CommandContext *>(ctx)->dataThread = NULL;
 		t->stop();
@@ -287,9 +307,10 @@ onHandle(const Command & cmd, const CommandContext *ctx)
 	Commander writer (ctx->controlDevice);
 	builder.setResponseCommand(SUCCESS_STRING);
 	builder.build(rcmd);
-	if (!writer.writeCommand(rcmd)) {
+	rc = writer.writeCommand(rcmd);
+	if (!rc.isSuccess()) {
 		Log::logError("Can't write to data device: %s",
-				writer.getLastError().getErrorString().c_str());
+				rc.getErrorString().c_str());
 	}
 }
 

@@ -24,10 +24,8 @@ public:
 	void setDevice(IODevice *);
 	IODevice *getDevice() const;
 
-	bool readCommand(Command &);
-	bool writeCommand (const Command &);
-
-	Error getLastError() const;
+	Error readCommand(Command &);
+	Error writeCommand (const Command &);
 
 private:
 	class Impl;

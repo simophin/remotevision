@@ -37,29 +37,29 @@ setLastError(const Error &err) {
 	d->lastError = err;
 }
 
-bool  VideoSource::init (const Option &options, int ms){
+Error  VideoSource::init (const Option &options, int ms){
 	return doInit(options,ms);
 }
-VideoSource::Info  VideoSource::getInformation(int ms) const{
-	return doGetInformation(ms);
+Error VideoSource::getInformation(Info &info,int ms) const{
+	return doGetInformation(info,ms);
 }
-VideoSource::ImageParam  VideoSource::
-getImageParam(int ms) const{
-	return doGetImageParam(ms);
+Error VideoSource::
+getImageParam(Param &p,int ms) const{
+	return doGetImageParam(p,ms);
 }
-bool  VideoSource::setImageParam(ImageParam & fmt,int ms){
+Error VideoSource::setImageParam(ImageParam & fmt,int ms){
 	return doSetImageParam(fmt,ms);
 }
-bool  VideoSource::startCapture(int ms){
+Error VideoSource::startCapture(int ms){
 	return doStartCapture(ms);
 }
-bool  VideoSource::stopCapture(int ms){
+Error VideoSource::stopCapture(int ms){
 	return doStopCapture(ms);
 }
-void  VideoSource::putBuffer(const Buffer &buf, int ms){
+Error VideoSource::putBuffer(const Buffer &buf, int ms){
 	return doPutBuffer(buf,ms);
 }
-VideoSource::Buffer
-VideoSource::getFilledBuffer (int ms){
-	return doGetFilledBuffer(ms);
+Error
+VideoSource::getFilledBuffer (Buffer &buf,int ms){
+	return doGetFilledBuffer(buf,ms);
 }

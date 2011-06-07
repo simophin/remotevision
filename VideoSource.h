@@ -18,7 +18,9 @@
 #include "Geometry.h"
 #include "FrameRate.h"
 
+
 class ImageBuffer;
+class Error;
 class VideoSource{
 public:
 	VideoSource();
@@ -57,30 +59,25 @@ public:
 
 	typedef std::map<String,String> Option;
 
-	bool init (const Option &options = Option(), int ms = -1);
-	Info getInformation(int ms = -1) const;
-	ImageParam getImageParam(int ms = -1) const;
-	bool setImageParam(ImageParam &, int ms = -1);
-	bool startCapture(int ms = -1);
-	bool stopCapture(int ms = -1);
-	void putBuffer(const Buffer &, int ms = -1);
-	Buffer getFilledBuffer (int ms = -1);
-	Error getLastError() ;
+	Error init (const Option &options = Option(), int ms = -1);
+	Error getInformation(Info &,int ms = -1) const;
+	Error getImageParam(ImageParam &,int ms = -1) const;
+	Error setImageParam(ImageParam &, int ms = -1);
+	Error startCapture(int ms = -1);
+	Error stopCapture(int ms = -1);
+	Error putBuffer(const Buffer &, int ms = -1);
+	Error getFilledBuffer (Buffer &,int ms = -1);
 
 	class Impl;
 protected:
-
-	virtual Error doGetLastError();
-	void setLastError(const Error &);
-
-	virtual bool doInit (const Option &options, int ms) = 0;
-	virtual Info doGetInformation(int ms) const = 0;
-	virtual ImageParam doGetImageParam(int ms) const = 0;
-	virtual bool doSetImageParam(ImageParam &,int ms) = 0;
-	virtual bool doStartCapture(int ms) = 0;
-	virtual bool doStopCapture(int ms) = 0;
-	virtual void doPutBuffer(const Buffer &, int ms) = 0;
-	virtual Buffer doGetFilledBuffer (int ms) = 0;
+	virtual Error doInit (const Option &options, int ms) = 0;
+	virtual Error doGetInformation(Info &,int ms) const = 0;
+	virtual Error doGetImageParam(ImageParam &,int ms) const = 0;
+	virtual Error doSetImageParam(ImageParam &,int ms) = 0;
+	virtual Error doStartCapture(int ms) = 0;
+	virtual Error doStopCapture(int ms) = 0;
+	virtual Error doPutBuffer(const Buffer &, int ms) = 0;
+	virtual Error doGetFilledBuffer (Buffer &,int ms) = 0;
 private:
 	Impl *d;
 };

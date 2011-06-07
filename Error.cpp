@@ -174,6 +174,11 @@ Error Error::fromString(const String & str, bool *ok)
 
 
 
+void Error::setErrorString(const String & str)
+{
+	setErrorType(ERR_UNKNOWN,str);
+}
+
 std::ostream & operator <<(std::ostream & os, const Error & obj)
 {
 	os << obj.getErrorString();

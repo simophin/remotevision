@@ -16,9 +16,9 @@ public:
 	virtual ~PosixServerSocket();
 
 protected:
-	virtual Socket * doAccept(SocketAddress **addr = 0);
-	virtual int doBind(const SocketAddress *);
-	virtual int doListen(int);
+	virtual Error doAccept(Socket ** sock,SocketAddress **addr = 0);
+	virtual Error doBind(const SocketAddress *);
+	virtual Error doListen(int);
 };
 
 #endif /* POSIXSERVERSOCKET_H_ */

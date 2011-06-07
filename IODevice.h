@@ -22,8 +22,8 @@ public:
 		POLL_ERROR,
 	} PollType;
 
-	Error read(char *, size_t, size_t *);
-	Error write(const char *,size_t, size_t *);
+	Error read(char *, size_t, size_t * read_size = 0);
+	Error write(const char *,size_t, size_t * write_size = 0);
 	void flush();
 	void close();
 	Error poll(PollType, int timeout);

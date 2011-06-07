@@ -20,25 +20,14 @@ public:
 	FFMpegVideoProvider(const String &filename);
 	virtual ~FFMpegVideoProvider();
 
-	/*
-	virtual VideoInfo queryInfo() const;
-	virtual Error getLastError() const;
-	virtual bool setParam (const Param &);
-	virtual bool startCapture();
-	virtual bool stopCapture();
-	virtual size_t getData(unsigned char *, size_t);
-	virtual Param getParam() const;\
-	*/
-
 protected:
-	virtual bool doInitDevice();
-	virtual VideoProvider::Info doQueryInfo() const;
-	virtual Param doGetParam() const;
-	virtual bool doSetParam(const Param &);
-	virtual Error doGetLastError() const;
-	virtual bool doStartCapture();
-	virtual bool doStopCapture();
-	virtual size_t doGetData(unsigned char *, size_t);
+	virtual Error doInitDevice();
+	virtual Error doQueryInfo(Info &) const;
+	virtual Error doGetParam(Param &) const;
+	virtual Error doSetParam(const Param &);
+	virtual Error doStartCapture();
+	virtual Error doStopCapture();
+	virtual Error doGetData(unsigned char *, size_t, size_t *returned, int ms);
 
 	class Impl;
 private:

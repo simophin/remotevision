@@ -10,6 +10,7 @@
 
 #include <memory>
 #include "utils/NonCopyable.hpp"
+#include "Error.h"
 
 class ThreadImpl;
 
@@ -19,10 +20,10 @@ public:
 	Thread();
 	virtual ~Thread();
 
-	virtual void entry () = 0;
-	void run();
-	bool wait(int ms = -1);
-	bool stop(int ms = -1);
+	virtual Error entry () = 0;
+	Error run();
+	Error wait(Error *returned = 0,int ms = -1);
+	Error stop(int ms = -1);
 
 	bool isRunning() const;
 protected:
@@ -47,7 +48,7 @@ public:
 	Mutex(Type t = Normal);
 	virtual ~Mutex();
 
-	virtual bool lock(int ms = -1, bool *timeout = 0);
+	virtual Error lock(int ms = -1, bool *timeout = 0);
 	virtual void unlock();
 	virtual bool trylock();
 
@@ -64,7 +65,7 @@ public:
 	Condition();
 	virtual ~Condition();
 
-	virtual bool wait(Mutex &,int ms = -1, bool *timeout = 0);
+	virtual Error wait(Mutex &,int ms = -1);
 	virtual void signal();
 	virtual void broadcast();
 

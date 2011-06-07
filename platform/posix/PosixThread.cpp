@@ -31,6 +31,8 @@ class ThreadImpl {
 	Mutex threadMutex;
 	RunningStatus threadStatus;
 
+	Error threadReturned;
+
 	ThreadImpl()
 	:shouldStop(false), threadStatus(StatusStopped){
 	}
@@ -60,52 +62,62 @@ Thread::~Thread(){
 void *ThreadImpl::
 entry(void *arg) {
 	Thread *t = static_cast<Thread *>(arg);
-	t->entry();
+	t->d->threadReturned = t->entry();
 	t->d->threadStatus = StatusStopped;
 	t->d->threadCond.broadcast();
 	return NULL;
 }
 
-void Thread::run() {
-	assert(d->threadStatus != ThreadImpl::StatusRunning);
-	int rc = pthread_create (&d->thread, NULL, &ThreadImpl::entry, this);
-	assert(rc == 0);
-	d->threadStatus =  ThreadImpl::StatusRunning;
-}
-bool Thread::wait(int ms){
-	int rc;
+Error Thread::run() {
+	Error rc;
 
-	if (!isRunning()) return true;
+	if (d->threadStatus == ThreadImpl::StatusRunning) {
+		rc.setErrorType(Error::ERR_STATE);
+		return rc;
+	}
+
+	int r = pthread_create (&d->thread, NULL, &ThreadImpl::entry, this);
+	if (r != 0) {
+		rc.setSystemError(r);
+		return rc;
+	}
+
+	d->threadStatus =  ThreadImpl::StatusRunning;
+	return rc;
+}
+
+
+Error Thread::wait(Error *ret,int ms){
+	Error rc;
+
+	if (ret) *ret = d->threadReturned;
+
+	if (!isRunning()) {
+		return rc;
+	}
 
 	if (ms > 0) {
-		bool to;
-
 		d->threadMutex.lock();
-		if (!d->threadCond.wait(d->threadMutex,ms,&to)) {
+		rc = d->threadCond.wait(d->threadMutex,ms);
+		if ( !rc.isSuccess()) {
 			d->threadMutex.unlock();
-			return false;
+			return rc;
 		}
 		d->threadMutex.unlock();
 	}
 
-	pthread_join(d->thread,NULL);
-	/*
-	if (ms > 0){
-		struct timespec to;
-		getPthreadDelay(&to,ms);
-		rc = pthread_timedjoin_np(d->thread,NULL,&to);
-		if (rc == 0) return true;
-		else return false;
-	}else{
-		pthread_join(d->thread,NULL);
-		return true;
+	int r = pthread_join(d->thread,NULL);
+	if (r != 0) {
+		rc.setSystemError(r);
 	}
-	*/
-	return true;
+	return rc;
+
 }
-bool Thread::stop(int ms){
+
+
+Error Thread::stop(int ms){
 	d->shouldStop = true;
-	return wait(ms);
+	return wait(NULL,ms);
 }
 bool Thread::shouldStop() const {
 	return d->shouldStop;
@@ -147,17 +159,15 @@ Mutex::~Mutex()
 
 
 
-bool Mutex::lock(int ms, bool *timeout)
+Error Mutex::lock(int ms)
 {
 	int rc;
+	Error ret;
 	if (ms > 0) {
 #ifndef ANDROID
 		struct timespec to;
 		getPthreadDelay(&to,ms);
 		rc = pthread_mutex_timedlock(&d->mInternalMutex, &to);
-		if (timeout) {
-			*timeout = (rc == ETIMEDOUT) ? true : false;
-		}
 #else
 
 		int pms = ms / 5;
@@ -171,20 +181,16 @@ bool Mutex::lock(int ms, bool *timeout)
 			usleep(pms*1000);
 		}
 		if (!locked) {
-			return false;
-		}else return true;
+			ret.setErrorType(Error::ERR_TIMEOUT);
+		}else return ret;
 #endif
 
 	}else{
 		rc = pthread_mutex_lock(&d->mInternalMutex);
+		ret.setSystemError(rc);
 	}
 
-	if (rc != 0) {
-		if (rc != ETIMEDOUT)
-			Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
-		return false;
-	}
-	return true;
+	return ret;
 }
 
 
@@ -222,27 +228,21 @@ Condition::~Condition()
 
 
 
-bool Condition::wait(Mutex & mutex, int ms,bool *timeout)
+Error Condition::wait(Mutex & mutex, int ms)
 {
+	Error ret;
 	int rc;
 	if (ms > 0) {
 		struct timespec to;
 		getPthreadDelay(&to,ms);
 
 		rc = pthread_cond_timedwait(&d->mCond, &mutex.d->mInternalMutex, &to);
-		if (timeout) {
-			*timeout = (rc == ETIMEDOUT) ? true : false;
-		}
 	}else{
 		rc = pthread_cond_wait(&d->mCond, &mutex.d->mInternalMutex);
 	}
 
-	if (rc != 0  ) {
-		if (rc != ETIMEDOUT)
-			Log::logError("%s: %s", __FUNCTION__, ::strerror(rc));
-		return false;
-	}
-	return true;
+	ret.setSystemError(rc);
+	return ret;
 }
 
 

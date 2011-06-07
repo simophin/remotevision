@@ -39,6 +39,8 @@ public:
 	void setErrorType (Type t, const String &str);
 	String getErrorString() const;
 
+	void setErrorString (const String &str);
+
 	syserrno_t getSystemError () const;
 	void setSystemError (syserrno_t);
 	void setSystemError (syserrno_t, const String &);
