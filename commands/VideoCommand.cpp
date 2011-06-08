@@ -26,7 +26,6 @@
 
 #define MAX_VIDEO_DATA_BUFFER_SIZE 1024000
 
-static VideoCommand *VCMD_INSTANCE = 0;
 const char * VideoCommand::QueryInfoCommandHandler::ERROR_STRING = "QUERY_INFO_FAILED";
 const char * VideoCommand::QueryInfoCommandHandler::SUCCESS_STRING = "QUERY_INFO_OK";
 const char * VideoCommand::QueryInfoCommandHandler::REQUEST_STRING = "QUERY_INFO";

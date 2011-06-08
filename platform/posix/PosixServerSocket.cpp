@@ -33,7 +33,10 @@ doAccept(Socket **sock, SocketAddress **accepted_addr){
 	int fd = ::accept(getFileDescriptor(),addr,(socklen_t *)&addr_len);
 
 #ifdef OS_WIN32
-	//TODO: Implement win32
+	if (fd == SOCKET_ERROR) {
+		rc.setSystemError(WSAGetLastError());
+		goto error_out;
+	}
 #endif
 
 #ifdef OS_UNIX
@@ -69,7 +72,9 @@ doBind(const SocketAddress *bind_addr) {
 	int rc =  ::bind(getFileDescriptor(),addr,addr_len);
 
 #ifdef OS_WIN32
-	//TODO: Implement win32
+	if (rc == SOCKET_ERROR) {
+		ret.setSystemError(WSAGetLastError());
+	}
 #endif
 
 #ifdef OS_UNIX
@@ -83,7 +88,9 @@ doListen(int b) {
 	Error ret;
 	int rc = ::listen(getFileDescriptor(), b);
 #ifdef OS_WIN32
-	//TODO: Implement win32
+	if (rc == SOCKET_ERROR) {
+		ret.setSystemError(WSAGetLastError());
+	}
 #endif
 
 #ifdef OS_UNIX

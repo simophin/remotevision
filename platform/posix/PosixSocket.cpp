@@ -83,7 +83,9 @@ doRead(char *data, size_t size, size_t *read_size)
 	Error err;
 	ssize_t rc = ::read(d->fd,data,size);
 #ifdef OS_WIN32
-	//TODO: Implement win32 support
+	if (rc == SOCKET_ERROR) {
+		err.setSystemError(WSAGetLastError());
+	}else if (read_size) *read_size = rc;
 #endif
 
 #ifdef OS_UNIX
@@ -152,7 +154,9 @@ doWrite(const char *data, size_t size, size_t *write_size)
 	ssize_t rc = ::write(d->fd,data,size);
 
 #ifdef OS_WIN32
-	//TODO: Implement win32 support
+	if (rc == SOCKET_ERROR) {
+			ret.setSystemError(WSAGetLastError());
+	}
 #endif
 
 #ifdef OS_UNIX
@@ -174,7 +178,9 @@ Error PosixSocket::doConnect(const SocketAddress *addr) {
 	int rc = ::connect(d->fd,saddr,addr_len);
 
 #ifdef OS_WIN32
-	//TODO: Implement win32 support
+	if (rc == SOCKET_ERROR) {
+			ret.setSystemError(WSAGetLastError());
+	}
 #endif
 
 #ifdef OS_UNIX
@@ -220,7 +226,12 @@ doPoll(PosixSocket::PollType p, int timeout) {
 	int rc = select(d->fd+1, &readfds, &writefds, &exceptfds, tv);
 
 #ifdef OS_WIN32
-	//TODO: Implement win32 support
+	if (rc == 0) {
+		ret.setErrorType(Error::ERR_TIMEOUT);
+	}else if ( rc < 0) {
+		ret.setSystemError(WSAGetLastError());
+	}
+	return ret;
 #endif
 
 #ifdef OS_UNIX

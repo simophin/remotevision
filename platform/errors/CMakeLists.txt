@@ -1,9 +1,9 @@
 IF(WIN32)
-SET(SRC Win32Errors.cpp)
+SET(SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Win32Errors.cpp)
 ENDIF()
 
 IF(UNIX)
-SET(SRC PosixErrors.cpp)
+SET(SRCS  ${CMAKE_CURRENT_SOURCE_DIR}/PosixErrors.cpp)
 ENDIF()
 
 

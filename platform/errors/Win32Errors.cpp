@@ -9,6 +9,9 @@
 
 #include <errno.h>
 #include <windows.h>
+#include <vector>
+
+#include "utils/Misc.hpp"
 
 std::vector<Error::SystemMap> ERROR_MAPS;
 syserrno_t SYS_ERR_SUCCESS = 0;
