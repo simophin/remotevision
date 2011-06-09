@@ -10,8 +10,7 @@ int main(int argc, char *argv[])
 {
 #ifdef OS_WIN32
 	WSAData wsaData;
-	int nCode;
-	assert( WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
     QApplication a(argc, argv);
 

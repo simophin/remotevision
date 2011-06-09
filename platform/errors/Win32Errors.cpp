@@ -27,9 +27,9 @@ static struct _map MAPS[] = {
 		{ Error::ERR_SUCCESS, 0, "Success"},
 		{ Error::ERR_UNKNOWN, SYS_ERR_UNKNOWN, "Unknown error"},
 		{ Error::ERR_SYS_UNKNOWN, SYS_ERR_UNKNOWN, "Unknown error"},
-		{ Error::ERR_STATE, EINVAL , 0},
+		{ Error::ERR_STATE, WSAEINVAL , 0},
 		{ Error::ERR_TIMEOUT, WSAETIMEDOUT, 0},
-		{ Error::ERR_INVALID, EINVAL, 0},
+		{ Error::ERR_INVALID, WSAEINVAL, 0},
 		{ Error::ERR_ADDRINUSE,WSAEADDRINUSE, 0},
 };
 

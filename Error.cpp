@@ -178,7 +178,7 @@ Error Error::fromString(const String & str, bool *ok)
 {
 	Type e;
 	char buf[1024];
-	sscanf(str.c_str(),"$ERRNO:%d;$ERRSTR:%s", (int)&e, buf);
+	sscanf(str.c_str(),"$ERRNO:%d;$ERRSTR:%s", (int *)&e, buf);
 	buf[sizeof(buf)-1] = '\0';
 	Error ret;
 	ret.setErrorType(e,buf);

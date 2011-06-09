@@ -158,7 +158,6 @@ Error TCPFFMpegServer::Impl::entry()
 	mState = STATE_INSERVICE;
 
 	Error rc;
-	TCPSocketAddress *addr = NULL;
 	TCPSocket *controlSocket = 0, *dataSocket = 0;
 
 

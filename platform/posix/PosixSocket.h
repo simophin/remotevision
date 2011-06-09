@@ -43,7 +43,7 @@ private:
 
 private:
 	class PosixSocketImpl;
-	std::auto_ptr<PosixSocketImpl> d;
+	PosixSocketImpl *d;
 };
 
 #endif /* POSIXSOCKET_H_ */

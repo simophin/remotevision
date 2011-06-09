@@ -41,6 +41,7 @@ PosixSocket::PosixSocket(int fd)
 }
 
 PosixSocket::~PosixSocket() {
+	delete d;
 }
 
 Error PosixSocket::doListen(int backlog)
@@ -81,7 +82,8 @@ Error PosixSocket::
 doRead(char *data, size_t size, size_t *read_size)
 {
 	Error err;
-	ssize_t rc = ::read(d->fd,data,size);
+	//int rc = ::read(d->fd,(void *)data,size);
+	int rc = ::recv(d->fd, data, size, 0);
 #ifdef OS_WIN32
 	if (rc == SOCKET_ERROR) {
 		err.setSystemError(WSAGetLastError());
@@ -151,11 +153,14 @@ Error PosixSocket::
 doWrite(const char *data, size_t size, size_t *write_size)
 {
 	Error ret;
-	ssize_t rc = ::write(d->fd,data,size);
+	//ssize_t rc = ::write(d->fd,data,size);
+	int rc = ::send(d->fd,data, size, 0);
 
 #ifdef OS_WIN32
 	if (rc == SOCKET_ERROR) {
 			ret.setSystemError(WSAGetLastError());
+	}else {
+		if (write_size) *write_size = rc;
 	}
 #endif
 

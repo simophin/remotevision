@@ -118,10 +118,9 @@ Error FFMpegVideoProvider::doInitDevice()
 	char errbuf[1024];
 
 	AVFormatContext * inputFmtCtx = 0;
-	AVCodec *decodeCodec = 0, *encodeCodec = 0 ;
-	AVCodecContext *decodeCtx = 0, *encodeCtx = 0;
-	SwsContext *swsCtx = 0;
-	AVFrame * convertedFrame = 0;
+	AVCodec *decodeCodec = 0;
+	AVCodecContext *decodeCtx = 0;
+
 
 	FFMpegCodecInfo info = FFMpegInfo::findCodecInfo(d->mCurrentParam.currentCodec);
 

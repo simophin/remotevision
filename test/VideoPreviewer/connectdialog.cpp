@@ -100,9 +100,10 @@ void ConnectDialog::on_btnConnect_clicked()
 
 	VideoPreviewer *previewer = new VideoPreviewer(src,NULL);
 	previewer->setAttribute(Qt::WA_DeleteOnClose,true);
+	previewer->setWindowTitle(QString("%1:%2").arg(ui->ipEdit->text(), ui->portEdit->text()));
 	this->connect (previewer,SIGNAL(destroyed(QObject *)), this,SLOT(onVideoPreviewerDestroyed(QObject *)));
 
-	accept();
+	hide();
 	previewer->show();
 }
 

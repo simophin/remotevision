@@ -4,6 +4,7 @@ PROJECT(RemoteVision)
 # Search path
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CmakeModules)
 
+
 # Platforms
 option(BUILD_ANDROID "Building for ANDROID (library for ndk)" FALSE)
 option(BUILD_SYMBIAN "Building for Symbian (library)" FALSE)
