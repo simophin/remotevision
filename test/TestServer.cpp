@@ -23,6 +23,11 @@
 #include <signal.h>
 #endif
 
+#ifdef OS_WIN32
+#include <windows.h>
+#define sleep(n) Sleep(1000 * n)
+#endif
+
 TCPFFMpegServer *server = 0;
 
 void onExit (int) {
@@ -36,7 +41,6 @@ void onExit (int) {
 int main () {
 #ifdef OS_WIN32
 	WSAData wsaData;
-	int nCode;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
 

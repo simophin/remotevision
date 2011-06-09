@@ -10,7 +10,6 @@
 
 VideoSource::VideoSource()
 {
-
 }
 
 VideoSource::~VideoSource() {
