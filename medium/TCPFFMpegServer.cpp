@@ -189,6 +189,12 @@ Error TCPFFMpegServer::Impl::entry()
 			delete mServer;
 			mServer = 0;
 		}
+
+		controlSocket->close();
+		dataSocket->close();
+
+		delete controlSocket;
+		delete dataSocket;
 	}
 
 
