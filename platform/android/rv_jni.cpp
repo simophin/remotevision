@@ -15,6 +15,7 @@ extern "C" {
 jint Java_com_lfcinvention_RemoteVision_VideoService_nativeCreateServer
 (JNIEnv *env, jobject obj, jstring addr, jint port)
 {
+	Error ec;
 	char aBuf[30];
 	const char * addrBuf = env->GetStringUTFChars(addr,0);
 	__android_log_print(ANDROID_LOG_DEBUG,LOG_TAG, "Will bind on address %s", addrBuf);
@@ -27,9 +28,10 @@ jint Java_com_lfcinvention_RemoteVision_VideoService_nativeCreateServer
 	String actualAddr = aBuf;
 	TCPFFMpegServer *server = new TCPFFMpegServer(actualAddr,aport);
 
-	if (!server->init("/dev/video0")) {
+	ec = server->init("/dev/video0");
+	if ( ec.isError()) {
 		__android_log_print(ANDROID_LOG_FATAL,LOG_TAG,"While init server: %s",
-				server->getLastError().getErrorString().c_str());
+				ec.getErrorString().c_str());
 		goto init_server_failed;
 	}else{
 		return (jint)server;
@@ -69,12 +71,14 @@ void Java_com_lfcinvention_RemoteVision_VideoService_nativeStartServer
 (JNIEnv *env, jobject obj, jint server, jboolean jstart)
 {
 	TCPFFMpegServer *s = (TCPFFMpegServer *)server;
+	Error ec;
 	bool start = (bool)jstart;
 
 	if (start) {
-		if (!s->start()){
+		ec = s->start();
+		if (ec.isError()){
 			__android_log_print(ANDROID_LOG_FATAL,LOG_TAG,"While init server: %s",
-							s->getLastError().getErrorString().c_str());
+							ec.getErrorString().c_str());
 		}
 	}else{
 		s->stop();

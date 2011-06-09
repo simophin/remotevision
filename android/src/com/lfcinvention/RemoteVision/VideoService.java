@@ -19,6 +19,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 public class VideoService extends Service {
+	public static VideoService INSTANCE = null;
 	
 	static enum State {
 		STATE_READY,
@@ -38,13 +39,67 @@ public class VideoService extends Service {
 	
 	@Override
 	public void onCreate() {
+		INSTANCE = this;
 		super.onCreate();
 	}
 
+	@Override
+	public void onStart(Intent intent, int startId) {
+		
+		mPref  = getSharedPreferences(Preference.name, 0);
+		mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
+		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		
+		int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
+		try{
+			switch (connType) {
+			case Preference.CONNTYPE_NETWORK:
+				String networkConfigStr = mPref.getString(Preference.networkConfigKey, "");
+				if (networkConfigStr.trim().length() < 1) {
+					mNetworkConfig = new NetworkConfiguration();
+				}else{
+					mNetworkConfig =  (com.lfcinvention.RemoteVision.NetworkConfiguration)Preference.unserialize(networkConfigStr);
+				}
+				
+				switch(mNetworkConfig.networkType) {
+				case NetworkConfiguration.NT_WIFI: {
+					if (!mWifiManger.isWifiEnabled() || 
+							mWifiManger.getConnectionInfo() == null) {
+						updateState (State.STATE_ERROR, "Wifi is not enabled", false);
+						break;
+					}
+					setUseWifi();
+					updateState(State.STATE_READY, null, false);
+					break;
+				}
+				
+				case NetworkConfiguration.NT_GSM: {
+					setUseGSM();
+					updateState(State.STATE_READY, null, false);
+					break;
+				}
+				}
+			
+				break;
+				
+			default:
+				updateState(State.STATE_ERROR,"Unimplement connection type",false);
+				break;
+			}
+		}catch (Exception e) {
+			updateState(State.STATE_ERROR,e.getMessage(),false);
+		}
+		
+		super.onStart(intent, startId);
+	}
 
 	@Override
 	public void onDestroy() {
-		// TODO Auto-generated method stub
+		if (mNativeServer != 0) {
+			nativeStartServer(mNativeServer, false);
+			nativeDestroyServer(mNativeServer);
+		}
+		mNotificationManager.cancel(NOTIFY_ID);
 		super.onDestroy();
 	}
 
@@ -103,58 +158,8 @@ public class VideoService extends Service {
 				throw new StateErrorException("State should be ready");
 			}
 			
-			
-			if (mNativeServer != 0) return;
-			
-			mPref  = getSharedPreferences(Preference.name, 0);
-			mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
-			mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-			
-			int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
-			try{
-				switch (connType) {
-				case Preference.CONNTYPE_NETWORK:
-					String networkConfigStr = mPref.getString(Preference.networkConfigKey, "");
-					if (networkConfigStr.trim().length() < 1) {
-						mNetworkConfig = new NetworkConfiguration();
-					}else{
-						mNetworkConfig =  (com.lfcinvention.RemoteVision.NetworkConfiguration)Preference.unserialize(networkConfigStr);
-					}
-					
-					switch(mNetworkConfig.networkType) {
-					case NetworkConfiguration.NT_WIFI: {
-						if (!mWifiManger.isWifiEnabled() || 
-								mWifiManger.getConnectionInfo() == null) {
-							updateState (State.STATE_ERROR, "Wifi is not enabled");
-							break;
-						}
-						setUseWifi();
-						updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
-						break;
-					}
-					
-					case NetworkConfiguration.NT_GSM: {
-						setUseGSM();
-						updateState(State.STATE_READY, "Listen on " + nativeGetBoundAddress(mNativeServer));
-						break;
-					}
-					}
-				
-					break;
-					
-				default:
-					updateState(State.STATE_ERROR,"Unimplement connection type");
-					break;
-				}
-			}catch (Exception e) {
-				updateState(State.STATE_ERROR,e.getMessage());
-			}
-			
-			
-			if (mState != State.STATE_READY) return;
-			
-			mState = State.STATE_IN_SERVICE;
 			nativeStartServer(mNativeServer, true);
+			mState = State.STATE_IN_SERVICE;
 		}
 		
 		public void stopService() throws StateErrorException{
@@ -163,6 +168,7 @@ public class VideoService extends Service {
 			}
 			mState = State.STATE_READY;
 			nativeStartServer(mNativeServer, false);
+			mNotificationManager.cancel(NOTIFY_ID);
 		}
 		
 		public VideoService getService() {
@@ -171,6 +177,11 @@ public class VideoService extends Service {
 		
 		public String getErrorString() {
 			return mErrorString;
+		}
+		
+		public void notify(String str)
+		{
+			doNotify(str);
 		}
 	}
 
@@ -226,13 +237,16 @@ public class VideoService extends Service {
 		mNativeServer = ptr;
 	}
 	
-	private void updateState(State s, String str) {
-		int icon = R.drawable.icon;
-		CharSequence tickerText = str;
-		long when = System.currentTimeMillis();
+	private void updateState(State s, String str, boolean notify) {
 		mState = s;
 		mErrorString = str;
-		
+		if (notify) doNotify (str);
+	}
+	
+	private void doNotify (String str) {
+		long when = System.currentTimeMillis();
+		int icon = R.drawable.icon;
+		CharSequence tickerText = str;
 		Notification notification = new Notification(icon, tickerText, when);
 		CharSequence title = getResources().getText(R.string.app_name);
 		CharSequence content = str;

@@ -14,7 +14,6 @@
 #include "TCPSocket.h"
 #include "TCPSocketAddress.h"
 #include "Log.h"
-#include "TCPCommand.h"
 
 #include <stdio.h>
 #include <stdlib.h>

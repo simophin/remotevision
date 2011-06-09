@@ -58,22 +58,28 @@ public class InfoActivity extends Activity {
 		try{
 			Intent i = new Intent();
 			i.setClass(getApplicationContext(), VideoService.class);
-			if (bindService(i, mServiceConnection,Context.BIND_AUTO_CREATE)) {
-				mIsBound = true;
-			}else{
-				Toast.makeText(this, "Bind service failed", 2).show();
+
+			if (VideoService.INSTANCE == null) {
+				startService(i);
+			}
+
+			if (!bindService(i, mServiceConnection, 0)) {
+				Toast.makeText(this, "Can't bind service", Toast.LENGTH_LONG);
 			}
 		}catch(Exception e) {
 			Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
 		}
 	}
-    
+	
     
     private View.OnClickListener onBtnStartClicked = new View.OnClickListener() {
 		public void onClick(View arg0) {
 			try{
 				mBoundService.startService();
 				updateServiceStatus();
+				if (mBoundService.getServiceState() == VideoService.State.STATE_IN_SERVICE) {
+					mBoundService.notify("Listen on " + mBoundService.getBoundAddress());
+				}
 			}catch(Exception e) {
 				Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);
 			}
