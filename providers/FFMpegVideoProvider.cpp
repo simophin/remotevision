@@ -132,6 +132,7 @@ Error FFMpegVideoProvider::doInitDevice()
 
 		switch (d->mDeviceType) {
 		case DEVICE_TYPE_CAPTURE:{
+			::memset(ap_ptr,0,sizeof(*ap_ptr));
 #ifdef OS_WIN32
 			fmt = av_find_input_format("vfwcap");
 #endif
