@@ -208,11 +208,11 @@ Error TCPFFMpegRelayServer::init()
 	}
 	d->mServerSocket = new TCPServerSocket (fd);
 	providerBindAddr.setPort(d->mPort);
-	ret = d->mProviderServerSocket->bind(&providerBindAddr);
+	ret = d->mServerSocket->bind(&providerBindAddr);
 	if (ret.isError()) {
 		goto bind_server_failed;
 	}
-	ret = d->mProviderServerSocket->listen(2);
+	ret = d->mServerSocket->listen(2);
 	if (ret.isError()) {
 		goto listen_provider_failed;
 	}
