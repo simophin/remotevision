@@ -65,7 +65,7 @@ int main () {
 	Error rc;
 	FFMpeg::init();
 	TCPFFMpegServer *server = new TCPFFMpegServer("0.0.0.0",0);
-	rc = server->init("/dev/video0");
+	rc = server->init("list");
 	if (rc.isError()) {
 		std::cerr << rc << std::endl;
 		delete server;

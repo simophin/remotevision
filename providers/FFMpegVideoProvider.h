@@ -17,7 +17,13 @@ extern "C" {
 
 class FFMpegVideoProvider: public VideoProvider {
 public:
-	FFMpegVideoProvider(const String &filename);
+	enum  DeviceType {
+		DEVICE_TYPE_CAPTURE,
+		DEVICE_TYPR_REGULAR_FILE
+	};
+
+
+	FFMpegVideoProvider(const String &filename, DeviceType type = DEVICE_TYPE_CAPTURE);
 	virtual ~FFMpegVideoProvider();
 
 protected:

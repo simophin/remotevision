@@ -1,7 +1,7 @@
 
 IF(NOT BUILD_ANDROID AND NOT BUILD_SYMBIAN)
 
-IF(TRUE)
+#IF(TRUE)
 #ADD_EXECUTABLE(NetworkTest TestNetwork.cpp)
 #TARGET_LINK_LIBRARIES(NetworkTest RemoteVision pthread)
 
@@ -16,7 +16,7 @@ TARGET_LINK_LIBRARIES(ServerTest RemoteVision pthread)
 
 ADD_SUBDIRECTORY(VideoPreviewer)
 
-ENDIF()
+#ENDIF()
 
 ADD_EXECUTABLE(UtilsTest TestUtils.cpp)
 TARGET_LINK_LIBRARIES(UtilsTest RemoteVision pthread)

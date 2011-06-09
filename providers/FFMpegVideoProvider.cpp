@@ -51,6 +51,7 @@ public:
 	Error lastError;
 
 	String mFileName;
+	DeviceType mDeviceType;
 
 	// Related to ffmpeg decoding/encoding
 	Param mCurrentParam;
@@ -94,15 +95,15 @@ public:
 		}
 	}
 
-	Impl(const String &f)
+	Impl(const String &f, FFMpegVideoProvider::DeviceType t)
 	:videoInfo(0),state(STATE_UNINTIALIZED),
-	 mFileName(f){
+	 mFileName(f), mDeviceType(t){
 		::memset(&mCtx,0,sizeof(mCtx));
 	}
 };
 
-FFMpegVideoProvider::FFMpegVideoProvider(const String &filename)
-:d(new FFMpegVideoProvider::Impl(filename)){
+FFMpegVideoProvider::FFMpegVideoProvider(const String &filename, DeviceType t)
+:d(new FFMpegVideoProvider::Impl(filename,t)){
 	init();
 }
 
@@ -126,16 +127,33 @@ Error FFMpegVideoProvider::doInitDevice()
 
 	// Setup decoder
 	{
-		AVInputFormat *fmt = av_find_input_format("video4linux2");
-		AVFormatParameters ap;
-		memset(&ap,0,sizeof(ap));
-		assert (fmt != NULL);
+		AVInputFormat *fmt = 0;
+		AVFormatParameters ap, *ap_ptr = &ap;
 
-		ap.width = 320;
-		ap.height = 240;
-		ap.time_base = (AVRational){1,25};
-		ap.pix_fmt = info.supportedPixelFormat.front();
-		if ( (av_open_input_file(&inputFmtCtx, d->mFileName.c_str(),fmt,0,&ap)) != 0){
+		switch (d->mDeviceType) {
+		case DEVICE_TYPE_CAPTURE:{
+#ifdef OS_WIN32
+			fmt = av_find_input_format("vfwcap");
+#endif
+#ifdef OS_LINUX
+			fmt = av_find_input_format("video4linux2");
+#endif
+			ap_ptr->width = 320;
+			ap_ptr->height = 240;
+			ap_ptr->time_base = (AVRational){1,25};
+			ap_ptr->pix_fmt = info.supportedPixelFormat.front();
+			break;
+		}
+
+		default:
+		case DEVICE_TYPR_REGULAR_FILE:{
+			fmt = 0;
+			ap_ptr = 0;
+			break;
+		}
+		}
+
+		if ( (av_open_input_file(&inputFmtCtx, d->mFileName.c_str(),fmt,0,ap_ptr)) != 0){
 			rc.setErrorType(Error::ERR_UNKNOWN, "Open camera device error");
 			goto open_input_file_error;
 		}

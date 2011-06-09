@@ -10,13 +10,14 @@
 
 #include "RString.h"
 #include "Error.h"
+#include "providers/FFMpegVideoProvider.h"
 
 class TCPFFMpegServer{
 public:
 	TCPFFMpegServer(const String &addr, int port = 0);
 
 	String getBoundInfo () const;
-	Error init(const char *deviceFile = "/dev/video0");
+	Error init(const char *deviceFile = "/dev/video0", FFMpegVideoProvider::DeviceType t = FFMpegVideoProvider::DEVICE_TYPE_CAPTURE);
 	Error start ();
 	Error stop();
 	Error wait();

@@ -1,1 +1,4 @@
 /build
+/nbproject/private/
+/.settings/
+/nbproject
