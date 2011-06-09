@@ -76,6 +76,7 @@ Error Thread::run() {
 		return rc;
 	}
 
+	d->shouldStop = false;
 	int r = pthread_create (&d->thread, NULL, &ThreadImpl::entry, this);
 	if (r != 0) {
 		rc.setSystemError(r);

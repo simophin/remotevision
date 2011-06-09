@@ -14,6 +14,7 @@
 #include "TCPSocket.h"
 #include "TCPSocketAddress.h"
 #include "Log.h"
+#include "TCPCommand.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,8 +29,8 @@ enum State {
 class TCPFFMpegServer::Impl: public Thread {
 public:
 	CommandMgr *mCmdMgr;
-	TCPServerSocket *mServerSocket;
 	TCPSocketAddress mBindAddress;
+	TCPServerSocket *mServerSocket;
 	VideoProvider *mVideoProvider;
 	Server *mServer;
 	State mState;
@@ -161,56 +162,38 @@ Error TCPFFMpegServer::Impl::entry()
 	TCPSocketAddress *addr = NULL;
 	TCPSocket *controlSocket = 0, *dataSocket = 0;
 
+
 	while (!shouldStop()) {
 		rc = mServerSocket->poll(IODevice::POLL_READ,2000);
 		if ( !rc.isSuccess() ) {
 			if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
-			else goto timeout;
+			else goto error_polling;
 		}
-		break;
-	}
-	if (shouldStop()) return rc;
 
+		rc = mServerSocket->accept( (Socket **)&controlSocket,NULL);
+		if (!rc.isSuccess()) {
+			break;
+		}
 
-	rc = mServerSocket->accept( (Socket **)&controlSocket,(SocketAddress **)&addr);
-	if (!rc.isSuccess()) {
-		goto accept_failed;
-	}
+		rc = mServerSocket->accept( (Socket **)&dataSocket,NULL);
+		if (!rc.isSuccess()) {
+			break;
+		}
 
-	if (controlSocket == 0) {
-		goto accept_failed;
-	}
+		{
+			// Now create the server
+			mServer = new Server(mCmdMgr,controlSocket,dataSocket,mVideoProvider);
+			mServer->start();
 
-	Log::logDebug("Control interface accepted from %s", addr->getReadable().c_str());
-	delete addr;
+			while (!shouldStop() && (mServer->wait(500).getErrorType() == Error::ERR_TIMEOUT)) {}
 
-	rc = mServerSocket->accept( (Socket **)&dataSocket,(SocketAddress **)&addr);
-	if (!rc.isSuccess()) {
-		goto accept_failed;
-	}
-	if (dataSocket == 0) {
-		goto accept_failed;
-	}
-
-	Log::logDebug("Data interface accepted from %s", addr->getReadable().c_str());
-	delete addr;
-
-	{
-		// Now create the server
-		mServer = new Server(mCmdMgr,controlSocket,dataSocket,mVideoProvider);
-		mServer->start();
-
-		while (!shouldStop() && (mServer->wait(1000).getErrorType() == Error::ERR_TIMEOUT)) {}
-
-		delete mServer;
-		mServer = 0;
+			delete mServer;
+			mServer = 0;
+		}
 	}
 
 
-	accept_failed:
-	if (controlSocket) delete controlSocket;
-	if (dataSocket) delete dataSocket;
-	timeout:
+	error_polling:
 	mState = STATE_READY;
 
 	return rc;

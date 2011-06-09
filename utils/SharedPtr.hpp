@@ -47,6 +47,10 @@ private :
 		 mRefCount(1) {
 			if (rhs.mPtr) mPtr = mCloner(rhs.mPtr);
 		}
+
+		~impl () {
+			Log::logDebug("An error instance has been deleted");
+		}
 	} *d;
 
 public:

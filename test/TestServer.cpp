@@ -18,6 +18,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
+#ifdef OS_UNIX
+#include <signal.h>
+#endif
+
+TCPFFMpegServer *server = 0;
+
+void onExit (int) {
+	if (server) {
+		server->stop();
+	}
+
+	sleep(1);
+}
 
 int main () {
 #ifdef OS_WIN32
@@ -25,46 +39,17 @@ int main () {
 	int nCode;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
-	/*
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
 
-	TCPServerSocket server (sock);
-	TCPSocketAddress localAddr("0.0.0.0", 10001);
-	if (server.bind(&localAddr)) {
-		std::cerr << server.getLastError();
-		return -1;
-	}
 
-	if (server.listen(10)) {
-		perror("While listening");
-		return -2;
-	}
-
-	TCPSocketAddress *addr = 0;
-	TCPSocket *socket = (TCPSocket *)(server.accept((SocketAddress **)&addr));
-	if (socket == NULL) {
-		std::cerr << server.getLastError();
-		return -3;
-	}
-
-	std::cout << "Remote: "<<addr->getReadable() << std::endl;
-
-	TCPSocket *dataSocket = (TCPSocket *)(server.accept());
-	if (dataSocket == NULL) {
-		std::cerr << server.getLastError();
-		return -4;
-	}
-
-	Server s (socket,dataSocket,rv.getProvider());
-	s.start();
-
-	socket = (TCPSocket *)(server.accept(0));
-	return 0;
-	*/
+#ifdef OS_UNIX
+	signal(SIGTERM, onExit);
+	signal(SIGABRT, onExit);
+	signal(SIGKILL, onExit);
+#endif
 
 	Error rc;
 	FFMpeg::init();
-	TCPFFMpegServer *server = new TCPFFMpegServer("0.0.0.0",0);
+	server = new TCPFFMpegServer("0.0.0.0",0);
 	rc = server->init("/dev/video0");
 	if (rc.isError()) {
 		std::cerr << rc << std::endl;
@@ -82,5 +67,5 @@ int main () {
 
 	server->wait();
 	delete server;
-	return 3;
+	return 0;
 }

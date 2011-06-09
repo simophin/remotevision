@@ -51,6 +51,7 @@ doAccept(Socket **sock, SocketAddress **accepted_addr){
 		if (accepted_addr) {
 			*accepted_addr = p->createAddressInstance(addr,addr_len);
 		}
+		::free(addr);
 		*sock = p;
 	}
 

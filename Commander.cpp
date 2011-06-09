@@ -124,6 +124,7 @@ writeCommand (const Command & cmd) {
 	CommandHeader hdr;
 	// Write header
 	{
+		::memset (&hdr,0,sizeof(hdr));
 		hdr.length = data.size();
 	}
 

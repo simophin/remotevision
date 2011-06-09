@@ -124,6 +124,15 @@ Error Server::ServerImpl::entry() {
 		cmdMgr->handleCommand(raw_cmd,&cmdCtx);
 	}
 
+
+	// Clean up
+	if (cmdCtx.dataThread) {
+		cmdCtx.dataThread->stop();
+		cmdCtx.videoProvider->stopCapture();
+		delete cmdCtx.dataThread;
+		cmdCtx.dataThread = 0;
+	}
+
 	return rc;
 }
 

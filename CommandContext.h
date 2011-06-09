@@ -8,6 +8,8 @@
 #ifndef COMMANDCONTEXT_H_
 #define COMMANDCONTEXT_H_
 
+#include <vector>
+
 class IODevice;
 class Server;
 class Client;
@@ -15,7 +17,8 @@ class VideoProvider;
 class Thread;
 class CommandContext {
 public:
-	IODevice *controlDevice, *dataDevice;
+	IODevice *controlDevice;
+	IODevice *dataDevice;
 	Server *server;
 	Client *client;
 	VideoProvider *videoProvider;
