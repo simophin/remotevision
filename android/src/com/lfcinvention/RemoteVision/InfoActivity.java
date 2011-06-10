@@ -17,7 +17,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class InfoActivity extends Activity {
-    /** Called when the activity is first created. */
+    @Override
+	protected void onDestroy() {
+		
+    	if (mBoundService != null) {
+    		if (mBoundService.getServiceState() != VideoService.State.STATE_IN_SERVICE) {
+    			mBoundService.getService().stopSelf();
+    		}
+    	}
+    	
+		super.onDestroy();
+	}
+
+
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
