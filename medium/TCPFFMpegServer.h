@@ -14,8 +14,15 @@
 
 class TCPFFMpegServer{
 public:
-	TCPFFMpegServer(const String &addr, int port = 0);
+	enum  ConnType {
+		SERVER = 0,
+		RELAY
+	};
 
+
+	TCPFFMpegServer(ConnType connType, const String &addr, int port = 0);
+
+	ConnType getConnType () const;
 	String getBoundInfo () const;
 	Error init(const char *deviceFile = "/dev/video0", FFMpegVideoProvider::DeviceType t = FFMpegVideoProvider::DEVICE_TYPE_CAPTURE);
 	Error start ();

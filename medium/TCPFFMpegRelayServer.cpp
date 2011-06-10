@@ -140,7 +140,7 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 
 		// Do exchanged thread
 		ExchangeThread thread1 (providerControl, clientControl);
-		ExchangeThread thread2 (clientControl, clientData);
+		ExchangeThread thread2 (clientData, providerData);
 		thread1.run();
 		thread2.run();
 

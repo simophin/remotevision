@@ -28,27 +28,29 @@ enum State {
 class TCPFFMpegServer::Impl: public Thread {
 public:
 	CommandMgr *mCmdMgr;
-	TCPSocketAddress mBindAddress;
+	TCPSocketAddress mAddress;
 	TCPServerSocket *mServerSocket;
 	VideoProvider *mVideoProvider;
 	Server *mServer;
 	State mState;
+	TCPFFMpegServer::ConnType mConnType;
 
-	Impl(const String &addr, int port)
-	:mBindAddress(addr,port),
+	Impl(TCPFFMpegServer::ConnType type,const String &addr, int port)
+	:mAddress(addr,port),
 	 mServerSocket(0),
-	 mState(STATE_UNINTIALIZED){
+	 mState(STATE_UNINTIALIZED),
+	 mConnType(type){
 
 	}
 
 	virtual Error entry();
 };
 
-TCPFFMpegServer::TCPFFMpegServer(const String & addr, int port)
-:d(new Impl(addr,port))
+TCPFFMpegServer::TCPFFMpegServer(ConnType connType, const String & addr, int port)
+:d(new Impl(connType,addr,port))
 {
-
 }
+
 
 String TCPFFMpegServer::getBoundInfo() const
 {
@@ -90,25 +92,27 @@ Error TCPFFMpegServer::init(const char *filename, FFMpegVideoProvider::DeviceTyp
 	}
 
 	int fd;
+	if (d->mConnType == SERVER) {
+		// Create fd
+		{
+			fd = socket(AF_INET, SOCK_STREAM, 0);
+			if (fd < 0) goto create_fd_failed;
+		}
 
-	// Create fd
-	{
-		fd = socket(AF_INET, SOCK_STREAM, 0);
-		if (fd < 0) goto create_fd_failed;
+		// Create server socket and init
+		{
+			d->mServerSocket = new TCPServerSocket(fd);
+			ret = d->mServerSocket->bind(&d->mAddress);
+			if ( !ret.isSuccess()) {
+				goto bind_socket_failed;
+			}
+			ret = d->mServerSocket->listen(2);
+			if ( !ret.isSuccess()) {
+				goto listen_failed;
+			}
+		}
 	}
 
-	// Create server socket and init
-	{
-		d->mServerSocket = new TCPServerSocket(fd);
-		ret = d->mServerSocket->bind(&d->mBindAddress);
-		if ( !ret.isSuccess()) {
-			goto bind_socket_failed;
-		}
-		ret = d->mServerSocket->listen(2);
-		if ( !ret.isSuccess()) {
-			goto listen_failed;
-		}
-	}
 
 	// Create provider
 	{
@@ -134,8 +138,10 @@ Error TCPFFMpegServer::init(const char *filename, FFMpegVideoProvider::DeviceTyp
 	d->mVideoProvider = 0;
 	listen_failed:
 	bind_socket_failed:
-	delete d->mServerSocket;
-	d->mServerSocket = 0;
+	if (d->mServerSocket) {
+		delete d->mServerSocket;
+		d->mServerSocket = 0;
+	}
 	::close(fd);
 	create_fd_failed:
 
@@ -147,6 +153,14 @@ Error TCPFFMpegServer::init(const char *filename, FFMpegVideoProvider::DeviceTyp
 Error TCPFFMpegServer::wait()
 {
 	return d->wait();
+}
+
+
+
+TCPFFMpegServer::ConnType
+TCPFFMpegServer::getConnType() const
+{
+	return d->mConnType;
 }
 
 TCPFFMpegServer::~TCPFFMpegServer() {
@@ -162,20 +176,42 @@ Error TCPFFMpegServer::Impl::entry()
 
 
 	while (!shouldStop()) {
-		rc = mServerSocket->poll(IODevice::POLL_READ,2000);
-		if ( !rc.isSuccess() ) {
-			if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
-			else goto error_polling;
-		}
+		if (mConnType == SERVER) {
+			rc = mServerSocket->poll(IODevice::POLL_READ,2000);
+			if ( !rc.isSuccess() ) {
+				if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
+				else goto error_polling;
+			}
 
-		rc = mServerSocket->accept( (Socket **)&controlSocket,NULL);
-		if (!rc.isSuccess()) {
-			break;
-		}
+			rc = mServerSocket->accept( (Socket **)&controlSocket,NULL);
+			if (!rc.isSuccess()) {
+				break;
+			}
 
-		rc = mServerSocket->accept( (Socket **)&dataSocket,NULL);
-		if (!rc.isSuccess()) {
-			break;
+			rc = mServerSocket->accept( (Socket **)&dataSocket,NULL);
+			if (!rc.isSuccess()) {
+				break;
+			}
+		}else{
+			controlSocket = new TCPSocket(socket(AF_INET, SOCK_STREAM, 0));
+
+
+			rc = controlSocket->connect(&mAddress);
+			if (rc.isError()) {
+				controlSocket->close();
+				delete controlSocket;
+				break;
+			}
+
+			dataSocket = new TCPSocket(socket(AF_INET, SOCK_STREAM, 0));
+			rc = dataSocket->connect(&mAddress);
+			if (rc.isError()) {
+				controlSocket->close();
+				dataSocket->close();
+				delete controlSocket;
+				delete dataSocket;
+
+			}
 		}
 
 		{
