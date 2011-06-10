@@ -3,8 +3,12 @@ package com.lfcinvention.RemoteVision;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.List;
+
+import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkMode;
+import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkType;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -12,97 +16,83 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
 
+
 public class VideoService extends Service {
 	public static VideoService INSTANCE = null;
 	
-	static enum State {
+	public static enum State {
+		STATE_UNINITIALIZED,
 		STATE_READY,
-		STATE_IN_SERVICE,
-		STATE_ERROR,
+		STATE_IN_SERVICE
 	}
 	
-	private SharedPreferences mPref;
-	private ServiceChannel mChannel = new ServiceChannel();
-	private State       mState      = State.STATE_READY;
-	private String     mErrorString = "";
-	private WifiManager mWifiManger = null;
-	private NotificationManager mNotificationManager = null;
-	private NetworkConfiguration mNetworkConfig = null;
-	private final int NOTIFY_ID = 1;
+	public class Channel extends Binder {
+		public VideoService getService() {
+			return VideoService.this; 
+		}
+	}
+	
+	public class NoInterfaceAvailable extends Exception {
+		private static final long serialVersionUID = -4751554369144548163L;
+	}
+	
+	public class StateException extends Exception {
+		private static final long serialVersionUID = -8414417754405215499L;
+	}
+	
+	public class NativeException extends Exception {
+		public NativeException(NativeError err) {
+			mError = err;
+		}
+		
+		@Override
+		public String getMessage() {
+			return mError.getErrorString();
+		}
+		
+		public NativeError getNativeError() {
+			return mError;
+		}
+			
+		private static final long serialVersionUID = 8732958897546506120L;
+		private NativeError mError = null;
+	}
 
+	@Override
+	public IBinder onBind(Intent intent) {
+		return mChannel;
+	}
 	
 	@Override
 	public void onCreate() {
+		mChannel = new Channel();
 		INSTANCE = this;
 		super.onCreate();
 	}
 
 	@Override
-	public void onStart(Intent intent, int startId) {
-		
-		mPref  = getSharedPreferences(Preference.name, 0);
-		mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
-		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		
-		int connType = mPref.getInt(Preference.connTypeKey, Preference.CONNTYPE_NETWORK);
-		try{
-			switch (connType) {
-			case Preference.CONNTYPE_NETWORK:
-				String networkConfigStr = mPref.getString(Preference.networkConfigKey, "");
-				if (networkConfigStr.trim().length() < 1) {
-					mNetworkConfig = new NetworkConfiguration();
-				}else{
-					mNetworkConfig =  (com.lfcinvention.RemoteVision.NetworkConfiguration)Preference.unserialize(networkConfigStr);
-				}
-				
-				switch(mNetworkConfig.networkType) {
-				case NetworkConfiguration.NT_WIFI: {
-					if (!mWifiManger.isWifiEnabled() || 
-							mWifiManger.getConnectionInfo() == null) {
-						updateState (State.STATE_ERROR, "Wifi is not enabled", false);
-						break;
-					}
-					setUseWifi();
-					updateState(State.STATE_READY, null, false);
-					break;
-				}
-				
-				case NetworkConfiguration.NT_GSM: {
-					setUseGSM();
-					updateState(State.STATE_READY, null, false);
-					break;
-				}
-				}
-			
-				break;
-				
-			default:
-				updateState(State.STATE_ERROR,"Unimplement connection type",false);
-				break;
-			}
-		}catch (Exception e) {
-			updateState(State.STATE_ERROR,e.getMessage(),false);
-		}
-		
-		super.onStart(intent, startId);
-	}
-
-	@Override
 	public void onDestroy() {
-		if (mNativeServer != 0) {
-			nativeStartServer(mNativeServer, false);
-			nativeDestroyServer(mNativeServer);
+		if (mState == State.STATE_IN_SERVICE) {
+			try {
+				stopService();
+			} catch (StateException e) {	
+			} catch (NativeException e) {
+			}
 		}
-		mNotificationManager.cancel(NOTIFY_ID);
+		if (mState == State.STATE_READY) {
+			nativeDestroyServerInstance(mNativeServer);
+		}
+		INSTANCE = null;
 		super.onDestroy();
 	}
-
 
 	@Override
 	public void onLowMemory() {
@@ -110,164 +100,166 @@ public class VideoService extends Service {
 		super.onLowMemory();
 	}
 	
-	@Override
-	public IBinder onBind(Intent arg0) {
-		return (IBinder) mChannel;
+	public State getState() {
+		return mState;
 	}
 	
-	public class StateErrorException extends Exception {
+	public void initService (ServiceConfiguration config) throws SocketException, NoInterfaceAvailable, StateException, NativeException {
+		String boundAddr = null;
+		int port = -1;
+		int serviceType = 0;
 		
-		String errorString;
-		
-		public StateErrorException(String str) {
-			errorString = str;
+		if (mState != State.STATE_UNINITIALIZED) {
+			throw new StateException();
 		}
 		
-		@Override
-		public String getMessage() {
-			return errorString;
-		}
-		private static final long serialVersionUID = 333838606534316252L;
-	}
-	
-	public class CreateServerException extends Exception {
-		private static final long serialVersionUID = 6397572426195074232L;
-	}
-	
-	public class NoGSMNetworkException extends Exception {
-		@Override
-		public String getMessage() {
-			return "No GSM Network available";
-		}
-
-		private static final long serialVersionUID = -4437622063918416580L;
-		
-	}
-	
-	public class ServiceChannel extends Binder {
-		public String getBoundAddress() {
-			return nativeGetBoundAddress(mNativeServer);
-		}
-		
-		public State  getServiceState() {
-			return mState;
-		}
-		
-		public void startService() throws StateErrorException {
-			if (mState != State.STATE_READY) {
-				throw new StateErrorException("State should be ready");
+		if (config.networkMode == NetworkMode.SERVER) {
+			boundAddr = getAvailableAddress(config.networkType);
+			if (boundAddr == null) {
+				throw new NoInterfaceAvailable();
 			}
-			
-			nativeStartServer(mNativeServer, true);
-			mState = State.STATE_IN_SERVICE;
+			port = config.serverPort;
+			serviceType = 0;
+		}else /* if (config.networkMode == NetworkMode.RELAY_PROVIDER_CLIENT) */ {
+			boundAddr = config.relayServerHost;
+			port = config.relayServerPort;
+			serviceType = 1;
 		}
 		
-		public void stopService() throws StateErrorException{
-			if (mState != State.STATE_IN_SERVICE) {
-				throw new StateErrorException("State should be running");
-			}
-			mState = State.STATE_READY;
-			nativeStartServer(mNativeServer, false);
-			mNotificationManager.cancel(NOTIFY_ID);
+		try {
+			InetAddress addr = InetAddress.getByName(boundAddr);
+			boundAddr = addr.getHostAddress();
+		} catch (UnknownHostException e) {
+			throw new NoInterfaceAvailable();
 		}
 		
-		public VideoService getService() {
-			return VideoService.this;
+		NativeError error = new NativeError();
+		int server = nativeCreateServerInstance(error, serviceType, boundAddr, port);
+		if (error.isError()) {
+			throw new NativeException(error);
+		}
+		mNativeServer = server;
+		mState = State.STATE_READY;
+	}
+	
+	public void startService () throws StateException, NativeException {
+		if (mState != State.STATE_READY) {
+			throw new StateException();
 		}
 		
-		public String getErrorString() {
-			return mErrorString;
+		NativeError error = new NativeError();
+		error = nativeStartService(mNativeServer);
+		if (error.isError()) {
+			throw new NativeException(error);
 		}
 		
-		public void notify(String str)
-		{
-			doNotify(str);
+		mState = State.STATE_IN_SERVICE;
+	}
+	
+	public void stopService() throws StateException, NativeException {
+		if (mState != State.STATE_IN_SERVICE) {
+			throw new StateException();
 		}
+		
+		NativeError error = new NativeError();
+		error = nativeStopService(mNativeServer);
+		if (error.isError()) {
+			throw new NativeException(error);
+		}
+		mState = State.STATE_READY;
+	}
+	
+	public String getBoundAddress () throws StateException {
+		if (mState == State.STATE_READY) {
+			throw new StateException();
+		}
+		return nativeGetBoundAddress(mNativeServer);
+	}
+	
+	public Bitmap getPreviewImage (int ms) throws com.lfcinvention.RemoteVision.VideoService.NativeException {
+		Bitmap ret = null;
+		if (mPreviewData == null) return ret;
+		
+		NativeError error = new NativeError();
+		NativePreviewImage img = new NativePreviewImage();
+		img.buf = mPreviewData;
+		img.size = mPreviewData.length;
+		error = nativeGetPreviewImage(mNativeServer, img);
+		if (error.isError()) {
+			throw new NativeException(error);
+		}
+		if (img.usedSize > 0) {
+			ret = BitmapFactory.decodeByteArray(mPreviewData, 0, img.usedSize);
+		}
+		return ret;
 	}
 
-	
-	public void setUseWifi () throws CreateServerException {
-		WifiInfo info = mWifiManger.getConnectionInfo();
-		
-		String address = intToIp(info.getIpAddress());
-		int ptr = nativeCreateServer(address, this.mNetworkConfig.port);
-		if (ptr == 0) {
-			throw new CreateServerException();
+	public void setPreviewingImage (boolean on) {
+		if (on) {
+			if (mPreviewData == null) {
+				mPreviewData = new byte[1024000];
+			}
+		}else{
+			if (mPreviewData != null) {
+				mPreviewData = null;
+			}
 		}
-		mNativeServer = ptr;
 	}
 	
-	public void setUseGSM () throws SocketException, NoGSMNetworkException, CreateServerException {
-		// Find a network interface that is GSM
-		String exception_ip = null;
-		WifiInfo info = mWifiManger.getConnectionInfo();
-		if (info != null) {
-			exception_ip = intToIp(info.getIpAddress());
+	private String getAvailableAddress (ServiceConfiguration.NetworkType ntype) throws SocketException {
+		String addr = null;
+		
+		// Find a wifi network
+		if (ntype == NetworkType.WIFI_ONLY || 
+				ntype == NetworkType.WIFI_PREFERED) {
+			WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+			if (wifiMgr.isWifiEnabled()){
+				WifiInfo info = wifiMgr.getConnectionInfo();
+				addr = intToIp(info.getIpAddress());
+			}
 		}
 		
+		if (ntype == NetworkType.WIFI_ONLY || 
+				(ntype == NetworkType.WIFI_PREFERED && (addr != null)) ) return addr;
+		
+		
+		// Find a gsm network
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 		InetAddress foundAddr = null;
-		while(interfaces.hasMoreElements()) {
+		while(interfaces.hasMoreElements() && (foundAddr == null)) {
 			NetworkInterface iface = interfaces.nextElement();
 			Enumeration<InetAddress> addresses = iface.getInetAddresses();
-			while (addresses.hasMoreElements()) {
-				InetAddress addr = addresses.nextElement();
-				if (addr.getHostAddress() != exception_ip && 
-						!addr.isLoopbackAddress() && !addr.isAnyLocalAddress() && 
-						!addr.isMulticastAddress()) {
-					foundAddr = addr;
+			while (addresses.hasMoreElements() && (foundAddr == null)) {
+				InetAddress inetAddr = addresses.nextElement();
+				if (!inetAddr.isLinkLocalAddress() && !inetAddr.isLoopbackAddress() && 
+						!inetAddr.isMulticastAddress()) {
+					foundAddr = inetAddr;
 					break;
 				}
 			}
-			if (foundAddr != null) {
-				break;
-			}
 		}
 		
-		if (foundAddr == null) {
-			throw new NoGSMNetworkException();
-		}
+		if (foundAddr == null) return addr;
+		addr = foundAddr.getHostAddress();
 		
-		
-		String address = foundAddr.toString().substring(1);
-		int ptr = nativeCreateServer(address, this.mNetworkConfig.port);
-		if (ptr == 0) {
-			throw new CreateServerException();
-		}
-		mNativeServer = ptr;
-	}
-	
-	private void updateState(State s, String str, boolean notify) {
-		mState = s;
-		mErrorString = str;
-		if (notify) doNotify (str);
-	}
-	
-	private void doNotify (String str) {
-		long when = System.currentTimeMillis();
-		int icon = R.drawable.icon;
-		CharSequence tickerText = str;
-		Notification notification = new Notification(icon, tickerText, when);
-		CharSequence title = getResources().getText(R.string.app_name);
-		CharSequence content = str;
-		Intent notificationIntent = new Intent(this,InfoActivity.class);
-		PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, 
-				notificationIntent, 0);
-		notification.setLatestEventInfo(getApplicationContext(), title, content, contentIntent);
-		
-		mNotificationManager.notify(NOTIFY_ID, notification);
+		return addr;
 	}
 	
 	private String intToIp(int i)
 	{ 
 		return ( i & 0xFF)+ "." + ((i >> 8 ) & 0xFF)  + "." + ((i >> 16 ) & 0xFF) +"."+((i >> 24 ) & 0xFF ) ; 
 	}
-
-	private int mNativeServer = 0;
-	private native int    nativeCreateServer(String addr, int port);
-	private native void   nativeDestroyServer(int server);
-	private native void   nativeStartServer(int server,boolean start);
-	private native String nativeGetBoundAddress(int nativeServer);
 	
+	private ServiceConfiguration mConfiguration = null;
+	private State   mState = State.STATE_UNINITIALIZED;
+	private Channel mChannel = null;
+	private byte[]  mPreviewData = null;
 	
+	private int mNativeServer;
+	private native int nativeCreateServerInstance (NativeError error, int server_type, String host,int port);
+	private native NativeError nativeGetPreviewImage (int server,NativePreviewImage img);
+	private native NativeError nativeDestroyServerInstance (int server);
+	private native NativeError nativeStartService(int server);
+	private native NativeError nativeStopService(int server);
+	private native String nativeGetBoundAddress(int server);
 }

@@ -7,32 +7,45 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LOG_TAG "RemoteVision"
+/*
+ * Class:     com_lfcinvention_RemoteVision_VideoService
+ * Method:    nativeCreateServerInstance
+ * Signature: (Lcom/lfcinvention/RemoteVision/NativeError;ILjava/lang/String;I)I
+ */
+JNIEXPORT jint JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeCreateServerInstance
+  (JNIEnv *, jobject, jobject, jint, jstring, jint);
 
 /*
  * Class:     com_lfcinvention_RemoteVision_VideoService
- * Method:    nativeCreateServer
- * Signature: (Ljava/lang/String;I)I
+ * Method:    nativeGetPreviewImage
+ * Signature: (ILcom/lfcinvention/RemoteVision/NativePreviewImage;)Lcom/lfcinvention/RemoteVision/NativeError;
  */
-JNIEXPORT jint JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeCreateServer
-  (JNIEnv *, jobject, jstring, jint);
+JNIEXPORT jobject JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeGetPreviewImage
+  (JNIEnv *, jobject, jint, jobject);
 
 /*
  * Class:     com_lfcinvention_RemoteVision_VideoService
- * Method:    nativeDestroyServer
- * Signature: (I)V
+ * Method:    nativeDestroyServerInstance
+ * Signature: (I)Lcom/lfcinvention/RemoteVision/NativeError;
  */
-JNIEXPORT void JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeDestroyServer
+JNIEXPORT jobject JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeDestroyServerInstance
   (JNIEnv *, jobject, jint);
 
 /*
  * Class:     com_lfcinvention_RemoteVision_VideoService
- * Method:    nativeStartServer
- * Signature: (IZ)V
+ * Method:    nativeStartService
+ * Signature: (I)Lcom/lfcinvention/RemoteVision/NativeError;
  */
-JNIEXPORT void JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeStartServer
-  (JNIEnv *, jobject, jint, jboolean);
+JNIEXPORT jobject JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeStartService
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_lfcinvention_RemoteVision_VideoService
+ * Method:    nativeStopService
+ * Signature: (I)Lcom/lfcinvention/RemoteVision/NativeError;
+ */
+JNIEXPORT jobject JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeStopService
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     com_lfcinvention_RemoteVision_VideoService
@@ -42,8 +55,8 @@ JNIEXPORT void JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeSta
 JNIEXPORT jstring JNICALL Java_com_lfcinvention_RemoteVision_VideoService_nativeGetBoundAddress
   (JNIEnv *, jobject, jint);
 
-jint JNI_OnLoad(JavaVM *, void *);
 
+jint JNI_OnLoad(JavaVM *, void *);
 #ifdef __cplusplus
 }
 #endif

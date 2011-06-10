@@ -1,5 +1,7 @@
 package com.lfcinvention.RemoteVision;
 
+import com.lfcinvention.RemoteVision.VideoService.StateException;
+
 import android.app.Activity;
 import android.app.Service;
 import android.content.ComponentName;
@@ -21,8 +23,8 @@ public class InfoActivity extends Activity {
 	protected void onDestroy() {
 		
     	if (mBoundService != null) {
-    		if (mBoundService.getServiceState() != VideoService.State.STATE_IN_SERVICE) {
-    			mBoundService.getService().stopSelf();
+    		if (mBoundService.getState() != VideoService.State.STATE_IN_SERVICE) {
+    			mBoundService.stopSelf();
     		}
     	}
     	
@@ -45,11 +47,12 @@ public class InfoActivity extends Activity {
 		bindService();
     }
     
-    private VideoService.ServiceChannel mBoundService = null;
+    private VideoService mBoundService = null;
     private boolean mIsBound = false; 
     private TextView mTextView = null;
     private Button  mBtnStart = null;
     private Button mBtnStop;
+    private ServiceConfiguration mServiceConfiguration = null;
     
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 		public void onServiceDisconnected(ComponentName name) {
@@ -58,7 +61,7 @@ public class InfoActivity extends Activity {
 		}
 		
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			VideoService.ServiceChannel s = (VideoService.ServiceChannel)service;
+			VideoService s = ((VideoService.Channel)service).getService();
 			
 			InfoActivity.this.mBoundService = s;
 			InfoActivity.this.mIsBound = true;
@@ -74,6 +77,7 @@ public class InfoActivity extends Activity {
 
 			if (VideoService.INSTANCE == null) {
 				startService(i);
+				VideoService.INSTANCE.initService(mServiceConfiguration);
 			}
 
 			if (!bindService(i, mServiceConnection, 0)) {
@@ -90,8 +94,8 @@ public class InfoActivity extends Activity {
 			try{
 				mBoundService.startService();
 				updateServiceStatus();
-				if (mBoundService.getServiceState() == VideoService.State.STATE_IN_SERVICE) {
-					mBoundService.notify("Listen on " + mBoundService.getBoundAddress());
+				if (mBoundService.getState() == VideoService.State.STATE_IN_SERVICE) {
+					//mBoundService.notify("Listen on " + mBoundService.getBoundAddress());
 				}
 			}catch(Exception e) {
 				Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);
@@ -113,16 +117,17 @@ public class InfoActivity extends Activity {
 	
 	private void updateServiceStatus () {
 		if (!mIsBound) return;
-		VideoService.State state = mBoundService.getServiceState() ;
-		if (state == VideoService.State.STATE_ERROR) {
-			mTextView.setText("错误：" + mBoundService.getErrorString());
+		VideoService.State state = mBoundService.getState() ;
+		if (state ==  VideoService.State.STATE_IN_SERVICE) {
 			mBtnStart.setEnabled(false);
 			mBtnStop.setEnabled(true);
-			return;
-		}else if (state ==  VideoService.State.STATE_IN_SERVICE) {
-			mBtnStart.setEnabled(false);
-			mBtnStop.setEnabled(true);
-			mTextView.setText(mBoundService.getBoundAddress());
+			try {
+				String addr = mBoundService.getBoundAddress();	
+				mTextView.setText(addr);
+			} catch (StateException e) {
+				e.printStackTrace();
+			}
+			
 		}else if (state == VideoService.State.STATE_READY) {
 			mBtnStart.setEnabled(true);
 			mBtnStop.setEnabled(false);
