@@ -54,7 +54,9 @@ TCPFFMpegServer::TCPFFMpegServer(ConnType connType, const String & addr, int por
 
 String TCPFFMpegServer::getBoundInfo() const
 {
+	if (d->mConnType == SERVER)
 	return d->mServerSocket->getAddress()->getReadable();
+	else return d->mAddress.getReadable();
 }
 
 Error TCPFFMpegServer::start()

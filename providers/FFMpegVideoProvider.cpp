@@ -549,14 +549,18 @@ Error FFMpegVideoProvider::Impl::entry() {
 		// Put to preview buffer
 		{
 			if (mPreviewBufferMutex.trylock()) {
-				VBuffer * pvbuf = mPreviewBuffers.front();
-				mPreviewBuffers.pop_front();
-				mPreviewBufferMutex.unlock();
+				if (mPreviewBuffers.size() > 0) {
+					VBuffer * pvbuf = mPreviewBuffers.front();
+					mPreviewBuffers.pop_front();
+					mPreviewBufferMutex.unlock();
 
-				pvbuf->size = MIN(rawPictureSize,pvbuf->buf.getSize());
+					pvbuf->size = MIN(rawPictureSize,pvbuf->buf.getSize());
 
-				::memcpy( pvbuf->buf.getData(), decodedFrame->data[0], pvbuf->size );
-				pvbuf->cond.signal();
+					::memcpy( pvbuf->buf.getData(), decodedFrame->data[0], pvbuf->size );
+					pvbuf->cond.signal();
+				}else{
+					mPreviewBufferMutex.unlock();
+				}
 			}
 		}
 

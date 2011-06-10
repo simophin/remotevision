@@ -13,6 +13,7 @@
 #include "TCPSocketAddress.h"
 #include "Log.h"
 #include "platform/posix/PosixCompactHeader.h"
+#include "platform/posix/PosixSocketDemuxer.h"
 
 #include <utility>
 #include <stdlib.h>
@@ -30,6 +31,10 @@ public:
 
 	}
 	virtual Error entry();
+
+	inline IODevice * theOther(IODevice *p) {
+		return (p == mD1) ? mD2 : mD1;
+	}
 
 private:
 	IODevice  *mD1, *mD2;
@@ -66,34 +71,39 @@ TCPFFMpegRelayServer::~TCPFFMpegRelayServer() {
 Error ExchangeThread::entry()
 {
 	Error ec;
+	PosixSocketDemuxer demuxer;
 	char *buf = (char *)::malloc(MAX_EXCHANGED_DATA);
 	::memset(buf,0,MAX_EXCHANGED_DATA);
-	size_t readBytes = 0;
+	size_t readBytes = 0, writeBytes = 0;
+	demuxer.addSocket( (PosixSocket *)mD1, PosixSocketDemuxer::SELECT_READ |
+			PosixSocketDemuxer::SELECT_ERROR);
+	demuxer.addSocket( (PosixSocket *)mD2,PosixSocketDemuxer::SELECT_READ |
+			PosixSocketDemuxer::SELECT_ERROR);
+
+	std::vector<PosixSocket *> reads,writes, errors;
 
 	while (!shouldStop()) {
-		ec = mD1->poll(IODevice::POLL_READ, 200);
-		if (ec.isSuccess()){
-			ec = mD1->read(buf, MAX_EXCHANGED_DATA, &readBytes);
-			if (ec.isError()) break;
-		}else if (ec.getErrorType() != Error::ERR_TIMEOUT) {
+		reads.clear();
+		errors.clear();
+
+		ec = demuxer.waitEvent(reads, writes, errors, 200);
+		if (errors.size() > 0) {
+			Log::logDebug("One or more sockets are in error");
+			ec.setErrorString("One or more sockets are in error");
 			break;
 		}
+		if (ec.isSuccess()) {
+			for (int i=0; i<reads.size(); i++) {
+				ec = reads[i]->read(buf, MAX_EXCHANGED_DATA, &readBytes);
+				if (ec.isError()) goto error;
 
-		ec = mD2->write(buf, readBytes,NULL);
-		if (ec.isError()) break;
-
-		ec = mD2->poll(IODevice::POLL_READ, 200);
-		if (ec.isSuccess()){
-			ec = mD2->read(buf, MAX_EXCHANGED_DATA, &readBytes);
-			if (ec.isError()) break;
-		}else if (ec.getErrorType() != Error::ERR_TIMEOUT) {
-			break;
+				ec = theOther(reads[i])->write(buf, readBytes,&writeBytes);
+				if (ec.isError() || (readBytes != writeBytes) ) goto error;
+			}
 		}
-
-		ec = mD1->write(buf, readBytes,NULL);
-		if (ec.isError()) break;
 	}
 
+	error:
 	::free(buf);
 	return ec;
 }
@@ -145,14 +155,28 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 		thread2.run();
 
 		while (!shouldStop() && (thread1.isRunning() || thread2.isRunning())) {
-			if (thread1.isRunning()) thread1.wait(NULL,500);
-			if (thread2.isRunning()) thread2.wait(NULL,500);
+
+			if (thread1.isRunning()) {
+				ec = thread1.wait(NULL,500);
+				if (ec.isSuccess()) {
+					providerControl->close();
+					providerData->close();
+					clientControl->close();
+					clientData->close();
+				}
+			}
+			if (thread2.isRunning()){
+				ec = thread2.wait(NULL,500);
+				if (ec.isSuccess()) {
+					providerControl->close();
+					providerData->close();
+					clientControl->close();
+					clientData->close();
+				}
+			}
 		}
 
-		providerControl->close();
-		providerData->close();
-		clientControl->close();
-		clientData->close();
+
 		delete providerControl;
 		delete providerData;
 		delete clientControl;
