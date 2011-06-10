@@ -72,6 +72,11 @@ public:
 	Condition mBufferCond;
 	Mutex mBufferMutex;
 
+	// Preview buffer
+	std::list<VBuffer *> mPreviewBuffers;
+	Condition mPreviewBufferCond;
+	Mutex mPreviewBufferMutex;
+
 	// Thread entry
 	virtual Error entry();
 
@@ -337,6 +342,36 @@ Error FFMpegVideoProvider::doSetParam(const Param & param)
 	return ret;
 }
 
+Error FFMpegVideoProvider::doGetPreviewImage(PreviewImageBuffer & buf, int ms)
+{
+	Error rc;
+
+	if (d->state != STATE_CAPTURING) {
+		rc.setErrorType(Error::ERR_STATE);
+		return rc;
+	}
+
+	VBuffer vbuf;
+	vbuf.buf = buf.buf;
+
+	rc = d->mPreviewBufferMutex.lock(ms);
+	if (rc.isError()) return rc;
+
+	d->mPreviewBuffers.push_back(&vbuf);
+	d->mPreviewBufferMutex.unlock();
+
+	vbuf.mutex.lock();
+	vbuf.cond.wait(vbuf.mutex);
+
+	buf.geo.height = d->mCtx.inputCodecCtx->height;
+	buf.geo.width  = d->mCtx.inputCodecCtx->width;
+	buf.usedSize = vbuf.size;
+	buf.pixFmt = FFMpegInfo::getPixFmtFromFFMpeg(d->mCtx.inputCodecCtx->pix_fmt);
+
+
+	return rc;
+}
+
 void FFMpegVideoProvider::init() {
 	d->mCurrentParam.currentCodec = VCODEC_MPEG4;
 	FFMpegCodecInfo cf = FFMpegInfo::findCodecInfo(d->mCurrentParam.currentCodec);
@@ -452,6 +487,9 @@ Error FFMpegVideoProvider::Impl::entry() {
 	int got_frame = 0;
 	Error rc;
 
+	size_t rawPictureSize = avpicture_get_size(mCtx.inputCodecCtx->pix_fmt,
+			mCtx.inputCodecCtx->width, mCtx.inputCodecCtx->height);
+
 	while (!shouldStop()) {
 		VBuffer *vbuf;
 		// try to get a buffer
@@ -506,6 +544,20 @@ Error FFMpegVideoProvider::Impl::entry() {
 			rc.setErrorType(Error::ERR_TIMEOUT);
 			av_free(decodedFrame);
 			break;
+		}
+
+		// Put to preview buffer
+		{
+			if (mPreviewBufferMutex.trylock()) {
+				VBuffer * pvbuf = mPreviewBuffers.front();
+				mPreviewBuffers.pop_front();
+				mPreviewBufferMutex.unlock();
+
+				pvbuf->size = MIN(rawPictureSize,pvbuf->buf.getSize());
+
+				::memcpy( pvbuf->buf.getData(), decodedFrame->data[0], pvbuf->size );
+				pvbuf->cond.signal();
+			}
 		}
 
 		// Do swscale

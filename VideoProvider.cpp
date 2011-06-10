@@ -66,6 +66,11 @@ Error VideoProvider::setParam(const Param & param)
 	return doSetParam(param);
 }
 
+Error VideoProvider::getPreviewImage(PreviewImageBuffer & buf, int ms)
+{
+	return doGetPreviewImage(buf,ms);
+}
+
 Error VideoProvider::doInitDevice()
 {
 	return Error();

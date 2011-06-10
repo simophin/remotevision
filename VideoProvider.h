@@ -37,6 +37,22 @@ public:
 		static Info fromString(const String &);
 	};
 
+	class PreviewImageBuffer {
+	public:
+		ImageFormat pixFmt;
+		Geometry geo;
+		ImageBuffer buf;
+		size_t usedSize;
+
+		PreviewImageBuffer ()
+		:pixFmt (IF_INVALID),
+		 geo(0,0),
+		 buf(0,0),
+		 usedSize(0) {
+
+		}
+	};
+
 
 	Error initDevice();
 	Error queryInfo(Info &) const;
@@ -50,6 +66,8 @@ public:
 	Error getData(ImageBuffer &, size_t *size, int ms = -1);
 	Error getData(unsigned char *, size_t , size_t *returned, int ms = -1);
 
+	Error getPreviewImage (PreviewImageBuffer &, int ms = -1);
+
 protected:
 	virtual Error doInitDevice() = 0;
 	virtual Error doQueryInfo(Info &) const = 0;
@@ -60,6 +78,8 @@ protected:
 	virtual Error doStartCapture() = 0;
 	virtual Error doStopCapture() = 0;
 	virtual Error doGetData(unsigned char *, size_t, size_t *returned, int ms) = 0;
+
+	virtual Error doGetPreviewImage (PreviewImageBuffer &, int ms) = 0;
 };
 
 

@@ -256,7 +256,6 @@ Error DataThread::entry() {
 	Error rc;
 	unsigned char *vbuf = (unsigned char *)::malloc(MAX_VIDEO_DATA_BUFFER_SIZE);
 
-	ssize_t written = 0;
 	while (!shouldStop()) {
 		size_t size;
 

@@ -34,6 +34,7 @@ protected:
 	virtual Error doStartCapture();
 	virtual Error doStopCapture();
 	virtual Error doGetData(unsigned char *, size_t, size_t *returned, int ms);
+	virtual Error doGetPreviewImage (PreviewImageBuffer &buf, int ms);
 
 	class Impl;
 private:
