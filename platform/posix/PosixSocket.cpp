@@ -17,7 +17,7 @@
 #include <assert.h>
 #include "PosixCompactHeader.h"
 
-const int MAX_ADDRESS_LENGTH = 1024;
+const unsigned MAX_ADDRESS_LENGTH = 1024;
 
 class PosixSocket::PosixSocketImpl {
 public:
