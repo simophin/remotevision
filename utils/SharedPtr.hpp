@@ -49,7 +49,7 @@ private :
 		}
 
 		~impl () {
-			Log::logDebug("An error instance has been deleted");
+			//Log::logDebug("An error instance has been deleted");
 		}
 	} *d;
 
@@ -108,6 +108,8 @@ protected:
 		if (copy) {
 			if (pd->mRefCount == 1) return;
 			d = new impl(*pd);
+		}else{
+			d = 0;
 		}
 
 		pd->mRefCount--;
@@ -116,8 +118,8 @@ protected:
 				pd->mDeleter(pd->mPtr);
 				pd->mPtr = 0;
 			}
+			delete pd;
 		}
-
 	}
 
 

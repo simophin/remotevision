@@ -14,26 +14,25 @@
 int main () {
 	TCPFFMpegRelayServer relayServer ("0.0.0.0");
 
-	while (1) {
-		Error ret = relayServer.init();
-		if (ret.isError()) {
-			std::cerr << ret << std::endl;
-			return 1;
-		}
-
-		ret = relayServer.start();
-
-		if (ret.isError()) {
-			std::cerr << ret << std::endl;
-			return 2;
-		}
-
-		ret = relayServer.wait();
-		if (ret.isError()) {
-			std::cerr << ret << std::endl;
-			return 3;
-		}
+	Error ret = relayServer.init();
+	if (ret.isError()) {
+		std::cerr << ret << std::endl;
+		return 1;
 	}
+
+	ret = relayServer.start();
+
+	if (ret.isError()) {
+		std::cerr << ret << std::endl;
+		return 2;
+	}
+
+	ret = relayServer.wait();
+	if (ret.isError()) {
+		std::cerr << ret << std::endl;
+		return 3;
+	}
+
 
 	return 0;
 }

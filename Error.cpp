@@ -30,19 +30,55 @@ extern void initErrors();
 
 class Error::Impl {
 public:
-	String mErrorString;
-	syserrno_t mSystemErrno;
-	Type   mErrorType;
+    Impl()
+    {
+        init();
+    }
 
-	Impl () {
-		init();
-	}
-	void init () {
-		if (!hasInit) {
-			initErrors();
-			hasInit = true;
-		}
-	}
+    void init()
+    {
+        if(!hasInit){
+            initErrors();
+            hasInit = true;
+        }
+    }
+
+    inline String getErrorString() const
+    {
+        return mErrorString;
+    }
+
+    inline void setErrorString(const String & str)
+    {
+        mErrorString = str;
+    }
+
+    inline Type getErrorType() const
+    {
+        return mErrorType;
+    }
+
+    inline syserrno_t getSystemErrno() const
+    {
+        return mSystemErrno;
+    }
+
+    inline void setErrorType(Type mErrorType)
+    {
+        this->mErrorType = mErrorType;
+    }
+
+    inline void setSystemErrno(syserrno_t mSystemErrno)
+    {
+        this->mSystemErrno = mSystemErrno;
+    }
+
+
+private:
+    String mErrorString;
+    syserrno_t mSystemErrno;
+    Type mErrorType;
+
 };
 
 static syserrno_t findSystemErrno (Error::Type t) {
@@ -108,59 +144,60 @@ Error::~Error () {
 
 Error::Type Error::getErrorType() const
 {
-	return d->mErrorType;
+	return d->getErrorType();
 }
 
 
 
 void Error::setErrorType(Type t)
 {
-
-	d->mErrorType = t;
-	d->mSystemErrno = findSystemErrno(t);
-	d->mErrorString = findErrorTypeMessage(t);
+	d->setErrorString(findErrorTypeMessage(t));
+	d->setErrorType(t);
+	d->setSystemErrno(findSystemErrno(t));
 }
 
 
 
 void Error::setErrorType(Type t, const String & str)
 {
-	d->mErrorType = t;
-	d->mErrorString = str;
-	d->mSystemErrno = findSystemErrno(t);
+	d->setErrorString(str);
+	d->setErrorType(t);
+	d->setSystemErrno(findSystemErrno(t));
 }
 
 void Error::setSystemError(syserrno_t e)
 {
-	d->mSystemErrno = e;
-	d->mErrorString = findSystemErrorMessage(e);
-	d->mErrorType = findErrorType(e);
+
+	d->setErrorString(findSystemErrorMessage(e));
+	d->setErrorType(findErrorType(e));
+	d->setSystemErrno(e);
+
 }
 
 
 void Error::setSystemError(syserrno_t e, const String & str)
 {
-	d->mSystemErrno = e;
-	d->mErrorString = str;
-	d->mErrorType = findErrorType(e);
+	d->setErrorString(str);
+	d->setErrorType(findErrorType(e));
+	d->setSystemErrno(e);
 }
 
 String Error::getErrorString() const
 {
-	return d->mErrorString;
+	return d->getErrorString();
 }
 
 
 
 syserrno_t Error::getSystemError() const
 {
-	return d->mSystemErrno;
+	return d->getSystemErrno();
 }
 
 
 bool Error::isSuccess() const
 {
-	return (d->mErrorType == ERR_SUCCESS);
+	return (d->getErrorType() == ERR_SUCCESS);
 }
 
 
@@ -168,7 +205,7 @@ bool Error::isSuccess() const
 String Error::toString() const
 {
 	std::stringstream stream;
-	stream << "$ERRNO:" << d->mErrorType << ";$ERRSTR:" << d->mErrorString;
+	stream << "$ERRNO:" << d->getErrorType() << ";$ERRSTR:" << d->getErrorString();
 	return stream.str();
 }
 

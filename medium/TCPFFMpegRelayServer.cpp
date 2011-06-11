@@ -195,15 +195,7 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 		delete providerData;
 		delete clientControl;
 		delete clientData;
-		mProviderServerSocket->close();
-		mServerSocket->close();
-		delete mProviderServerSocket;
-		delete mServerSocket;
-		mProviderServerSocket = 0;
-		mServerSocket = 0;
-		mState = STATE_UNINITIALIZED;
 		providerControl = providerData = clientControl = clientData = 0;
-		break;
 	}
 
 
