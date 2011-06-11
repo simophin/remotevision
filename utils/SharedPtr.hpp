@@ -101,6 +101,12 @@ public:
 		return d->mPtr;
 	}
 
+	void reset(T * t, deleter_function del = DefaultDeleter<T>) {
+		detach(false);
+		d->mPtr = t;
+		d->mDeleter = del;
+	}
+
 protected:
 	void detach(bool copy = false) {
 		impl *pd = d;
@@ -109,7 +115,7 @@ protected:
 			if (pd->mRefCount == 1) return;
 			d = new impl(*pd);
 		}else{
-			d = 0;
+			d = new impl();
 		}
 
 		pd->mRefCount--;

@@ -14,6 +14,8 @@
 #include "Log.h"
 #include "platform/posix/PosixCompactHeader.h"
 #include "platform/posix/PosixSocketDemuxer.h"
+#include "utils/SharedPtr.hpp"
+#include "utils/Misc.hpp"
 
 #include <utility>
 #include <stdlib.h>
@@ -24,21 +26,14 @@
 
 #define MAX_EXCHANGED_DATA 10240
 
-class ExchangeThread : public Thread{
-public:
-	ExchangeThread (IODevice *d1, IODevice *d2)
-	:mD1(d1), mD2(d2) {
-
-	}
-	virtual Error entry();
-
-	inline IODevice * theOther(IODevice *p) {
-		return (p == mD1) ? mD2 : mD1;
-	}
-
-private:
-	IODevice  *mD1, *mD2;
+enum ClientType {
+	PROVIDER_CONTROL = 0,
+	PROVIDER_DATA,
+	CLIENT_CONTROL,
+	CLIENT_DATA,
+	NUM_CLIENT_TYPE
 };
+
 
 class TCPFFMpegRelayServer::Impl: public Thread {
 public:
@@ -55,7 +50,7 @@ public:
 
 	}
 
-	~Impl () {
+	virtual ~Impl () {
 		if (mProviderServerSocket) {
 			mProviderServerSocket->close();
 			delete mProviderServerSocket;
@@ -81,130 +76,133 @@ TCPFFMpegRelayServer::~TCPFFMpegRelayServer() {
 	delete d;
 }
 
-Error ExchangeThread::entry()
-{
-	Error ec;
-	PosixSocketDemuxer demuxer;
-	char *buf = (char *)::malloc(MAX_EXCHANGED_DATA);
-	::memset(buf,0,MAX_EXCHANGED_DATA);
-	size_t readBytes = 0, writeBytes = 0;
-	demuxer.addSocket( (PosixSocket *)mD1, PosixSocketDemuxer::SELECT_READ |
-			PosixSocketDemuxer::SELECT_ERROR);
-	demuxer.addSocket( (PosixSocket *)mD2,PosixSocketDemuxer::SELECT_READ |
-			PosixSocketDemuxer::SELECT_ERROR);
 
-	std::vector<PosixSocket *> reads,writes, errors;
+void destroySocket (Socket * sock) {
+	sock->close();
+	delete sock;
+}
 
-	while (!shouldStop()) {
-		reads.clear();
-		errors.clear();
-
-		ec = demuxer.waitEvent(reads, writes, errors, 200);
-		if (errors.size() > 0) {
-			Log::logDebug("One or more sockets are in error");
-			ec.setErrorString("One or more sockets are in error");
+bool isClientsAllConnected ( Socket * socks[]) {
+	bool ret = true;
+	for (int i=0 ;i<NUM_CLIENT_TYPE; i++) {
+		if (socks[i] == 0) {
+			ret = false;
 			break;
 		}
-		if (ec.isSuccess()) {
-			for (int i=0; i<reads.size(); i++) {
-				ec = reads[i]->read(buf, MAX_EXCHANGED_DATA, &readBytes);
-				if (ec.isError()) goto error;
+	}
+	return ret;
+}
 
-				if (readBytes == 0) goto error;
-
-				IODevice *other = theOther(reads[i]);
-				ec = other->poll(IODevice::POLL_WRITE,500);
-				if (ec.isError()) goto error;
-				ec = other->write(buf, readBytes,&writeBytes);
-				if (ec.isError() || (writeBytes < 1) ) goto error;
-			}
+PosixSocket * anotherSocket (Socket *socks[], PosixSocket *s) {
+	for (int i=0; i<NUM_CLIENT_TYPE; i++) {
+		if (s == socks[i]) {
+			return static_cast<PosixSocket *>(socks[(i+2)%NUM_CLIENT_TYPE]);
 		}
 	}
-
-	error:
-	::free(buf);
-	return ec;
+	return 0;
 }
 
 Error TCPFFMpegRelayServer::Impl::entry() {
 	Error ec;
-	Socket * providerControl = 0, * providerData = 0;
-	Socket * clientControl = 0, * clientData = 0;
+	Socket * clients[NUM_CLIENT_TYPE] = { 0, 0, 0, 0 };
+	SocketAddress *addr = 0;
+	PosixSocketDemuxer serverDemuxer, clientDemuxer;
+	size_t readBytes = 0, writtenSize = 0;
+	std::vector<PosixSocket *> reads, errors;
+	char * buf = (char *)::malloc(MAX_EXCHANGED_DATA);
+
+	serverDemuxer.addSocket( mProviderServerSocket, IODevice::POLL_READ );
+	serverDemuxer.addSocket( mServerSocket, IODevice::POLL_READ);
+
+	std::vector<PosixSocket *> listens, dummy;
 
 	while (!shouldStop()) {
-
-		// Get all clients connected
-		while (!shouldStop() && (!providerData || !clientData) ) {
-			if (providerData == 0){
-				ec = mProviderServerSocket->poll(IODevice::POLL_READ,500);
-				if (ec.isSuccess()) {
-					if ( providerControl == 0 ) {
-						ec = mProviderServerSocket->accept(&providerControl, NULL);
-						if (ec.isError()) goto fatal;
-					}else{
-						ec = mProviderServerSocket->accept(&providerData, NULL);
-						if (ec.isError()) goto fatal;
-					}
-				}else{
-					if (ec.getErrorType() != Error::ERR_TIMEOUT) goto fatal;
-				}
-			}
-
-			if (clientData == 0) {
-				ec = mServerSocket->poll(IODevice::POLL_READ, 500);
-				if (ec.isSuccess()) {
-					if ( clientControl == 0 ) {
-						ec = mServerSocket->accept(&clientControl, NULL);
-						if (ec.isError()) goto fatal;
-					}else{
-						ec = mServerSocket->accept(&clientData, NULL);
-						if (ec.isError()) goto fatal;
-					}
-				}
-			}
-		}
-
-		if (!providerData || !clientData) break;
-
-		// Do exchanged thread
-		ExchangeThread thread1 (providerControl, clientControl);
-		ExchangeThread thread2 (clientData, providerData);
-		thread1.run();
-		thread2.run();
-
 		while (!shouldStop()) {
+			listens.clear();
+			ec = serverDemuxer.waitEvent(listens,dummy,dummy,200);
+			if (ec.isSuccess()) {
+				for (int i=0; i<listens.size(); i++) {
+					Socket *sock = 0;
+					ec = listens.at(i)->accept(&sock, &addr);
+					if (ec.isSuccess()) {
+						Log::logDebug("New connection from %s", addr->getReadable().c_str());
+						delete addr;
+						addr = 0;
 
-			if (!thread1.isRunning() || !thread2.isRunning()) {
-				providerControl->close();
-				providerData->close();
-				clientControl->close();
-				clientData->close();
+						if (listens.at(i) == mProviderServerSocket) {
+							if ( clients[PROVIDER_CONTROL] == 0 ) clients[PROVIDER_CONTROL] = sock;
+							else clients[PROVIDER_DATA] = sock;
+						}else{
+							if ( clients[CLIENT_CONTROL] == 0 ) clients[CLIENT_CONTROL] = sock;
+							else clients[CLIENT_DATA] = sock;
+						}
 
-				thread1.wait();
-				thread2.wait();
-				break;
+					}else{
+						goto clean_up;
+					}
+				}
+
+				if (!isClientsAllConnected(clients)) {
+					continue;
+				}else{
+					break;
+				}
+			}else{
+				continue;
 			}
-
-
-			thread1.wait(NULL,500);
-			thread2.wait(NULL,500);
 		}
 
+		// end accepting
 
-		delete providerControl;
-		delete providerData;
-		delete clientControl;
-		delete clientData;
-		providerControl = providerData = clientControl = clientData = 0;
+		Log::logDebug("Begin transfering data between 4 sockets");
+
+		// Make demuxer
+		{
+			clientDemuxer.clearSockets();
+			for (int i=0; i<NUM_CLIENT_TYPE; i++) {
+				clientDemuxer.addSocket( (PosixSocket *)clients[i], IODevice::POLL_READ | IODevice::POLL_ERROR);
+			}
+		}
+
+		// Wait for the events
+		while (!shouldStop()){
+			reads.clear();
+			errors.clear();
+			ec = clientDemuxer.waitEvent(reads,dummy,errors);
+			if (ec.isError()) {
+				goto clean_up;
+			}else if (errors.size() > 0) {
+				goto clean_up_cont;
+			}
+
+			for (int i=0;i<reads.size();i++) {
+				ec = reads[i]->read(buf,MAX_EXCHANGED_DATA, &readBytes);
+				if (ec.isError() || readBytes == 0) {
+					goto clean_up_cont;
+				}
+
+				ec = anotherSocket(clients, reads[i])->write(buf, readBytes,&writtenSize);
+				if (ec.isError() || (writtenSize  != readBytes)) {
+					goto clean_up_cont;
+				}
+			}
+		}
+
+		continue;
+
+		clean_up_cont:
+		for (int i=0; i<NUM_CLIENT_TYPE; i++) {
+			destroySocket(clients[i]);
+			clients[i] = 0;
+		}
+
+		continue;
 	}
 
-
-
-	fatal:
-	if (providerControl) delete providerControl;
-	if (providerData) delete providerData;
-	if (clientControl) delete clientControl;
-	if (clientData) delete clientData;
+	return ec;
+	clean_up:
+	Log::logDebug("Relay thread is shutting down");
+	::free(buf);
 	return ec;
 }
 

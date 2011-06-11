@@ -14,7 +14,6 @@ public class ServiceConfiguration {
 	
 	public NetworkMode networkMode = NetworkMode.SERVER;
 	public NetworkType networkType = NetworkType.WIFI_PREFERED;
-	public boolean     permitGSM   = false;
 	public int         serverPort  = 0;
 	public String      relayServerHost = null;
 	public int         relayServerPort = -1;

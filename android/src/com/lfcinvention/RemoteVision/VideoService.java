@@ -147,13 +147,13 @@ public class VideoService extends Service {
 			throw new StateException();
 		}
 		
-		NativeError error = new NativeError();
-		error = nativeStartService(mNativeServer);
+		NativeError error =  nativeStartService(mNativeServer);
 		if (error.isError()) {
 			throw new NativeException(error);
 		}
 		
 		mState = State.STATE_IN_SERVICE;
+		
 	}
 	
 	public void stopService() throws StateException, NativeException {
@@ -161,8 +161,7 @@ public class VideoService extends Service {
 			throw new StateException();
 		}
 		
-		NativeError error = new NativeError();
-		error = nativeStopService(mNativeServer);
+		NativeError error =  nativeStopService(mNativeServer);
 		if (error.isError()) {
 			throw new NativeException(error);
 		}

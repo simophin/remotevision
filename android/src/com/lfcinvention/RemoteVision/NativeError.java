@@ -1,11 +1,11 @@
 package com.lfcinvention.RemoteVision;
 
 public class NativeError {
-	private boolean success;
+	private boolean isSuccess;
 	private String  errorString;
 	
 	public boolean isError() {
-		return (success == false);
+		return (isSuccess == false);
 	}
 	
 	public boolean isSuccess() {

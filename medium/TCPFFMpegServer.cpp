@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
 
 enum State {
 	STATE_UNINTIALIZED,
@@ -195,25 +197,40 @@ Error TCPFFMpegServer::Impl::entry()
 				break;
 			}
 		}else{
+			int flags;
 			controlSocket = new TCPSocket(socket(AF_INET, SOCK_STREAM, 0));
 
+			flags = fcntl(controlSocket->getFileDescriptor(),F_GETFL, 0);
+			fcntl(controlSocket->getFileDescriptor(),F_SETFL, flags | O_NONBLOCK);
 
 			rc = controlSocket->connect(&mAddress);
-			if (rc.isError()) {
-				controlSocket->close();
-				delete controlSocket;
-				break;
+
+			while (!shouldStop()) {
+				rc = controlSocket->poll(IODevice::POLL_WRITE, 200);
+				if (rc.isSuccess()) break;
+				else if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
+				else goto error_out;
 			}
+
+			fcntl(controlSocket->getFileDescriptor(),F_SETFL, flags & (~O_NONBLOCK));
+
 
 			dataSocket = new TCPSocket(socket(AF_INET, SOCK_STREAM, 0));
-			rc = dataSocket->connect(&mAddress);
-			if (rc.isError()) {
-				controlSocket->close();
-				dataSocket->close();
-				delete controlSocket;
-				delete dataSocket;
+			fcntl(dataSocket->getFileDescriptor(),F_SETFL, flags | O_NONBLOCK);
 
+			rc = dataSocket->connect(&mAddress);
+			while (!shouldStop()) {
+				rc = dataSocket->poll(IODevice::POLL_WRITE, 200);
+				if (rc.isSuccess()) break;
+				else if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
+				else {
+					controlSocket->close();
+					delete controlSocket;
+					controlSocket = 0;
+					goto error_out;
+				}
 			}
+			fcntl(dataSocket->getFileDescriptor(),F_SETFL, flags & (~O_NONBLOCK));
 		}
 
 		{
@@ -223,10 +240,13 @@ Error TCPFFMpegServer::Impl::entry()
 
 			while (!shouldStop() && (mServer->wait(500).getErrorType() == Error::ERR_TIMEOUT)) {}
 
+			mServer->stop();
+			mServer->wait();
 			delete mServer;
 			mServer = 0;
 		}
 
+		clean_up:
 		controlSocket->close();
 		dataSocket->close();
 
@@ -235,6 +255,7 @@ Error TCPFFMpegServer::Impl::entry()
 	}
 
 
+	error_out:
 	error_polling:
 	mState = STATE_READY;
 

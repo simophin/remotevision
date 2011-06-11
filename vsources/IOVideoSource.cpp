@@ -286,11 +286,13 @@ doInit(const IOVideoSource::Option & options, int ms)
 		return ret;
 	}
 
+
 	Info info;
 	CommandBuilder builder;
 	Command cmd;
 
 	// Fetch information
+	builder.clearArguments();
 	builder.setRequestCommand(VideoCommand::QueryInfoCommandHandler::REQUEST_STRING);
 	builder.build(cmd);
 

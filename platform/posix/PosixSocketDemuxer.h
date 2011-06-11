@@ -31,6 +31,7 @@ public:
 
 	void addSocket (PosixSocket  * const, int s);
 	std::vector<PosixSocket *> getAllSockets(SelectType s) const;
+	void clearSockets() ;
 
 private:
 	class Impl;

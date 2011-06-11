@@ -1,5 +1,12 @@
 package com.lfcinvention.RemoteVision;
 
+import java.net.SocketException;
+
+import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkMode;
+import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkType;
+import com.lfcinvention.RemoteVision.VideoService.NativeException;
+import com.lfcinvention.RemoteVision.VideoService.NoInterfaceAvailable;
+import com.lfcinvention.RemoteVision.VideoService.State;
 import com.lfcinvention.RemoteVision.VideoService.StateException;
 
 import android.app.Activity;
@@ -48,7 +55,6 @@ public class InfoActivity extends Activity {
     }
     
     private VideoService mBoundService = null;
-    private boolean mIsBound = false; 
     private TextView mTextView = null;
     private Button  mBtnStart = null;
     private Button mBtnStop;
@@ -57,14 +63,20 @@ public class InfoActivity extends Activity {
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 		public void onServiceDisconnected(ComponentName name) {
 			InfoActivity.this.mBoundService = null;
-			InfoActivity.this.mIsBound = false;
 		}
 		
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			VideoService s = ((VideoService.Channel)service).getService();
 			
+			if (s.getState() == State.STATE_UNINITIALIZED) {
+				try {
+					s.initService(mServiceConfiguration);
+				} catch (Exception e) {
+					return;
+				}
+			}
+			
 			InfoActivity.this.mBoundService = s;
-			InfoActivity.this.mIsBound = true;
 			
 			updateServiceStatus();
 		}
@@ -76,8 +88,8 @@ public class InfoActivity extends Activity {
 			i.setClass(getApplicationContext(), VideoService.class);
 
 			if (VideoService.INSTANCE == null) {
+				loadServiceConfiguration();
 				startService(i);
-				VideoService.INSTANCE.initService(mServiceConfiguration);
 			}
 
 			if (!bindService(i, mServiceConnection, 0)) {
@@ -86,6 +98,15 @@ public class InfoActivity extends Activity {
 		}catch(Exception e) {
 			Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
 		}
+	}
+	
+	private void loadServiceConfiguration () {
+		mServiceConfiguration = new ServiceConfiguration();
+		mServiceConfiguration.networkMode = NetworkMode.RELAY_PROVIDER_CLIENT;
+		//mServiceConfiguration.networkMode = NetworkMode.SERVER;
+		mServiceConfiguration.networkType = NetworkType.WIFI_PREFERED;
+		mServiceConfiguration.relayServerHost = "199.68.199.123";
+		mServiceConfiguration.relayServerPort = 15000;
 	}
 	
     
@@ -116,7 +137,7 @@ public class InfoActivity extends Activity {
 	};
 	
 	private void updateServiceStatus () {
-		if (!mIsBound) return;
+		if (mBoundService == null) return;
 		VideoService.State state = mBoundService.getState() ;
 		if (state ==  VideoService.State.STATE_IN_SERVICE) {
 			mBtnStart.setEnabled(false);

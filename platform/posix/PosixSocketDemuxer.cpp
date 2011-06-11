@@ -103,5 +103,14 @@ std::vector<PosixSocket*> PosixSocketDemuxer::getAllSockets(SelectType s) const
 	return d->mSockets[s];
 }
 
+void PosixSocketDemuxer::clearSockets()
+{
+	for (int i=0; i<3;i++) {
+		d->mSockets[i].clear();
+	}
+}
+
+
+
 
 
