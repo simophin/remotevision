@@ -29,7 +29,7 @@
      <item>
       <widget class="QLineEdit" name="ipEdit">
        <property name="text">
-        <string>192.168.2.2</string>
+        <string>simophin.net</string>
        </property>
       </widget>
      </item>
@@ -43,7 +43,7 @@
      <item>
       <widget class="QLineEdit" name="portEdit">
        <property name="text">
-        <string>10001</string>
+        <string>15001</string>
        </property>
       </widget>
      </item>
