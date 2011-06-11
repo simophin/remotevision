@@ -22,6 +22,8 @@ private slots:
     void on_btnConnect_clicked();
     void resetUI();
     void onVideoPreviewerDestroyed(QObject *);
+    void onRemoteConnectSuccess();
+    void onRemoteConnectError(QString);
 
 private:
     Ui::ConnectDialog *ui;
