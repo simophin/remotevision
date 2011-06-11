@@ -199,9 +199,7 @@ Error TCPFFMpegServer::Impl::entry()
 		}else{
 			int flags;
 			controlSocket = new TCPSocket(socket(AF_INET, SOCK_STREAM, 0));
-
-			flags = fcntl(controlSocket->getFileDescriptor(),F_GETFL, 0);
-			fcntl(controlSocket->getFileDescriptor(),F_SETFL, flags | O_NONBLOCK);
+			controlSocket->setBlockingMode(false);
 
 			rc = controlSocket->connect(&mAddress);
 
@@ -212,11 +210,11 @@ Error TCPFFMpegServer::Impl::entry()
 				else goto error_out;
 			}
 
-			fcntl(controlSocket->getFileDescriptor(),F_SETFL, flags & (~O_NONBLOCK));
+			controlSocket->setBlockingMode(true);
 
 
 			dataSocket = new TCPSocket(socket(AF_INET, SOCK_STREAM, 0));
-			fcntl(dataSocket->getFileDescriptor(),F_SETFL, flags | O_NONBLOCK);
+			dataSocket->setBlockingMode(false);
 
 			rc = dataSocket->connect(&mAddress);
 			while (!shouldStop()) {
@@ -230,7 +228,7 @@ Error TCPFFMpegServer::Impl::entry()
 					goto error_out;
 				}
 			}
-			fcntl(dataSocket->getFileDescriptor(),F_SETFL, flags & (~O_NONBLOCK));
+			dataSocket->setBlockingMode(true);
 		}
 
 		{

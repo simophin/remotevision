@@ -9,12 +9,12 @@
 #include "medium/TCPSocket.h"
 #include "medium/TCPSocketAddress.h"
 #include "vsources/IOVideoSource.h"
+#include "platform/posix/PosixCompactHeader.h"
 
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QHostInfo>
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <fcntl.h>
 
 ConnectThread::ConnectThread(QObject *parent)
@@ -60,9 +60,8 @@ void ConnectThread::run()
 		TCPSocket *ctrl = new TCPSocket (::socket(AF_INET, SOCK_STREAM, 0));
 		TCPSocket *data = new TCPSocket (::socket(AF_INET, SOCK_STREAM, 0));
 
-		int flags = fcntl(ctrl->getFileDescriptor(),F_GETFL, 0);
-		fcntl(ctrl->getFileDescriptor(),F_SETFL, flags | O_NONBLOCK);
-		fcntl(data->getFileDescriptor(),F_SETFL, flags | O_NONBLOCK);
+		ctrl->setBlockingMode(false);
+		data->setBlockingMode(false);
 
 		ctrl->connect(&remote);
 		do {
@@ -86,8 +85,8 @@ void ConnectThread::run()
 			}
 		}while(!mShouldStop);
 
-		fcntl(ctrl->getFileDescriptor(),F_SETFL, flags & ~O_NONBLOCK);
-		fcntl(data->getFileDescriptor(),F_SETFL, flags & ~O_NONBLOCK);
+		ctrl->setBlockingMode(true);
+		data->setBlockingMode(true);
 
 
 		src = new IOVideoSource(ctrl,data);

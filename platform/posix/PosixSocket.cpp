@@ -64,6 +64,23 @@ void PosixSocket::doFlush()
 {
 }
 
+void PosixSocket::setBlockingMode(bool on)
+{
+
+#ifdef OS_WIN32
+	u_long ret = on ? 0: 1;
+	ioctlsocket(getFileDescriptor(), FIONBIO, &ret);
+#endif
+
+
+#ifdef OS_UNIX
+	int flags = fcntl(getFileDescriptor(),F_SETFL, flags | O_NONBLOCK);
+	if (on) flags &= (~O_NONBLOCK);
+	else flags |= O_NONBLOCK;
+	fcntl(getFileDescriptor(),F_SETFL, flags);
+#endif
+}
+
 void PosixSocket::
 init() {
 

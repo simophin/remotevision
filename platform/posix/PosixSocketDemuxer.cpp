@@ -11,7 +11,7 @@
 #include "PosixSocket.h"
 #include "Error.h"
 
-#include <sys/select.h>
+
 #include <errno.h>
 
 class PosixSocketDemuxer::Impl {
