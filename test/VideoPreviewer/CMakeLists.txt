@@ -1,4 +1,7 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED) 
+find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork) 
+
+if(QT4_QMAKE_FOUND)
+
 include(${QT_USE_FILE})
 
 file(GLOB UI_FILES *.ui)
@@ -13,3 +16,4 @@ QT4_WRAP_CPP(MOC_HDR_SRCS ${HDRS})
 add_executable(VideoPreviewer ${UI_HDRS} ${MOC_HDR_SRCS} ${SRCS} )
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(VideoPreviewer ${QT_LIBRARIES} RemoteVision)
+endif()

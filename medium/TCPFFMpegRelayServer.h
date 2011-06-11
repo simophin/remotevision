@@ -5,8 +5,8 @@
  *      Author: simophin
  */
 
-#define RELAY_PROVIDER_PORT 5000
-#define RELAY_PORT 5001
+#define RELAY_PROVIDER_PORT 15000
+#define RELAY_PORT 15001
 
 #ifndef TCPFFMPEGRELAYSERVER_H_
 #define TCPFFMPEGRELAYSERVER_H_
