@@ -117,6 +117,7 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 	std::vector<PosixSocket *> listens, dummy;
 
 	while (!shouldStop()) {
+		Log::logDebug("Starting listening for clients");
 		while (!shouldStop()) {
 			listens.clear();
 			ec = serverDemuxer.waitEvent(listens,dummy,dummy,200);
@@ -130,9 +131,21 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 						addr = 0;
 
 						if (listens.at(i) == mProviderServerSocket) {
+							if ( clients[PROVIDER_CONTROL] && clients[PROVIDER_DATA]) {
+								Log::logDebug("Overriding last connected provider sockets");
+								destroySocket(clients[PROVIDER_CONTROL]);
+								destroySocket(clients[PROVIDER_DATA]);
+								clients[PROVIDER_DATA] = clients[PROVIDER_CONTROL] = 0;
+							}
 							if ( clients[PROVIDER_CONTROL] == 0 ) clients[PROVIDER_CONTROL] = sock;
 							else clients[PROVIDER_DATA] = sock;
 						}else{
+							if ( clients[CLIENT_CONTROL] && clients[CLIENT_DATA]) {
+								Log::logDebug("Overriding last connected client sockets");
+								destroySocket(clients[CLIENT_CONTROL]);
+								destroySocket(clients[CLIENT_DATA]);
+								clients[CLIENT_DATA] = clients[CLIENT_CONTROL] = 0;
+							}
 							if ( clients[CLIENT_CONTROL] == 0 ) clients[CLIENT_CONTROL] = sock;
 							else clients[CLIENT_DATA] = sock;
 						}
