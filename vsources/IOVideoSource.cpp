@@ -473,11 +473,16 @@ Error IOVideoSource::Impl::entry() {
 	av_init_packet(&pkt);
 	while (!shouldStop()){
 		readSize = 0;
+		rc = dataDev->poll(IODevice::POLL_READ, 200);
+		if (rc.isError()) {
+			if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
+			else goto read_error;
+		}
 
 		size_t bytes_read;
 		rc = dataDev->read( buf + readSize,config.bufferSize - readSize ,&bytes_read);
 
-		if (!rc.isSuccess()) {
+		if (!rc.isSuccess() || (bytes_read == 0)) {
 			goto read_error;
 		}
 

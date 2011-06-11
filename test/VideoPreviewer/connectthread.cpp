@@ -66,7 +66,7 @@ void ConnectThread::run()
 
 		ctrl->connect(&remote);
 		do {
-			rc = ctrl->poll(IODevice::POLL_READ,200);
+			rc = ctrl->poll(IODevice::POLL_WRITE,200);
 			if (rc.isSuccess()) break;
 			else if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
 			else {
@@ -77,7 +77,7 @@ void ConnectThread::run()
 
 		data->connect(&remote);
 		do {
-			rc = data->poll(IODevice::POLL_READ,200);
+			rc = data->poll(IODevice::POLL_WRITE,200);
 			if (rc.isSuccess()) break;
 			else if (rc.getErrorType() == Error::ERR_TIMEOUT) continue;
 			else {
