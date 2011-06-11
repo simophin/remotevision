@@ -55,6 +55,18 @@ public:
 
 	}
 
+	~Impl () {
+		if (mProviderServerSocket) {
+			mProviderServerSocket->close();
+			delete mProviderServerSocket;
+		}
+
+		if (mServerSocket) {
+			mServerSocket->close();
+			delete mServerSocket;
+		}
+	}
+
 	virtual Error entry ();
 };
 
@@ -66,6 +78,7 @@ TCPFFMpegRelayServer::TCPFFMpegRelayServer(const String &addr,unsigned provider_
 }
 
 TCPFFMpegRelayServer::~TCPFFMpegRelayServer() {
+	delete d;
 }
 
 Error ExchangeThread::entry()
@@ -97,8 +110,13 @@ Error ExchangeThread::entry()
 				ec = reads[i]->read(buf, MAX_EXCHANGED_DATA, &readBytes);
 				if (ec.isError()) goto error;
 
-				ec = theOther(reads[i])->write(buf, readBytes,&writeBytes);
-				if (ec.isError() || (readBytes != writeBytes) ) goto error;
+				if (readBytes == 0) goto error;
+
+				IODevice *other = theOther(reads[i]);
+				ec = other->poll(IODevice::POLL_WRITE,500);
+				if (ec.isError()) goto error;
+				ec = other->write(buf, readBytes,&writeBytes);
+				if (ec.isError() || (writeBytes < 1) ) goto error;
 			}
 		}
 	}
@@ -154,26 +172,22 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 		thread1.run();
 		thread2.run();
 
-		while (!shouldStop() && (thread1.isRunning() || thread2.isRunning())) {
+		while (!shouldStop()) {
 
-			if (thread1.isRunning()) {
-				ec = thread1.wait(NULL,500);
-				if (ec.isSuccess()) {
-					providerControl->close();
-					providerData->close();
-					clientControl->close();
-					clientData->close();
-				}
+			if (!thread1.isRunning() || !thread2.isRunning()) {
+				providerControl->close();
+				providerData->close();
+				clientControl->close();
+				clientData->close();
+
+				thread1.wait();
+				thread2.wait();
+				break;
 			}
-			if (thread2.isRunning()){
-				ec = thread2.wait(NULL,500);
-				if (ec.isSuccess()) {
-					providerControl->close();
-					providerData->close();
-					clientControl->close();
-					clientData->close();
-				}
-			}
+
+
+			thread1.wait(NULL,500);
+			thread2.wait(NULL,500);
 		}
 
 
@@ -181,7 +195,15 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 		delete providerData;
 		delete clientControl;
 		delete clientData;
+		mProviderServerSocket->close();
+		mServerSocket->close();
+		delete mProviderServerSocket;
+		delete mServerSocket;
+		mProviderServerSocket = 0;
+		mServerSocket = 0;
+		mState = STATE_UNINITIALIZED;
 		providerControl = providerData = clientControl = clientData = 0;
+		break;
 	}
 
 
@@ -197,6 +219,7 @@ Error TCPFFMpegRelayServer::Impl::entry() {
 Error TCPFFMpegRelayServer::init()
 {
 	Error ret;
+	int on = 1;
 
 	if (d->mState != STATE_UNINITIALIZED) {
 		ret.setErrorType(Error::ERR_STATE);
@@ -207,6 +230,11 @@ Error TCPFFMpegRelayServer::init()
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	if ( fd < 0 ) {
 		ret.setErrorString("Can't create socket");
+		goto create_provider_fd_failed;
+	}
+
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+		ret.setSystemError(errno);
 		goto create_provider_fd_failed;
 	}
 
@@ -228,6 +256,11 @@ Error TCPFFMpegRelayServer::init()
 	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if ( fd < 0 ) {
 		ret.setErrorString("Can't create socket");
+		goto create_server_fd_failed;
+	}
+	on = 1;
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+		ret.setSystemError(errno);
 		goto create_server_fd_failed;
 	}
 	d->mServerSocket = new TCPServerSocket (fd);

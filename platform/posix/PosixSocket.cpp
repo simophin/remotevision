@@ -103,7 +103,7 @@ doRead(char *data, size_t size, size_t *read_size)
 void PosixSocket::
 doClose()
 {
-	::shutdown(d->fd,1);
+	::shutdown(d->fd,2);
 	::close(d->fd);
 }
 
@@ -197,28 +197,23 @@ Error PosixSocket::doConnect(const SocketAddress *addr) {
 }
 
 Error PosixSocket::
-doPoll(PosixSocket::PollType p, int timeout) {
+doPoll(int p, int timeout) {
 	Error ret;
 	fd_set readfds, writefds, exceptfds;
 	FD_ZERO(&readfds);
 	FD_ZERO(&writefds);
 	FD_ZERO(&exceptfds);
 
-	switch(p){
-	case POLL_READ:{
+	if (p & POLL_READ) {
 		FD_SET(d->fd,&readfds);
-		break;
 	}
 
-	case POLL_WRITE:{
+	if (p & POLL_WRITE) {
 		FD_SET(d->fd,&writefds);
-		break;
 	}
 
-	case POLL_ERROR:{
+	if (p & POLL_ERROR) {
 		FD_SET(d->fd,&exceptfds);
-		break;
-	}
 	}
 
 	struct timeval to, *tv = 0;

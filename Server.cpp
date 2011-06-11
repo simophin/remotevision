@@ -112,7 +112,7 @@ Error Server::ServerImpl::entry() {
 	Error rc;
 	Command raw_cmd;
 	while(!shouldStop()) {
-		rc = controlDevice->poll(IODevice::POLL_READ, 500);
+		rc = controlDevice->poll(IODevice::POLL_READ | IODevice::POLL_ERROR, 500);
 		if (rc.getErrorType() ==  Error::ERR_TIMEOUT) continue;
 		else if (!rc.isSuccess()) break;
 

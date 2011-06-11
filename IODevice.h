@@ -17,21 +17,21 @@
 class IODevice : public Utils::NonCopyable {
 public:
 	typedef enum {
-		POLL_READ,
-		POLL_WRITE,
-		POLL_ERROR
+		POLL_READ = 1,
+		POLL_WRITE = 2,
+		POLL_ERROR = 4
 	} PollType;
 
 	Error read(char *, size_t, size_t * read_size = 0);
 	Error write(const char *,size_t, size_t * write_size = 0);
 	void flush();
 	void close();
-	Error poll(PollType, int timeout);
+	Error poll(int, int timeout);
 
 protected:
 	virtual Error doRead (char *, size_t, size_t *) = 0;
 	virtual Error doWrite (const char *, size_t, size_t *) = 0;
-	virtual Error doPoll(PollType, int);
+	virtual Error doPoll(int, int);
 	virtual void doClose();
 	virtual void doFlush();
 };

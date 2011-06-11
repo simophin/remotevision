@@ -25,11 +25,11 @@ void IODevice::doClose(){
 }
 
 Error IODevice::
-poll(IODevice::PollType type, int timeout) {
+poll(int type, int timeout) {
 	return doPoll(type,timeout);
 }
 
-Error IODevice::doPoll(PollType, int) {
+Error IODevice::doPoll(int, int) {
 	return Error();
 }
 

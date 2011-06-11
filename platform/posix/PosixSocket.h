@@ -31,7 +31,7 @@ protected:
 	virtual Error doListen(int);
 	virtual Error doAccept(Socket **sock,SocketAddress ** addr = 0);
 	virtual Error doBind(const SocketAddress *);
-	virtual Error doPoll(PollType,int);
+	virtual Error doPoll(int,int);
 	virtual void doClose();
 	virtual const SocketAddress * doGetAddress() const;
 	virtual const SocketAddress * doGetPeerAddress() const;
