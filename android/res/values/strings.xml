@@ -4,7 +4,7 @@
 	<string name="btn_start">开始</string>
 	<string name="btn_stop">停止</string>
 
-
+	<string name="exit">退出</string>
 	<string name="setting">设置</string>
 	<string name="port">端口</string>
 	<string name="network_mode">网络模式</string>

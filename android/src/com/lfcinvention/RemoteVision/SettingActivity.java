@@ -6,7 +6,17 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 
-public class SettingActivity extends PreferenceActivity {
+public class SettingActivity extends PreferenceActivity implements OnPreferenceChangeListener{
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		
+		
+		if (mHasPreferenceChanged) setResult(RESULT_OK);
+		else setResult(RESULT_CANCELED);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +37,10 @@ public class SettingActivity extends PreferenceActivity {
 			String v = newValue.toString();
 			if (v.equals(String.valueOf(0))) {
 				clearPreferences();
-				setEnablePreference("server_mode");
+				setEnablePreference("server_mode_group");
 			}else {
 				clearPreferences();
-				setEnablePreference("relay_mode");
+				setEnablePreference("relay_mode_group");
 			}
 			return true;
 		}
@@ -50,4 +60,10 @@ public class SettingActivity extends PreferenceActivity {
 
 	
 	ListPreference mNetworkModePreference = null;
+	boolean        mHasPreferenceChanged = false;
+
+	public boolean onPreferenceChange(Preference preference, Object newValue) {
+		mHasPreferenceChanged = true;
+		return true;
+	}
 }

@@ -1,32 +1,68 @@
 package com.lfcinvention.RemoteVision;
 
-import java.net.SocketException;
-
-import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkMode;
-import com.lfcinvention.RemoteVision.ServiceConfiguration.ServerType;
-import com.lfcinvention.RemoteVision.VideoService.NativeException;
-import com.lfcinvention.RemoteVision.VideoService.NoInterfaceAvailable;
-import com.lfcinvention.RemoteVision.VideoService.State;
-import com.lfcinvention.RemoteVision.VideoService.StateException;
-
 import android.app.Activity;
-import android.app.Service;
 import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.InputFilter.LengthFilter;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.lfcinvention.RemoteVision.VideoService.State;
+import com.lfcinvention.RemoteVision.VideoService.StateException;
+
 public class InfoActivity extends Activity {
     @Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == 0 && resultCode == RESULT_OK) {
+			//TODO: do something
+		}
+	}
+
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menuItemOption:{
+			Intent i = new Intent(this, SettingActivity.class);
+			startActivityForResult(i, 0);
+			break;
+		}
+		
+		case R.id.menuItemExit: {
+			if (mBoundService != null) {
+				try {
+					mBoundService.stopService();
+				} catch (Exception e) {
+					
+				} 
+			}
+			finish();
+			break;
+		}
+		
+		default: return false; 
+		}
+		
+		return true;
+	}
+
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+
+
+	@Override
 	protected void onDestroy() {
 		
     	if (mBoundService != null) {
@@ -55,12 +91,10 @@ public class InfoActivity extends Activity {
         mBtnStart.setOnClickListener(onBtnStartClicked);
         mBtnStop.setOnClickListener(onBtnStopClicked);
         
-        Intent i = new Intent();
-        i.setClass(this, SettingActivity.class);
-        startActivity(i);
+ 
+        bindService();
 
         return;
-		//bindService();
     }
     
     private VideoService mBoundService = null;

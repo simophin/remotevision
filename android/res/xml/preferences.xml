@@ -10,7 +10,7 @@
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="@string/server_setting"
-		android:key="server_mode">
+		android:key="server_mode_group">
 		<ListPreference android:id="@+id/server_mode_list"
 			android:entries="@array/server_mode_string_array"
 			android:entryValues="@array/server_mode_values" android:key="server_mode"
@@ -25,7 +25,7 @@
 		</EditTextPreference>
 	</PreferenceCategory>
 
-	<PreferenceCategory android:key="relay_mode"
+	<PreferenceCategory android:key="relay_mode_group"
 		android:title="@string/relay_setting">
 		<EditTextPreference android:key="relay_server_host"
 			android:title="@string/relay_server_host" 
