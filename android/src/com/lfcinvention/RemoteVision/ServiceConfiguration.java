@@ -45,7 +45,7 @@ public class ServiceConfiguration {
 	public int serverType = ServerType.WIFI_PREFERED;
 	public int         serverPort  = 0;
 	public String      relayServerHost = null;
-	public int         relayServerPort = -1;
+	public int         relayServerPort = 15001;
 	
 	private static Context mContext = null;
 }
