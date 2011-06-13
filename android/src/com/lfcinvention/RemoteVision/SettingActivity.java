@@ -1,10 +1,15 @@
 package com.lfcinvention.RemoteVision;
 
+import java.util.List;
+import java.util.Vector;
+
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
 
 public class SettingActivity extends PreferenceActivity implements OnPreferenceChangeListener{
 
@@ -14,7 +19,15 @@ public class SettingActivity extends PreferenceActivity implements OnPreferenceC
 		super.onDestroy();
 		
 		
-		if (mHasPreferenceChanged) setResult(RESULT_OK);
+		if (mHasPreferenceChanged) {
+			for (int i=0; i<mChangedPreferences.size(); i++) {
+				SharedPreferences.Editor editor =  mChangedPreferences.elementAt(i).getEditor();
+				if (editor != null) {
+					editor.commit();
+				}
+			}
+			setResult(RESULT_OK);
+		}
 		else setResult(RESULT_CANCELED);
 	}
 
@@ -28,7 +41,7 @@ public class SettingActivity extends PreferenceActivity implements OnPreferenceC
 		mNetworkModePreference.setOnPreferenceChangeListener(mOnNetworkModeChanged);
 		
 		clearPreferences();
-		setEnablePreference(mNetworkModePreference.getValue() == "0" ? "server_mode" : "relay_mode");
+		setEnablePreference(mNetworkModePreference.getValue().equals(String.valueOf(0)) ? "server_mode_group" : "relay_mode_group");
 	}
 	
 	
@@ -47,8 +60,8 @@ public class SettingActivity extends PreferenceActivity implements OnPreferenceC
 	};
 	
 	private void clearPreferences() {
-		Preference sp = findPreference("server_mode");
-		Preference rp = findPreference("relay_mode");
+		Preference sp = findPreference("server_mode_group");
+		Preference rp = findPreference("relay_mode_group");
 		sp.setEnabled(false);
 		rp.setEnabled(false);
 	}
@@ -61,9 +74,11 @@ public class SettingActivity extends PreferenceActivity implements OnPreferenceC
 	
 	ListPreference mNetworkModePreference = null;
 	boolean        mHasPreferenceChanged = false;
+	Vector<Preference> mChangedPreferences = new Vector<Preference>();
 
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
 		mHasPreferenceChanged = true;
+		mChangedPreferences.add(preference);
 		return true;
 	}
 }
