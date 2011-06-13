@@ -21,6 +21,7 @@ typedef unsigned long in_addr_t;
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/select.h>
+#include <fcntl.h>
 #endif
 
 

@@ -23,7 +23,7 @@ public:
 	};
 
 
-	FFMpegVideoProvider(const String &filename, DeviceType type = DEVICE_TYPE_CAPTURE);
+	FFMpegVideoProvider(const String &filename);
 	virtual ~FFMpegVideoProvider();
 
 protected:

@@ -24,7 +24,7 @@ public:
 
 	ConnType getConnType () const;
 	String getBoundInfo () const;
-	Error init(const char *deviceFile = "/dev/video0", FFMpegVideoProvider::DeviceType t = FFMpegVideoProvider::DEVICE_TYPE_CAPTURE);
+	Error init(const char *deviceFile = "/dev/video0");
 	Error start ();
 	Error stop();
 	Error wait();

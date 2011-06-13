@@ -87,7 +87,7 @@ Error TCPFFMpegServer::stop()
 	return ret;
 }
 
-Error TCPFFMpegServer::init(const char *filename, FFMpegVideoProvider::DeviceType t)
+Error TCPFFMpegServer::init(const char *filename)
 {
 	Error ret;
 	if (d->mState != STATE_UNINTIALIZED) {
@@ -120,7 +120,7 @@ Error TCPFFMpegServer::init(const char *filename, FFMpegVideoProvider::DeviceTyp
 
 	// Create provider
 	{
-		d->mVideoProvider = new FFMpegVideoProvider(filename,t);
+		d->mVideoProvider = new FFMpegVideoProvider(filename);
 		ret = d->mVideoProvider->initDevice();
 		if (!ret.isSuccess()) {
 			goto init_provider_failed;
