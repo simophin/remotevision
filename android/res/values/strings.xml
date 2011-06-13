@@ -1,27 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">RemoteVision</string>
-    <string name="btn_start">开始</string>
-    <string name="btn_stop">停止</string>
-    <string name="setting_connect_mode">连接模式</string>
-    <string name="setting_prompt_connect_mode">选择一个连接模式</string>
-    <string name="setting_server_network_mode">使用网络</string>
-    <string name="setting_server_network_prompt">选择一个网络模式</string>
-    <string name="random_port_hint">0为随机端口</string>
-    <string name="setting_text">设置</string>
-    
-    <string-array name="setting_connect_mode_string_array">
-    	<item>服务器模式</item>
-    	<item>中继模式</item>
-    </string-array>
-    <string-array name="setting_server_network_string_array">
-    	<item>只使用Wifi网络</item>
-    	<item>优先使用Wifi网络</item>
-    	<item>只使用移动网络</item>
-    </string-array>
-    	<string name="setting_server_port_text">监听端口</string>
-    	<string name="btn_save">保存</string>
-    	<string name="btn_cancel">取消</string>
-    	<string name="setting_relay_server_text">服务器地址</string>
-    	<string name="setting_relay_port_text">端口</string>
+	<string name="app_name">RemoteVision</string>
+	<string name="btn_start">开始</string>
+	<string name="btn_stop">停止</string>
+
+
+	<string name="setting">设置</string>
+	<string name="port">端口</string>
+	<string name="network_mode">网络模式</string>
+	<string name="server_mode">服务器模式</string>
+	<string name="relay_mode">中继模式</string>
+	<string name="server_setting">服务器设置</string>
+	<string name="relay_setting">中继服务器设置</string>
+	<string name="relay_server_host">服务器地址</string>
+	<string name="relay_server_host_summary">中继服务器的地址。可以是域名或者IP地址。</string>
+	<string name="relay_port_summary">中继服务器的端口号</string>
+	<string name="server_port_summary">服务器绑定的端口号\n0为随机选择</string>
+	
+	<string name="server_network_mode">服务器网络类型</string>
+	<string name="server_network_summary">服务器所使用的网络类型</string>
+	<string name="network_mode_summary">RemoteVision使用的网络连接模式</string>
+
+
+	<string-array name="network_mode_string_array">
+		<item>服务器模式</item>
+		<item>中继模式</item>
+	</string-array>
+	<string-array name="network_mode_values">
+		<item>0</item>
+		<item>1</item>
+	</string-array>
+	<string-array name="server_mode_string_array">
+		<item>只使用Wifi网络</item>
+		<item>优先使用Wifi网络</item>
+		<item>只使用移动网络</item>
+	</string-array>
+	<string-array name="server_mode_values">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+	</string-array>
+	<string name="setting_server_port_text">监听端口</string>
+	<string name="btn_save">保存</string>
+	<string name="btn_cancel">取消</string>
+	<string name="setting_relay_server_text">服务器地址</string>
+	<string name="setting_relay_port_text">端口</string>
+
 </resources>
