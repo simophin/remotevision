@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="horizontal"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+    <ScrollView android:id="@+id/scrollView1" android:layout_height="fill_parent" android:layout_width="fill_parent">
+        <TableLayout android:layout_width="fill_parent" android:id="@+id/tableLayout1" android:layout_height="fill_parent">
+            <TableRow android:id="@+id/tableRow1" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_weight="1">
+              <TextView android:layout_height="wrap_content" android:text="@string/setting_connect_mode" android:id="@+id/textView1" android:layout_gravity="center" android:layout_weight="1" android:layout_width="50dip"></TextView>
+              <Spinner android:layout_height="wrap_content" android:id="@+id/spinConnectMode" android:prompt="@string/setting_prompt_connect_mode" android:layout_width="fill_parent" android:layout_weight="1"></Spinner>
+            </TableRow>
+            <LinearLayout android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/rowSettingContent"></LinearLayout>
+            <TableRow android:layout_gravity="center" android:id="@+id/tableRow3" android:layout_height="wrap_content" android:layout_width="wrap_content">
+                <Button android:layout_weight="1" android:layout_width="wrap_content" android:id="@+id/button1" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/btn_save"></Button>
+                <Button android:layout_weight="1" android:layout_width="wrap_content" android:id="@+id/button2" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/btn_cancel"></Button>
+            </TableRow>
+        </TableLayout>
+        
+    </ScrollView>
+</LinearLayout>

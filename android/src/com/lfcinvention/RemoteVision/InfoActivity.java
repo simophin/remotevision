@@ -3,7 +3,7 @@ package com.lfcinvention.RemoteVision;
 import java.net.SocketException;
 
 import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkMode;
-import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkType;
+import com.lfcinvention.RemoteVision.ServiceConfiguration.ServerType;
 import com.lfcinvention.RemoteVision.VideoService.NativeException;
 import com.lfcinvention.RemoteVision.VideoService.NoInterfaceAvailable;
 import com.lfcinvention.RemoteVision.VideoService.State;
@@ -43,6 +43,10 @@ public class InfoActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Init the configuration
+    	ServiceConfiguration.initConfiguration(getApplicationContext());
+        
         setContentView(R.layout.main);
         
         mBtnStart = (Button)findViewById(R.id.btnStart);
@@ -50,8 +54,13 @@ public class InfoActivity extends Activity {
         mTextView = (TextView)findViewById(R.id.boundAddressText);
         mBtnStart.setOnClickListener(onBtnStartClicked);
         mBtnStop.setOnClickListener(onBtnStopClicked);
+        
+        Intent i = new Intent();
+        i.setClass(this, SettingActivity.class);
+        startActivity(i);
 
-		bindService();
+        return;
+		//bindService();
     }
     
     private VideoService mBoundService = null;
@@ -101,12 +110,7 @@ public class InfoActivity extends Activity {
 	}
 	
 	private void loadServiceConfiguration () {
-		mServiceConfiguration = new ServiceConfiguration();
-		mServiceConfiguration.networkMode = NetworkMode.RELAY_PROVIDER_CLIENT;
-		//mServiceConfiguration.networkMode = NetworkMode.SERVER;
-		mServiceConfiguration.networkType = NetworkType.WIFI_PREFERED;
-		mServiceConfiguration.relayServerHost = "199.68.199.123";
-		mServiceConfiguration.relayServerPort = 15000;
+		mServiceConfiguration = ServiceConfiguration.getCurrentConfiguration();
 	}
 	
     

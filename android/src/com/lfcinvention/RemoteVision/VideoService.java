@@ -8,7 +8,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkMode;
-import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkType;
+import com.lfcinvention.RemoteVision.ServiceConfiguration.ServerType;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -114,7 +114,7 @@ public class VideoService extends Service {
 		}
 		
 		if (config.networkMode == NetworkMode.SERVER) {
-			boundAddr = getAvailableAddress(config.networkType);
+			boundAddr = getAvailableAddress(config.serverType);
 			if (boundAddr == null) {
 				throw new NoInterfaceAvailable();
 			}
@@ -205,12 +205,12 @@ public class VideoService extends Service {
 		}
 	}
 	
-	private String getAvailableAddress (ServiceConfiguration.NetworkType ntype) throws SocketException {
+	private String getAvailableAddress (int ntype) throws SocketException {
 		String addr = null;
 		
 		// Find a wifi network
-		if (ntype == NetworkType.WIFI_ONLY || 
-				ntype == NetworkType.WIFI_PREFERED) {
+		if (ntype == ServerType.WIFI_ONLY || 
+				ntype == ServerType.WIFI_PREFERED) {
 			WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
 			if (wifiMgr.isWifiEnabled()){
 				WifiInfo info = wifiMgr.getConnectionInfo();
@@ -218,8 +218,8 @@ public class VideoService extends Service {
 			}
 		}
 		
-		if (ntype == NetworkType.WIFI_ONLY || 
-				(ntype == NetworkType.WIFI_PREFERED && (addr != null)) ) return addr;
+		if (ntype == ServerType.WIFI_ONLY || 
+				(ntype == ServerType.WIFI_PREFERED && (addr != null)) ) return addr;
 		
 		
 		// Find a gsm network

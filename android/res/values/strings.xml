@@ -1,7 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, InfoActivity!</string>
     <string name="app_name">RemoteVision</string>
     <string name="btn_start">开始</string>
     <string name="btn_stop">停止</string>
+    <string name="setting_connect_mode">连接模式</string>
+    <string name="setting_prompt_connect_mode">选择一个连接模式</string>
+    <string name="setting_server_network_mode">使用网络</string>
+    <string name="setting_server_network_prompt">选择一个网络模式</string>
+    <string name="random_port_hint">0为随机端口</string>
+    <string name="setting_text">设置</string>
+    
+    <string-array name="setting_connect_mode_string_array">
+    	<item>服务器模式</item>
+    	<item>中继模式</item>
+    </string-array>
+    <string-array name="setting_server_network_string_array">
+    	<item>只使用Wifi网络</item>
+    	<item>优先使用Wifi网络</item>
+    	<item>只使用移动网络</item>
+    </string-array>
+    	<string name="setting_server_port_text">监听端口</string>
+    	<string name="btn_save">保存</string>
+    	<string name="btn_cancel">取消</string>
+    	<string name="setting_relay_server_text">服务器地址</string>
+    	<string name="setting_relay_port_text">端口</string>
 </resources>
