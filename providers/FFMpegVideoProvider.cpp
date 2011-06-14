@@ -279,24 +279,6 @@ Error FFMpegVideoProvider::doSetParam(const Param & param)
 
 	d->mCurrentParam = param;
 	return ret;
-
-	/*
-
-	CodecID c = FFMpegInfo::getIdFromRemoteVision(param.currentCodec.codecId);
-	ret = d->setOutputCodec(c,param.currentGeometry.width,
-			param.currentGeometry.height, (AVRational){param.currentFrameRate.den,param.currentFrameRate.num});
-
-	if (!ret.isSuccess()) {
-		return ret;
-	}
-
-	ret = d->updateSws();
-	if (!ret.isSuccess()) {
-		return ret;
-	}
-
-	return ret;
-	*/
 }
 
 Error FFMpegVideoProvider::doGetPreviewImage(PreviewImageBuffer & buf, int ms)
@@ -361,7 +343,13 @@ Error FFMpegVideoProvider::Impl::entry() {
 	// Open file
 	{
 		AVInputFormat *inputFmt = av_find_input_format(mCtx.inputFmt);
-		if (av_open_input_file(&fmtCtx,mFileName.c_str(),inputFmt,0,NULL) != 0
+		AVFormatParameters ap;
+		::memset(&ap,0,sizeof(ap));
+
+		ap.width = 640;
+		ap.height = 480;
+		ap.time_base = (AVRational) {1,25};
+		if (av_open_input_file(&fmtCtx,mFileName.c_str(),inputFmt,0,&ap) != 0
 				|| fmtCtx == NULL) {
 			rc.setErrorString("Open input error");
 			goto open_input_file_failed;
@@ -416,6 +404,8 @@ Error FFMpegVideoProvider::Impl::entry() {
 		encodeCtx->height = mCurrentParam.currentGeometry.height;
 		encodeCtx->time_base = (AVRational){mCurrentParam.currentFrameRate.num, mCurrentParam.currentFrameRate.den};
 		encodeCtx->pix_fmt = encodeInfo.supportedPixelFormat.front();
+		encodeCtx->bit_rate = 480000;
+		encodeCtx->max_b_frames = 1;
 	}
 
 	// Open encoder
@@ -465,6 +455,11 @@ Error FFMpegVideoProvider::Impl::entry() {
 				rc.setErrorString("Read frame error");
 				av_free_packet (&pkt);
 				goto read_frame_error;
+			}
+
+			if ( fmtCtx->streams[pkt.stream_index]->codec != decodeCtx) {
+				av_free_packet(&pkt);
+				continue;
 			}
 
 			if (avcodec_decode_video2(decodeCtx,decodedFrame,&got_frame,&pkt) < 0){
@@ -532,25 +527,26 @@ Error FFMpegVideoProvider::Impl::entry() {
 		decode_stop:
 		decode_frame_error:
 		read_frame_error:
-		// Notify all waiter(if exists)
-		{
-			mBufferMutex.lock();
-			for (std::list<VBufferPtr>::const_iterator iter = mBuffers.begin();
-					iter != mBuffers.end(); ++ iter) {
-				(*iter)->mutex.lock();
-				(*iter)->returned = rc;
-				(*iter)->cond.signal();
-				(*iter)->size = 0;
-				(*iter)->mutex.unlock();
-			}
-			mBuffers.clear();
-			mBufferMutex.unlock();
-		}
+
 		av_free(decodedFrame);
 		if (rc.isError()) break;
 	}
 
 
+	// Notify all waiter(if exists)
+	{
+		mBufferMutex.lock();
+		for (std::list<VBufferPtr>::const_iterator iter = mBuffers.begin();
+				iter != mBuffers.end(); ++ iter) {
+			(*iter)->mutex.lock();
+			(*iter)->returned = rc;
+			(*iter)->cond.signal();
+			(*iter)->size = 0;
+			(*iter)->mutex.unlock();
+		}
+		mBuffers.clear();
+		mBufferMutex.unlock();
+	}
 
 	allocate_space_failed:
 	sws_freeContext(swsCtx);
