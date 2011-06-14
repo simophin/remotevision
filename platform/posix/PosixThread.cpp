@@ -121,6 +121,12 @@ Error Thread::stop(int ms){
 	d->shouldStop = true;
 	return wait(NULL,ms);
 }
+
+
+void Thread::stopNoWait() {
+	d->shouldStop = true;
+}
+
 bool Thread::shouldStop() const {
 	return d->shouldStop;
 }

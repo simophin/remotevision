@@ -6,130 +6,76 @@
 
 namespace Utils {
 
-
-
-template <typename T>
-void DefaultDeleter (T * d) {
-	delete d;
-}
-
-template <typename T>
-T * DefaultCloner (const T *p) {
-	return new T(*p);
-}
-
-
 template <class T>
-class SharedPtr {
+void DefaultDeleter (T *p) {
+	delete p;
+}
+
+template <class X> class SharedPtr
+{
 public:
-	typedef void (*deleter_function) (T *);
-	typedef T* (*clone_function) (const T *);
+    typedef X element_type;
 
+    typedef void (*DeleteFunction) (X *);
 
-private :
-	class impl {
-	public:
-		T * mPtr;
-		deleter_function mDeleter;
-		clone_function mCloner;
-		int mRefCount;
+    explicit SharedPtr(X* p = 0, DeleteFunction f = DefaultDeleter<X>) // allocate a new counter
+        : itsCounter(0) {
+    		if (p) {
+    			itsCounter = new counter(p);
+    			itsCounter->deleter = f;
+    		}
+        }
+    ~SharedPtr()
+        {release();}
+    SharedPtr(const SharedPtr& r)
+        {acquire(r.itsCounter);}
+    SharedPtr& operator=(const SharedPtr& r)
+    {
+        if (this != &r) {
+            release();
+            acquire(r.itsCounter);
+        }
+        return *this;
+    }
 
-	public:
-		impl()
-		:mPtr(0),mDeleter(0),mRefCount(0) {
+    X& operator*()  const    {return *itsCounter->ptr;}
+    X* operator->() const    {return itsCounter->ptr;}
+    X* get()        const    {return itsCounter ? itsCounter->ptr : 0;}
+    bool unique()   const
+        {return (itsCounter ? itsCounter->count == 1 : true);}
+    void reset(X *p, DeleteFunction f = DefaultDeleter<X>) {
+    	release();
+    	itsCounter = new counter;
+    	itsCounter->count = 1;
+    	itsCounter->deleter = f;
+    	itsCounter->ptr = p;
+    }
 
-		}
+private:
 
-		impl (const impl &rhs)
-		:mPtr(0),
-		 mDeleter(rhs.mDeleter),
-		 mCloner(rhs.mCloner),
-		 mRefCount(1) {
-			if (rhs.mPtr) mPtr = mCloner(rhs.mPtr);
-		}
+    struct counter {
+        counter(X* p = 0, unsigned c = 1) : ptr(p), count(c) {}
+        X*          ptr;
+        unsigned    count;
+        DeleteFunction deleter;
+    }* itsCounter;
 
-		~impl () {
-			//Log::logDebug("An error instance has been deleted");
-		}
-	} *d;
+    void acquire(counter* c)
+    { // increment the count
+        itsCounter = c;
+        if (c) ++c->count;
+    }
 
-public:
-
-	SharedPtr (T * ptr = 0,
-			deleter_function deleter = DefaultDeleter<T>,
-			clone_function cloner = DefaultCloner<T>)
-	:d(new impl){
-		d->mDeleter = deleter;
-		d->mPtr = ptr;
-		d->mCloner = cloner;
-		d->mRefCount = ptr ? 1 : 0;
-	}
-
-	~SharedPtr () {
-		detach();
-	}
-
-	SharedPtr(const SharedPtr &rhs)
-	:d(rhs.d){
-		d->mRefCount ++;
-	}
-
-	SharedPtr & operator = (const SharedPtr &rhs) {
-		this->detach();
-		d = rhs.d;
-		d->mRefCount ++;
-		return *this;
-	}
-
-	const T * get() const {
-		return d->mPtr;
-	}
-
-	T * get() {
-		detach(true);
-		return d->mPtr;
-	}
-
-	T * operator-> () const{
-		assert (d->mPtr != 0);
-		return d->mPtr;
-	}
-
-	T * operator->() {
-		detach(true);
-		assert (d->mPtr != 0);
-		return d->mPtr;
-	}
-
-	void reset(T * t, deleter_function del = DefaultDeleter<T>) {
-		detach(false);
-		d->mPtr = t;
-		d->mDeleter = del;
-	}
-
-protected:
-	void detach(bool copy = false) {
-		impl *pd = d;
-
-		if (copy) {
-			if (pd->mRefCount == 1) return;
-			d = new impl(*pd);
-		}else{
-			d = new impl();
-		}
-
-		pd->mRefCount--;
-		if ( pd->mRefCount == 0 ) {
-			if (pd->mPtr) {
-				pd->mDeleter(pd->mPtr);
-				pd->mPtr = 0;
-			}
-			delete pd;
-		}
-	}
-
-
-
+    void release()
+    { // decrement the count, delete if it is 0
+        if (itsCounter) {
+            if (--itsCounter->count == 0) {
+                itsCounter->deleter(itsCounter->ptr);
+                delete itsCounter;
+            }
+            itsCounter = 0;
+        }
+    }
 };
 
 }

@@ -24,6 +24,7 @@ public:
 	Error run();
 	Error wait(Error *returned = 0,int ms = -1);
 	Error stop(int ms = -1);
+	void stopNoWait();
 
 	bool isRunning() const;
 protected:

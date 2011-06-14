@@ -18,6 +18,6 @@ ADD_SUBDIRECTORY(VideoPreviewer)
 
 #ENDIF()
 
-ADD_EXECUTABLE(UtilsTest TestUtils.cpp)
-TARGET_LINK_LIBRARIES(UtilsTest RemoteVision pthread)
+#ADD_EXECUTABLE(UtilsTest TestUtils.cpp)
+#TARGET_LINK_LIBRARIES(UtilsTest RemoteVision pthread)
 ENDIF()

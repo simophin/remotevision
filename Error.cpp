@@ -151,6 +151,9 @@ Error::Type Error::getErrorType() const
 
 void Error::setErrorType(Type t)
 {
+	if (!d.unique()) {
+		d.reset(new Impl(*d));
+	}
 	d->setErrorString(findErrorTypeMessage(t));
 	d->setErrorType(t);
 	d->setSystemErrno(findSystemErrno(t));
@@ -160,6 +163,9 @@ void Error::setErrorType(Type t)
 
 void Error::setErrorType(Type t, const String & str)
 {
+	if (!d.unique()) {
+		d.reset(new Impl(*d));
+	}
 	d->setErrorString(str);
 	d->setErrorType(t);
 	d->setSystemErrno(findSystemErrno(t));
@@ -167,7 +173,9 @@ void Error::setErrorType(Type t, const String & str)
 
 void Error::setSystemError(syserrno_t e)
 {
-
+	if (!d.unique()) {
+		d.reset(new Impl(*d));
+	}
 	d->setErrorString(findSystemErrorMessage(e));
 	d->setErrorType(findErrorType(e));
 	d->setSystemErrno(e);
@@ -177,6 +185,9 @@ void Error::setSystemError(syserrno_t e)
 
 void Error::setSystemError(syserrno_t e, const String & str)
 {
+	if (!d.unique()) {
+		d.reset(new Impl(*d));
+	}
 	d->setErrorString(str);
 	d->setErrorType(findErrorType(e));
 	d->setSystemErrno(e);
