@@ -1,11 +1,14 @@
 package com.lfcinvention.RemoteVision;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,10 +21,10 @@ import com.lfcinvention.RemoteVision.VideoService.State;
 import com.lfcinvention.RemoteVision.VideoService.StateException;
 
 public class InfoActivity extends Activity {
-    @Override
+	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == 0 && resultCode == RESULT_OK) {
-			//TODO: do something
+			
 		}
 	}
 

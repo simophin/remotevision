@@ -5,24 +5,18 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
-import java.util.List;
 
-import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkMode;
-import com.lfcinvention.RemoteVision.ServiceConfiguration.ServerType;
-
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
+
+import com.lfcinvention.RemoteVision.ServiceConfiguration.NetworkMode;
+import com.lfcinvention.RemoteVision.ServiceConfiguration.ServerType;
 
 
 public class VideoService extends Service {

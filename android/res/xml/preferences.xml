@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-	android:title="@string/setting">
+	android:title="@string/setting" android:key="service_config">
 	<PreferenceCategory android:title="@string/network_mode">
 		<ListPreference android:key="network_mode"
 			android:title="@string/network_mode" android:entries="@array/network_mode_string_array"
@@ -11,9 +11,9 @@
 
 	<PreferenceCategory android:title="@string/server_setting"
 		android:key="server_mode_group">
-		<ListPreference android:id="@+id/server_mode_list"
+		<ListPreference 
 			android:entries="@array/server_mode_string_array"
-			android:entryValues="@array/server_mode_values" android:key="server_mode"
+			android:entryValues="@array/server_mode_values" android:key="server_type"
 			android:defaultValue="1"
 			android:title="@string/server_network_mode"
 			android:summary="@string/server_network_summary">
@@ -21,6 +21,7 @@
 
 		<EditTextPreference android:title="@string/port"
 			android:key="server_port" android:numeric="integer|decimal"
+			android:defaultValue="0"
 			android:summary="@string/server_port_summary">
 		</EditTextPreference>
 	</PreferenceCategory>
@@ -29,11 +30,13 @@
 		android:title="@string/relay_setting">
 		<EditTextPreference android:key="relay_server_host"
 			android:title="@string/relay_server_host" 
+			android:defaultValue="relay.org"
 			android:summary="@string/relay_server_host_summary">
 		</EditTextPreference>
 
 		<EditTextPreference android:title="@string/port"
 			android:key="relay_server_port" 
+			android:defaultValue="15000"
 			android:numeric="integer|decimal"
 			android:summary="@string/relay_port_summary">
 		</EditTextPreference>
