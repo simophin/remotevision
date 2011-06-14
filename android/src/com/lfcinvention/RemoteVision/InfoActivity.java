@@ -1,14 +1,11 @@
 package com.lfcinvention.RemoteVision;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -24,7 +21,8 @@ public class InfoActivity extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == 0 && resultCode == RESULT_OK) {
-			
+			destroyVideoService();
+			bindVideoService();
 		}
 	}
 
@@ -41,7 +39,7 @@ public class InfoActivity extends Activity {
 		case R.id.menuItemExit: {
 			if (mBoundService != null) {
 				try {
-					mBoundService.stopService();
+					mBoundService.stopVideoService();
 				} catch (Exception e) {
 					
 				} 
@@ -67,16 +65,40 @@ public class InfoActivity extends Activity {
 
 	@Override
 	protected void onDestroy() {
-		
-    	if (mBoundService != null) {
-    		if (mBoundService.getState() != VideoService.State.STATE_IN_SERVICE) {
-    			mBoundService.stopSelf();
-    		}
+    	if (mBoundService != null && mBoundService.getState() != VideoService.State.STATE_IN_SERVICE) {
+    		destroyVideoService();
     	}
     	
 		super.onDestroy();
 	}
 
+	
+	private void destroyVideoService () {
+		if (mBoundService != null) {
+			Intent intent = new Intent(this, VideoService.class);
+			try {
+				mBoundService.stopVideoService();
+			} catch (Exception e){
+				
+			}
+			mBoundService.stopService(intent);
+			updateServiceStatus();
+		}
+		
+		Notification.cancelNotify(this);
+	}
+	
+	private void stopVideoService() {
+		if (mBoundService != null) {
+			try {
+				mBoundService.stopVideoService();
+			}catch (Exception e) {
+				
+			}
+			updateServiceStatus();
+		}
+		Notification.cancelNotify(this);
+	}
 
 	/** Called when the activity is first created. */
     @Override
@@ -94,8 +116,7 @@ public class InfoActivity extends Activity {
         mBtnStart.setOnClickListener(onBtnStartClicked);
         mBtnStop.setOnClickListener(onBtnStopClicked);
         
- 
-        bindService();
+        bindVideoService();
 
         return;
     }
@@ -123,12 +144,10 @@ public class InfoActivity extends Activity {
 			}
 			
 			InfoActivity.this.mBoundService = s;
-			
-			updateServiceStatus();
 		}
 	};
 	
-	private void bindService() {
+	private void bindVideoService() {
 		try{
 			Intent i = new Intent();
 			i.setClass(getApplicationContext(), VideoService.class);
@@ -137,6 +156,7 @@ public class InfoActivity extends Activity {
 				loadServiceConfiguration();
 				startService(i);
 			}
+
 
 			if (!bindService(i, mServiceConnection, 0)) {
 				Toast.makeText(this, "Can't bind service", Toast.LENGTH_LONG);
@@ -154,26 +174,33 @@ public class InfoActivity extends Activity {
     private View.OnClickListener onBtnStartClicked = new View.OnClickListener() {
 		public void onClick(View arg0) {
 			try{
-				mBoundService.startService();
+				mBoundService.startVideoService();
 				updateServiceStatus();
 				if (mBoundService.getState() == VideoService.State.STATE_IN_SERVICE) {
 					//mBoundService.notify("Listen on " + mBoundService.getBoundAddress());
 				}
 			}catch(Exception e) {
 				Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);
+				return;
 			}
+			
+			CharSequence seq,title,msg;
+			try {
+				seq = "RemoteVision服务运行中。监听于：" + mBoundService.getBoundAddress();
+				title = "RemoteVision";
+				msg = "监听于："+ mBoundService.getBoundAddress();
+			}catch (Exception e) {
+				return;
+			}
+			
+			Notification.doNotify(InfoActivity.this, seq, title, msg);
 		}
 	};
 	
 	private View.OnClickListener onBtnStopClicked = new View.OnClickListener() {
 		
 		public void onClick(View v) {
-			try{
-				mBoundService.stopService();
-				updateServiceStatus();
-			}catch(Exception e) {
-				Toast.makeText(InfoActivity.this, e.getMessage(), Toast.LENGTH_LONG);
-			}
+			stopVideoService();
 		}
 	};
 	

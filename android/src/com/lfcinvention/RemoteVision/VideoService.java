@@ -20,6 +20,22 @@ import com.lfcinvention.RemoteVision.ServiceConfiguration.ServerType;
 
 
 public class VideoService extends Service {
+	@Override
+	public boolean stopService(Intent name) {
+		if (mState == State.STATE_IN_SERVICE) {
+			try {
+				stopVideoService();
+			} catch (StateException e) {	
+			} catch (NativeException e) {
+			}
+		}
+		if (mState == State.STATE_READY) {
+			nativeDestroyServerInstance(mNativeServer);
+		}
+		INSTANCE = null;
+		return super.stopService(name);
+	}
+
 	public static VideoService INSTANCE = null;
 	
 	public static enum State {
@@ -74,17 +90,7 @@ public class VideoService extends Service {
 
 	@Override
 	public void onDestroy() {
-		if (mState == State.STATE_IN_SERVICE) {
-			try {
-				stopService();
-			} catch (StateException e) {	
-			} catch (NativeException e) {
-			}
-		}
-		if (mState == State.STATE_READY) {
-			nativeDestroyServerInstance(mNativeServer);
-		}
-		INSTANCE = null;
+		
 		super.onDestroy();
 	}
 
@@ -136,7 +142,7 @@ public class VideoService extends Service {
 		mState = State.STATE_READY;
 	}
 	
-	public void startService () throws StateException, NativeException {
+	public void startVideoService () throws StateException, NativeException {
 		if (mState != State.STATE_READY) {
 			throw new StateException();
 		}
@@ -150,7 +156,7 @@ public class VideoService extends Service {
 		
 	}
 	
-	public void stopService() throws StateException, NativeException {
+	public void stopVideoService() throws StateException, NativeException {
 		if (mState != State.STATE_IN_SERVICE) {
 			throw new StateException();
 		}

@@ -3,7 +3,6 @@ package com.lfcinvention.RemoteVision;
 import java.util.Vector;
 
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;

@@ -25,7 +25,7 @@ jint Java_com_lfcinvention_RemoteVision_VideoService_nativeCreateServerInstance
 	env->ReleaseStringUTFChars(host,p);
 
 	TCPFFMpegServer *server = new TCPFFMpegServer(type,addr,port);
-	Error ec = server->init("/dev/video0", FFMpegVideoProvider::DEVICE_TYPE_CAPTURE);
+	Error ec = server->init("/dev/video0");
 	if (ec.isError()) {
 		delete server;
 		server = 0;
