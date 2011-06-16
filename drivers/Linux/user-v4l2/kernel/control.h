@@ -27,7 +27,6 @@ static inline size_t vuser_control_calc_total_size (size_t data_size)
 
 enum vuser_control_command {
 	VUSER_INIT = 0,
-	VUSER_DESTROY,
 
 	VUSER_REQ,
 	VUSER_ANSWER_REQ,
