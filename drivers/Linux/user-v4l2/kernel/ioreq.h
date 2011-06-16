@@ -16,9 +16,12 @@
 #include <sys/types.h>
 #endif
 
+typedef uint32_t reqno_t;
+
 struct ioreq {
 	uint8_t cmd;
 	uint8_t size;
+	reqno_t reqno;
 	uint16_t reserved;
 };
 
@@ -44,7 +47,7 @@ struct kernel_request {
 	struct list_head list;
 	atomic_t  ref;
 	struct ioreq * request;
-	int reqno;
+	reqno_t reqno;
 };
 
 struct kernel_request * ioreq_kernel_create_request (void);
@@ -57,20 +60,20 @@ struct user_response {
 	struct list_head list;
 	atomic_t  ref;
 	struct ioreq * request;
-	int reqno;
+	reqno_t reqno;
 };
 
-static inline struct user_response * ioreq_user_create_response ()
+static inline struct user_response * ioreq_user_create_response (void)
 { return (struct user_response *)ioreq_kernel_create_request(); }
 
 static inline void ioreq_user_free_request (struct user_response *r)
-{ ioreq_kernel_free_request(r); }
+{ ioreq_kernel_free_request((struct kernel_request *)r); }
 
 static inline struct user_response * ioreq_user_put_response (struct user_response *r)
-{ return ioreq_kernel_put_request(r); }
+{ return (struct user_response *)ioreq_kernel_put_request((struct kernel_request *)r); }
 
 static inline struct user_response * ioreq_user_get_response (struct user_response *r)
-{ return ioreq_kernel_get_request(r); }
+{ return (struct user_response *)ioreq_kernel_get_request((struct kernel_request *)r); }
 
 #endif
 

@@ -9,7 +9,7 @@
 
 #include <linux/slab.h>
 
-static volatile int static_reqno = 0;
+static volatile reqno_t static_reqno = 0;
 
 struct kernel_request * ioreq_kernel_create_request () {
 	struct kernel_request * req = 0;

@@ -116,14 +116,14 @@ ssize_t vuser_read (struct file * filp, char __user *userptr, size_t size, loff_
 	return ret;
 }
 
-ssize_t vuser_write (struct file * filp, const char __user * userptr, size_t size, loff_t * off) {
+static ssize_t vuser_write (struct file * filp, const char __user * userptr, size_t size, loff_t * off) {
 	ssize_t ret = 0;
 	struct vuser_data *data = 0;
 	struct user_response *response = 0;
 	struct ioreq * io = 0;
 
 	/* Check the input data */
-	if (ioreq_get_total_size(userptr) != size) {
+	if (ioreq_get_total_size( (struct ioreq *)userptr) != size) {
 		return -EINVAL;
 	}
 
@@ -140,6 +140,7 @@ ssize_t vuser_write (struct file * filp, const char __user * userptr, size_t siz
 
 	ioreq_user_get_response(response);
 	response->request = io;
+	response->reqno = io->reqno;
 	vuser_data_append_response(data, response);
 	ioreq_user_put_response(response);
 

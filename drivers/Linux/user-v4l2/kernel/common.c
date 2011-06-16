@@ -15,6 +15,7 @@
 #include <linux/mutex.h>
 
 #include "ioreq.h"
+#include "v4l2.h"
 
 
 struct vuser_data * vuser_data_alloc(void) {
@@ -27,9 +28,14 @@ struct vuser_data * vuser_data_alloc(void) {
 	INIT_LIST_HEAD(&ret->kernel_requests);
 	INIT_LIST_HEAD(&ret->kernel_requests_end);
 	list_add_tail(&ret->kernel_requests,&ret->kernel_requests_end);
-
 	init_waitqueue_head(&ret->kernel_requests_wait);
 	mutex_init(&ret->kernel_request_mutex);
+
+	INIT_LIST_HEAD(&ret->user_responses);
+	INIT_LIST_HEAD(&ret->user_responses_end);
+	list_add_tail(&ret->user_responses,&ret->user_responses_end);
+	init_waitqueue_head(&ret->user_responses_wait);
+	mutex_init(&ret->user_response_mutex);
 
 	return ret;
 }
@@ -46,6 +52,11 @@ void vuser_data_free (struct vuser_data * data) {
 	}
 
 	mutex_unlock(&data->kernel_request_mutex);
+
+	if (data->state == VUSER_STATE_READY) {
+		vuser_destroy_video_device(&data->vdev);
+	}
+
 	kfree((void *)data);
 }
 
@@ -96,7 +107,7 @@ struct user_response * vuser_data_pop_response (struct vuser_data *d, int req) {
 	struct list_head *head = 0;
 	mutex_lock(&d->user_response_mutex);
 	if (!vuser_data_is_user_response_empty(d)) {
-		head = d->user_responses->next;
+		head = d->user_responses.next;
 		while ( head != &d->user_responses_end){
 			ret = list_entry(head,struct user_response,list);
 			if (ret->reqno == req) {
@@ -111,8 +122,9 @@ struct user_response * vuser_data_pop_response (struct vuser_data *d, int req) {
 	return ret;
 }
 
-int vuser_data_do_request_wait_response (struct vuser_data *data,struct ioreq *req, int ms) {
+int vuser_data_do_request_wait_response (struct vuser_data *data,struct ioreq *req, struct user_response **return_response, int ms) {
 	int ret = 0;
+	int remain_time = 0;
 
 	struct kernel_request * request = 0;
 	struct user_response  * response = 0;
@@ -123,8 +135,36 @@ int vuser_data_do_request_wait_response (struct vuser_data *data,struct ioreq *r
 		goto create_request_failed;
 	}
 
+	/* Do a request */
 	vuser_data_append_request(data,request);
 
+	/* Wait for response */
+	if (ms > 0) {
+		ret = wait_event_interruptible_timeout(data->user_responses_wait,
+				!vuser_data_is_user_response_empty(data),ms);
+	}else{
+		remain_time = ms;
+		while ( remain_time > 0) {
+			ret = wait_event_interruptible(data->user_responses_wait, !vuser_data_is_user_response_empty(data));
+			if (ret <  0) goto wait_response_error;
+			else if (ret == 0) goto wait_timeout;
+			else {
+				response = vuser_data_pop_response(data, request->reqno);
+				if (response == NULL) {
+					ret = -ETIMEDOUT;
+					continue;
+				}else{
+					*return_response = response;
+					ret = 0;
+					break;
+				}
+			}
+		}
+	}
+
+	wait_timeout:
+	wait_response_error:
+	ioreq_kernel_put_request(request);
 	create_request_failed:
 	return ret;
 }

@@ -18,6 +18,8 @@
 #include <linux/mutex.h>
 
 struct kernel_request;
+struct user_response;
+struct ioreq;
 struct vuser_data {
 	atomic_t ref;
 	unsigned char state;
@@ -55,7 +57,7 @@ struct kernel_request *vuser_data_shift_request (struct vuser_data *);
 void vuser_data_append_response (struct vuser_data *, struct user_response *);
 struct user_response * vuser_data_pop_response (struct vuser_data *, int reqno);
 
-int vuser_data_do_request_wait_response (struct vuser_data *,struct ioreq *, int ms);
+int vuser_data_do_request_wait_response (struct vuser_data *,struct ioreq *,struct user_response **, int ms);
 
 enum video_state {
 	VUSER_STATE_UNINITIALIZED,
